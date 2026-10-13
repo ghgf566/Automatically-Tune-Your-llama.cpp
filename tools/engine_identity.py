@@ -61,8 +61,8 @@ def observed_identity(binary_sha256, command, registry_upstream_commit, version_
         "binary_sha256": binary_sha256,
         "engine_version_output": version_text[:4096] if known else None,
         # Only identify a commit printed by the executable itself.
-        **parse_reported_build(version_text) if known else
-          parse_reported_build(""),
+        **(parse_reported_build(version_text) if known else
+           parse_reported_build("")),
         "registry_upstream_commit": registry_upstream_commit,
         "cache_key": capability_cache_key(binary_sha256, command, registry_upstream_commit,
                                           version_text if known else None),
