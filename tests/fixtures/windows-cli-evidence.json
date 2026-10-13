@@ -1,0 +1,41 @@
+{
+  "source": "Reduced and de-identified observations from official Windows llama.app 0.6.0-dev build 11574, supplied by project owner on 2026-10-14; not a replay of original JSON",
+  "version_output": "version: 0.6.0-dev (build 11574, commit 8bb3cf0d2)\nbuilt with Clang 22.1.8 for Windows x86_64",
+  "command_evidence": {
+    "serve": {
+      "observed_flags": [
+        "--list-devices",
+        "--fit",
+        "--fit-target",
+        "--spec-ngram-size-n"
+      ],
+      "malformed_legacy_token": "--spec-ngram-"
+    },
+    "bench": {
+      "observed_flags": [
+        "--offline",
+        "--version",
+        "--list-devices",
+        "--fit-target",
+        "--n-prompt",
+        "--n-gen"
+      ],
+      "not_observed": [
+        "--rpc"
+      ]
+    },
+    "fit-params": {
+      "observed_flags": [
+        "--fit",
+        "--fit-print",
+        "--fit-target",
+        "--fit-ctx",
+        "--list-devices",
+        "--model",
+        "--n-gpu-layers",
+        "--override-tensor"
+      ]
+    }
+  },
+  "synthetic_device_output": "Available devices:\n  Vulkan0: Example GPU (8192 MiB, 7500 MiB free)\n"
+}

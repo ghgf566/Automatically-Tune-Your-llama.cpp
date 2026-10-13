@@ -24,7 +24,7 @@ def flags_from_help(output):
     for line in ANSI.sub("", output).splitlines():
         match = START_FLAGS.match(line.lstrip())
         if match:
-            found.update(FLAG.findall(match.group(0)))
+            found.update(f for f in FLAG.findall(match.group(0)) if not f.endswith("-"))
     return found
 
 
