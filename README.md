@@ -4,6 +4,29 @@ ATYL 研究如何根據使用者的硬體、模型、服務負載與目標，自
 
 目前階段是**理解與規格化**：整理上游已提供的控制面、量測能力、限制與研究問題。這個 repo 尚未包含 GUI、完整 tuner、安裝器或執行期自動修改器。
 
+## 官方 llama.cpp 安裝與執行入口
+
+ATYL **優先支援官方 [llama.app](https://llama.app) 安裝的整合式 `llama.exe`**，不下載或打包 GitHub Releases 中的獨立推理引擎，也不自行替換 llama.cpp 核心。預設由 PATH 尋找 `llama`，以 `llama serve`／`llama bench` 分別對應原有的 server／bench 參數研究；既有獨立執行檔保留為明確指定時的相容模式。
+
+在 **PowerShell** 安裝（`irm`／`iex` 不是 CMD 原生命令）：
+
+```powershell
+irm https://llama.app/install.ps1 | iex
+llama version
+llama help all
+llama serve --help
+llama bench --help
+```
+
+Windows 安裝腳本目前將實際執行檔放在 `%LOCALAPPDATA%\Microsoft\WindowsApps\llama.exe`；依可用 CUDA、ROCm、Vulkan 與 CPU 版本選擇預編譯檔。**實際選到的後端必須以本機檢查為準。** 安裝和更新由官方通道／使用者自行執行，ATYL 目前不自動執行遠端腳本或 `llama update`。
+
+```powershell
+python tools/probe_runtime.py --command serve --output server-capability.json
+python tools/probe_runtime.py --command bench --output bench-capability.json
+```
+
+探測器只呼叫版本與說明指令；上述命令不會載入模型或啟動伺服器。完整細節見 [官方安裝策略](docs/research/official-installation.md) 與 [Runtime CLI 探測文件](docs/research/runtime-capability.md)。
+
 ## 目前文件
 
 - [文件索引](docs/README.md)

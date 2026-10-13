@@ -2,6 +2,10 @@
 
 This is a **pinned documentation inventory**, not a runtime hardware capability probe or an automatic tuner.
 
+## 整合式 llama CLI 與 Registry 的關係
+
+官方 Windows 安裝版只有一個 `llama.exe` 入口。Registry 內的 `program: llama-server` 對應 `llama serve`，`program: llama-bench` 對應 `llama bench`；這是**邏輯功能名稱**，不是獨立 exe 的安裝要求。詳見 [官方安裝策略](../research/official-installation.md)。
+
 ## Two separate layers
 
 - [CLI Inventory](../../data/cli-inventory.json): 257 documented llama-server entries plus 45 llama-bench entries (including removed/deprecated flags). Each entry records executable, aliases, source line, and documented defaults/environment variable where identifiable.

@@ -18,3 +18,9 @@
 - 固定快照的 server README 將 `--fit` 描述為可啟用/停用的記憶體 fit 功能；其意義不等於完整效能搜尋。
 - GGML ops 支援狀態可用於理解 backend 能力，需結合實際模型圖與本機量測。
 - 本輪已檢視五份約定來源；本 repo 所有「初步架構」與「搜尋方式」均為 ATYL 研究提案，並非上述上游文件已承諾的功能。
+
+## 官方整合式安裝通道（ATYL 入口決策）
+
+- [官方 Windows PowerShell 安裝腳本](https://llama.app/install.ps1)（非固定快照，2026-10-14 核對）：探測 CUDA → ROCm → Vulkan → CPU 並將 `llama.exe` 安裝至 LocalAppData 的 WindowsApps；不能預先假定選中何種 GPU 後端。
+- [固定上游 commit 的整合式指令路由原始碼](https://github.com/ggml-org/llama.cpp/blob/77c4540ce4667f4577753fe034a3a8042f510b8f/app/llama.cpp)：確認 `version`、`serve`、`bench`、`fit-params` 與 `update` 指令。`update` 僅官方 installer build 支援。
+- 本項是 ATYL 的執行檔發現和路由規則，**不改寫**先前五份研究文件所使用的固定 CLI 參數基準。

@@ -4,11 +4,17 @@ These are **research-stage JSON Schema contracts**. They define what must be cap
 
 ## Workload profile
 
-Required: pinned `engine` binary and commit, GGUF model SHA-256, concrete workload (prompt/generation/context/concurrency), objective, quality/service constraints, user-locked CLI values and a candidate proposal.
+Required: pinned `engine` binary, subcommand where applicable, and commit, GGUF model SHA-256, concrete workload (prompt/generation/context/concurrency), objective, quality/service constraints, user-locked CLI values and a candidate proposal.
 
 All parameters use a **canonical CLI name** and preserve the original CLI value type; the flag inventory does not yet verify individual value types. Lists are allowed for future multi-device arguments. Validation does not claim the CLI can accept every typed value.
 
 **User locks cannot be overridden.** The validation tool rejects keys appearing in both `user_locked_parameters` and `candidate_parameters`. Context and concurrency minima must be respected. This cross-field policy is not encoded fully by JSON Schema alone.
+
+## Engine entrypoint in profiles
+
+Prefer `engine.binary: "llama"`, `engine.command: "bench"` or `"serve"`, and `engine.installation_source: "llama.app"`. The registry target is inferred as `llama-bench` or `llama-server` *after resolving the subcommand*. Legacy profiles using `llama-bench` or `llama-server` may omit `engine.command`; conflicting explicit commands are rejected. The workload `mode` must match the effective command.
+
+Do not hard-code WindowsApps into the profile. The eventual process record's `configuration.launched_argv` must include the real executable path **and subcommand**. Updating `llama.exe` changes the binary fingerprint and invalidates old capability measurements.
 
 ## Run record
 
