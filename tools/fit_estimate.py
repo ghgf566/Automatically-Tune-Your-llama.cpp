@@ -16,7 +16,8 @@ from pathlib import Path
 from engine_adapter import command_prefix, discover_binary, resolve_entrypoint
 from engine_identity import sha256_file
 from inspect_gguf import GGUFMetadataError, inspect
-from environment_observation import observe as observe_environment, summarize as summarize_environment
+from environment_observation import (clean_llama_env, observe as observe_environment,
+                                     summarize as summarize_environment)
 
 REQUIRED_FIT_FLAGS = frozenset({
     "--model", "--fit-print", "--fit", "--ctx-size", "--n-gpu-layers",
@@ -178,8 +179,7 @@ def execute_plan(plan, *, timeout_seconds=600):
         with tempfile.TemporaryFile(mode="w+b") as out, tempfile.TemporaryFile(mode="w+b") as err:
             process = subprocess.Popen(
                 argv, stdin=subprocess.DEVNULL, stdout=out, stderr=err,
-                env={k: v for k, v in os.environ.items()
-                     if not k.startswith("LLAMA_ARG_") and k not in ("HF_TOKEN", "HUGGING_FACE_HUB_TOKEN")},
+                env=clean_llama_env(),
             )
             try:
                 rc = process.wait(timeout=timeout_seconds)

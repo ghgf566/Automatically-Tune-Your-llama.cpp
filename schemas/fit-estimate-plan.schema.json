@@ -170,7 +170,117 @@
       }
     },
     "environment": {
-      "$ref": "environment-observation.schema.json"
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario",
+        "scenario_is_user_declared",
+        "background_note",
+        "capture_status",
+        "before",
+        "after",
+        "available_memory_change"
+      ],
+      "properties": {
+        "scenario": {
+          "enum": [
+            "daily",
+            "reduced_background"
+          ]
+        },
+        "scenario_is_user_declared": {
+          "const": true
+        },
+        "background_note": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 300
+        },
+        "capture_status": {
+          "enum": [
+            "not_sampled",
+            "captured_best_effort"
+          ]
+        },
+        "before": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/sample"
+            }
+          ]
+        },
+        "after": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/sample"
+            }
+          ]
+        },
+        "available_memory_change": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/change"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "capture_status": {
+                "const": "not_sampled"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "before": {
+                "type": "null"
+              },
+              "after": {
+                "type": "null"
+              },
+              "available_memory_change": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "capture_status": {
+                "const": "captured_best_effort"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "before": {
+                "type": "object"
+              },
+              "after": {
+                "type": "object"
+              },
+              "available_memory_change": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      ]
     }
   },
   "allOf": [
@@ -246,5 +356,164 @@
         }
       }
     }
-  ]
+  ],
+  "$defs": {
+    "mem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "reason",
+        "total_mib",
+        "available_mib"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "observed",
+            "unknown"
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "total_mib": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "available_mib": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "gpu": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "reason",
+        "device_id",
+        "backend_id",
+        "description",
+        "total_mib",
+        "available_mib"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "observed",
+            "unknown",
+            "not_requested"
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "device_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "backend_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "total_mib": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "available_mib": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "sample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timestamp_utc",
+        "ram",
+        "gpu"
+      ],
+      "properties": {
+        "timestamp_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ram": {
+          "$ref": "#/$defs/mem"
+        },
+        "gpu": {
+          "$ref": "#/$defs/gpu"
+        }
+      }
+    },
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "system_ram_available_delta_mib",
+        "gpu_available_delta_mib",
+        "peak_gpu_usage_mib",
+        "peak_ram_usage_mib",
+        "attribution",
+        "model_load_status"
+      ],
+      "properties": {
+        "system_ram_available_delta_mib": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "gpu_available_delta_mib": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "peak_gpu_usage_mib": {
+          "type": "null"
+        },
+        "peak_ram_usage_mib": {
+          "type": "null"
+        },
+        "attribution": {
+          "const": "unknown_background_load_and_driver_effects"
+        },
+        "model_load_status": {
+          "const": "not_tested"
+        }
+      }
+    }
+  }
 }
