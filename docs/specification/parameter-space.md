@@ -28,11 +28,15 @@ ATYL 的目標是針對明確指定的模型、建置、硬體與工作負載，
 | Context / KV | `--ctx-size`, `--cache-type-k`, `--cache-type-v`, `--kv-offload`, `--kv-unified`, `--kv-unified-per-slot`, `--cache-ram` | 可用上下文、KV 記憶體占用與裝置放置 | Context 同時是容量限制與工作負載規格；不得為了跑分而偷偷縮短需求 |
 | Prompt 計算批次 | `--batch-size`, `--ubatch-size`, server `--parallel` / slot 與 batching 選項 | Prompt processing 計算效率、暫存記憶體及併發 | 依 prompt 長度與併發共同評估；不能只看單請求 |
 | Attention / backend offload | `--flash-attn`, `--op-offload`, `--no-host`, `--repack`, `--load-mode`, `--lazy-mode` | 運算 kernel、buffer 路徑、權重載入/常駐行為 | 依 build/backend 和模型支援狀態進行條件式測試 |
-| Speculative decoding | `--spec-type`, draft model、`--spec-draft-n-max` 與 n-gram 專屬選項 | 以 draft 提議、target 驗證換取生成吞吐；可能增加 draft 成本/記憶體 | 先限定 generation 工作負載並確認 draft 兼容性；記錄接受率與端到端效能 |
+| Speculative decoding／MTP | `--spec-type`（`none`／`draft-mtp`／`draft-simple`）、`--spec-draft-n-max`、選用外掛 `--model-draft`、草稿裝置／層數 | 內建或外掛的 MTP 與一般 Draft Model 是不同候選；接受率、VRAM/RAM 額外成本會影響整體收益 | 先確認 GGUF 的 NextN/MTP 欄位與引擎支援，再以同負載比較開／關；[詳見 MTP 搜尋規格](../research/mtp-speculative-search.md) |
 | 模型/精度選擇 | GGUF 模型與量化檔、draft/projector 檔案 | 改變權重大小、記憶體需求、精度與 kernel 路徑 | 初期視為實驗條件而非同一模型下的 runtime 微調參數 |
 | 取樣與輸出語意 | sampler、temperature、top-k/top-p 等 | 主要定義生成分佈與輸出語意，也可能影響服務工作量 | 預設鎖定為 workload contract，不以效能名義改動 |
 
 上游 `llama-server` README 是 server CLI 的主要能力索引；`llama-bench` README 則列出 benchmark 可枚舉的測試參數。對調參器而言，server 選項「存在」不代表 benchmark 可以完整評估其真實服務效應。
+
+## MTP 也是條件式搜尋變數
+
+MTP 至少有「關閉」、「主模型內建 NextN/MTP Head」、「外掛相容 MTP Head」三種模式；另外的一般小 Draft Model（`draft-simple`）不得混為 MTP。是否啟用、草稿 Token 數與外掛模型的放置都可能改變最佳 Offload 與記憶體可行性。嚴禁僅依檔名宣稱支援，須以 `{arch}.nextn_predict_layers`、額外 GGUF 配對資料、當前引擎 Help 及後續實際載入驗證逐層確認。詳見 [MTP 與 Speculative Decoding 條件式調校規格](../research/mtp-speculative-search.md)。
 
 ## 3. 上游自動 fit 與 ATYL 的差異
 

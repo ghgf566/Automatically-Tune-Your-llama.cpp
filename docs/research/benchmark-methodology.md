@@ -50,3 +50,7 @@ README 所述三種測試是 prompt processing (`pp`)、text generation (`tg`) �
 ## Background-load controls (planned benchmark relevance)
 
 The opt-in fit-estimate stage captures declared `daily` and `reduced_background` environments plus pre/post headroom. These snapshots are **not benchmark measurements**, do not record peak memory, and are not sufficient to attribute changes to Wallpaper Engine or any other process. Subsequent throughput benchmarks should separately control warm-up, memory pressure, thermal conditions, OS page cache and repetitive trials.
+
+## MTP／Speculative Decoding 的量測邊界
+
+完整 generation 基準應以 `spec_mode=off` 對照 `embedded_mtp` 與已驗證的 `external_mtp`，保持 target model、Context、取樣契約、併發與測試文本一致；在公平容量比較中保留 Draft 的額外 RAM/VRAM 消耗。記錄 drafted/accepted token 數、實際接受率、純 generation throughput、TTFT、p50/p95 延遲及端到端效能。草稿若拖慢生成就不要列為最佳候選。`llama-bench` 核心測試不一定覆蓋完整伺服器 speculative 路徑，因此須獨立以 Server/CLI 實際工作負載驗證。參考 [MTP 條件式候選研究](mtp-speculative-search.md)。

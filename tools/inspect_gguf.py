@@ -50,6 +50,8 @@ ARCH_SUFFIXES = {
     ".rope.freq_base", ".rope.scaling.type", ".rope.scaling.factor",
     ".rope.scaling.original_context_length",
     ".expert_feed_forward_length", ".expert_shared_count",
+    # Exact on-disk field from pinned llama-arch.cpp / gguf-py constants.
+    ".nextn_predict_layers",
 }
 
 

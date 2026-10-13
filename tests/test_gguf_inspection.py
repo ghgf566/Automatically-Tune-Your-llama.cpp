@@ -103,6 +103,21 @@ class GGUFInspectionTest(unittest.TestCase):
         self.assertNotIn("kv_cache_bytes", out)
         self.assertFalse(out["validation"]["model_load_tested"])
 
+    def test_observes_explicit_nextn_mtp_layers_without_claiming_compatibility(self):
+        embedded = [
+            ("general.architecture", 8, "qwen35"),
+            ("qwen35.nextn_predict_layers", 4, 2),
+        ]
+        result = inspect(self.write(synthetic_gguf(embedded, tensor=False)))
+        self.validator.validate(result)
+        self.assertEqual(result["architecture_metadata"]["nextn_predict_layers"], 2)
+        self.assertEqual(result["validation"]["model_backend_compatibility"], "not_tested")
+
+        not_declared = [("general.architecture", 8, "qwen35")]
+        result2 = inspect(self.write(synthetic_gguf(not_declared, tensor=False)))
+        self.assertNotIn("nextn_predict_layers", result2["architecture_metadata"])
+        self.assertEqual(result2["validation"]["model_backend_compatibility"], "not_tested")
+
     def test_synthetic_split_reports_incomplete_multifile(self):
         fields = [
             ("general.architecture", 8, "llama"),

@@ -48,6 +48,10 @@ python tools/probe_runtime.py --command fit-params --output fit-capability.json
 - `tools/device_inventory.py`：可選擇性列舉 GGML 回報的非 CPU 裝置及可用記憶體；尚未驗證實際 Backend／模型能力。
 - [Windows 手動 Smoke Test](docs/research/windows-smoke-test.md)：操作官方已安裝的 llama.exe，不需要啟動推理服務。
 
+## 未來調校變數：MTP／Speculative Decoding
+
+已將內建 NextN/MTP Head、外掛 MTP Head 和一般 Draft Model 分為不同候選，GGUF Inspector 現可唯讀擷取 `{arch}.nextn_predict_layers`。**這只是中繼資料觀察，不代表引擎相容或實測加速**；後續將以 `off` 基準、完整容量檢查與實際 Generation/Server Benchmark 比較。詳細規格見 [MTP／Speculative Decoding](docs/research/mtp-speculative-search.md)。
+
 ## 穩定性與安全重構
 
 所有 JSON 輸出工具統一使用原子式安全寫入：**預設不覆寫已存在的 JSON**，重跑相同輸出檔名需加 `--overwrite`，且永遠禁止把重要輸入檔當輸出。估算若子程序逾時、失敗或輸出過量，即使保存了診斷 JSON，也會以**退出碼 2**結束（0 代表預覽或估算執行完成；1 代表驗證或檔案寫入失敗）。Runtime 快照有結構 Schema 驗證，所有引擎呼叫共用受輸出／時間限制的子程序執行器。
