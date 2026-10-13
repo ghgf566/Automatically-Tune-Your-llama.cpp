@@ -46,3 +46,7 @@ README 所述三種測試是 prompt processing (`pp`)、text generation (`tg`) �
 `run_id`, timestamp, source commit, binary/build id, backend, device inventory, model fingerprints, workload profile, requested parameters, effective parameters, fit output/status, warm-up/repetitions, raw result references, mean, standard deviation, latency percentiles (when available), throughput, peak host/device memory, exit/error state, notes.
 
 機器規格、模型路徑或原始流量可能敏感；分享報告前應允許遮蔽路徑與請求內容，但不應丟掉用於重現的非敏感識別資訊。
+
+## Background-load controls (planned benchmark relevance)
+
+The opt-in fit-estimate stage captures declared `daily` and `reduced_background` environments plus pre/post headroom. These snapshots are **not benchmark measurements**, do not record peak memory, and are not sufficient to attribute changes to Wallpaper Engine or any other process. Subsequent throughput benchmarks should separately control warm-up, memory pressure, thermal conditions, OS page cache and repetitive trials.

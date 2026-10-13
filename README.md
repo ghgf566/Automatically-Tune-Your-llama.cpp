@@ -56,6 +56,10 @@ python tools/inspect_gguf.py --model "D:\AIModels\Author\Repository\model.gguf" 
 
 可以只掃描 GGUF 標頭、特定架構欄位及張量描述（不讀權重），為下一階段的安全 Fitting 做資料準備。**不會在此推估模型可用 VRAM，或宣稱特定 Backend 相容。** 詳見 [GGUF Metadata Inspector v0.1](docs/research/gguf-metadata-inspection.md)。
 
+## 日常 vs 低背景負載（不自動停止程式）
+
+`fit_estimate.py --execute` 現在會保留估算前後的系統 RAM、GGML GPU 記憶體餘量與環境標籤；可分別執行 `--scenario daily`／`--scenario reduced_background`，再用 `tools/compare_scenarios.py` 比較。**這些都是當下可用量，並非模型峰值或實測吞吐量。** 詳見 [環境觀察與比較](docs/research/environment-observation.md)。
+
 ## 官方 Fit 記憶體估算：先預覽，再明確執行
 
 已加入 `tools/fit_estimate.py`。**預設只產生估算計畫，不會啟動 llama.exe**。必須提供 `fit-params` 實機探測 JSON，若指定 GPU，還需要相同執行檔版本的裝置探測 JSON。真正讓官方引擎讀取 GGUF 及估算記憶體，必須明確加上 `--execute`。請先看 [Windows Fit 估算說明](docs/research/fit-estimate-preview.md)；**不會自動搜尋最優 GPU 層數或啟動 Server**。

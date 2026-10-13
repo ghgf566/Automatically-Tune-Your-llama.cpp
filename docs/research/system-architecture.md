@@ -57,6 +57,10 @@ Benchmark Adapter（llama-bench 與未來 server workload）
 
 新增 `tools/inspect_gguf.py` 作為獨立模型中繼資料入口：只讀取 GGUF 標頭、KV 與張量描述，保留檔案局部性與分檔狀態；不讀權重、不啟動推論引擎。解析出來的模型資訊不能直接與 GGML 裝置剩餘記憶體比較，因為模型載入、KV Cache、Context 和 Backend Buffer 的需求仍未知。已加入單一候選參數的 `tools/fit_estimate.py`：預設預覽，只有明確 `--execute` 才會讓官方引擎讀取模型並列印估算。它驗證 Fit Help 與設備快照的 SHA-256 相符，仍不代表實際載入成功或找到最佳配置。多候選搜尋、完整分檔確認與可靠的估算輸出解析仍待開發。
 
+## 測試情境與可用記憶體記錄
+
+現在估算 Runner 可以在 `--execute` 明確授權後，各在開始前和結束後擷取一次系統 RAM 與 GGML 記憶體餘量；用 `daily`／`reduced_background` 保存手動實驗條件。這不是高頻記憶體追蹤或載入成功率，也不能把前後差值歸因於模型或 Wallpaper Engine。跨情境比較器只接受同引擎版本、同記錄模型與同候選設定。
+
 ## 裝置探測的狀態界線
 
 目前可選擇性以 `--list-devices` 查詢 GGML 列出的**非 CPU** 裝置及其記憶體，並保留成功、沒有列出與未知三種狀態。這只屬於引擎環境觀察，尚未驗證 CPU／NPU 的可運算能力、後端算子支援或特定模型能否載入。真正的可行性閘門不能只靠該輸出。

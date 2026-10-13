@@ -22,7 +22,7 @@ python tools/fit_estimate.py --model "D:\model\Qwen3.8-27B-UD-IQ4_XS.gguf" `
   --output fit-plan.json
 ```
 
-`fit-plan.json` will have `status: prepared_not_executed` and `estimate: null`. The command includes `--offline`, `--fit off`, `--fit-print on`, the chosen context, GPU layer count, and the explicitly verified `Vulkan0` device ID. It **does not** try other configurations, calculate a VRAM fit ratio from file size, or change user settings.
+`fit-plan.json` will have `status: prepared_not_executed`, `estimate: null`, and `environment.capture_status: not_sampled`. The command includes `--offline`, `--fit off`, `--fit-print on`, the chosen context, GPU layer count, and the explicitly verified `Vulkan0` device ID. It **does not** try other configurations, calculate a VRAM fit ratio from file size, or change user settings.
 
 ## Explicitly execute the same kind of estimate
 
@@ -35,6 +35,8 @@ python tools/fit_estimate.py --model "D:\model\Qwen3.8-27B-UD-IQ4_XS.gguf" `
   --device Vulkan0 --context 4096 --gpu-layers 18 `
   --execute --timeout 600 --output fit-estimate-result.json
 ```
+
+**Environment capture:** an opt-in execution now also takes before/after snapshots of Windows system RAM and the selected GGML device (using `llama serve --list-devices`). Use `--scenario daily --background-note "Wallpaper Engine running"` to label normal conditions; use `--scenario reduced_background` only after manually reducing background apps. Neither label is verified by ATYL. See [environment comparison procedure](environment-observation.md). These two samples do not measure peak memory or prove model load.
 
 An execution uses an argument array (`shell=False` in effect), never PowerShell command concatenation, and filters `LLAMA_ARG_*` overrides and common HF credentials from the child environment. The program captures at most 16 KiB per output stream to the JSON (temporary output streams can be larger on disk), records exit status and does not auto-apply any returned suggestions. The complete estimate remains an **upstream message excerpt** (`estimate.stdout_excerpt`), not yet a validated numeric structured memory model.
 
