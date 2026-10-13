@@ -163,7 +163,9 @@ class SpeculativePlanningTest(unittest.TestCase):
             s.write_text(json.dumps(search_config()), encoding="utf-8")
             m.write_text(json.dumps(model_observation()), encoding="utf-8")
             r.write_text(json.dumps(serve_runtime()), encoding="utf-8")
-            argv = ["plan_speculative_search.py", "--search", str(s),
+            from shutil import copyfile
+            copyfile(ROOT / "examples/workload-profile.speculative.example.json", s)
+            argv = ["plan_speculative_search.py", "--profile", str(s),
                     "--model-observation", str(m), "--runtime-snapshot", str(r),
                     "--output", str(out)]
             with patch("sys.argv", argv):
@@ -173,6 +175,78 @@ class SpeculativePlanningTest(unittest.TestCase):
             with patch("sys.argv", argv):
                 self.assertEqual(main(), 1)
             self.assertTrue(s.read_text("utf-8").startswith('{"schema_version"'))
+
+    def test_complete_profile_is_bound_and_missing_model_digest_blocks_mtp(self):
+        profile = json.loads(
+            (ROOT / "examples/workload-profile.speculative.example.json").read_text("utf-8"))
+        preview = make_preview(profile["speculative_search"], model_observation(),
+                               serve_runtime(), profile=profile)
+        self.assertEqual(preview["profile_id"], profile["profile_id"])
+        self.assertEqual(preview["model_identity_status"], "unverified")
+        self.assertTrue(all(len(c["candidate_id"]) == 64 for c in preview["candidates"]))
+        self.assertIn("target_model_full_hash_evidence_missing",
+                      preview["candidates"][1]["reasons"])
+        repeated = make_preview(profile["speculative_search"], model_observation(),
+                                serve_runtime(), profile=profile)
+        self.assertEqual([c["candidate_id"] for c in preview["candidates"]],
+                         [c["candidate_id"] for c in repeated["candidates"]])
+        altered = copy.deepcopy(profile)
+        altered["workload"]["context_tokens"] = 8192
+        altered["constraints"]["minimum_context_tokens"] = 4096
+        different = make_preview(altered["speculative_search"], model_observation(),
+                                 serve_runtime(), profile=altered)
+        self.assertNotEqual(preview["candidates"][1]["candidate_id"],
+                            different["candidates"][1]["candidate_id"])
+
+    def test_profile_model_identity_evidence_can_be_recorded_but_not_execute(self):
+        profile = json.loads(
+            (ROOT / "examples/workload-profile.speculative.example.json").read_text("utf-8"))
+        observed = model_observation()
+        evidence = {
+            "kind": "fit_estimate_plan",
+            "engine_sha256": "a" * 64,
+            "model": {
+                "filename": observed["source"]["filename"],
+                "file_size_bytes": observed["source"]["file_size_bytes"],
+                "fingerprint": {
+                    "full_file_hashed": True,
+                    "full_file_sha256": profile["model"]["sha256"],
+                }
+            },
+        }
+        p = make_preview(profile["speculative_search"], observed, serve_runtime(),
+                         profile=profile, fit_plan=evidence)
+        self.assertEqual(p["model_identity_status"], "recorded_full_digest_match")
+        self.assertEqual(p["candidates"][1]["readiness"], "requires_runtime_mode_and_load_test")
+        self.assertFalse(p["candidates"][1]["executable"])
+        evidence["model"]["fingerprint"]["full_file_sha256"] = "f" * 64
+        with self.assertRaisesRegex(SpeculativePlanError, "digest"):
+            make_preview(profile["speculative_search"], observed, serve_runtime(),
+                         profile=profile, fit_plan=evidence)
+
+    def test_locked_draft_alias_is_detected_during_full_profile_validation(self):
+        from validate_contracts import validate_profile_document
+        base = json.loads(
+            (ROOT / "examples/workload-profile.speculative.example.json").read_text("utf-8"))
+        for alias in ("-ngld", "--n-gpu-layers-draft", "--spec-draft-p-min", "--draft-n", "-md"):
+            profile = copy.deepcopy(base)
+            profile["user_locked_parameters"][alias] = 1
+            with self.subTest(alias=alias), self.assertRaisesRegex(ValueError, "speculative controls"):
+                validate_profile_document(profile)
+
+    def test_full_profile_rejects_runtime_binary_and_architecture_disagreement(self):
+        profile = json.loads(
+            (ROOT / "examples/workload-profile.speculative.example.json").read_text("utf-8"))
+        profile["engine"]["binary_sha256"] = "f" * 64
+        with self.assertRaisesRegex(SpeculativePlanError, "engine SHA"):
+            make_preview(profile["speculative_search"], model_observation(),
+                         serve_runtime(), profile=profile)
+        profile["engine"]["binary_sha256"] = None
+        observed = model_observation()
+        observed["general"] = {"architecture": "other"}
+        with self.assertRaisesRegex(SpeculativePlanError, "architecture"):
+            make_preview(profile["speculative_search"], observed,
+                         serve_runtime(), profile=profile)
 
     def test_run_result_crossfield_guards(self):
         base = json.loads((ROOT / "examples/run-record.example.json").read_text("utf-8"))
