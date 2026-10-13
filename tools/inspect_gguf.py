@@ -6,6 +6,7 @@ pinned at 77c4540ce4667f4577753fe034a3a8042f510b8f.
 """
 import argparse
 import json
+import math
 import struct
 import sys
 from collections import Counter
@@ -136,15 +137,19 @@ def inspect(path):
         if tensor_count > MAX_TENSORS or kv_count > MAX_KEYS:
             raise GGUFMetadataError("implausible GGUF tensor or key count")
         metadata = {}
+        seen_keys = set()
         for _ in range(kv_count):
             key = reader.text(capture=True, length_limit=MAX_KEY_BYTES)
-            if not key or key in metadata:
+            if not key or key in seen_keys:
                 raise GGUFMetadataError("invalid or duplicate GGUF metadata key")
+            seen_keys.add(key)
             kind = reader.unpack("<I")
             data = reader.value(kind, capture=wanted_key(key) and kind != TYPE_ARRAY)
             # Only retain explicitly whitelisted scalar fields, not paths,
             # free-form tokenizer data, private metadata or huge arrays.
             if wanted_key(key) and kind != TYPE_ARRAY:
+                if isinstance(data, float) and not math.isfinite(data):
+                    raise GGUFMetadataError("non-finite GGUF metadata value")
                 metadata[key] = data
 
         alignment = metadata.get("general.alignment", 32)
