@@ -43,6 +43,34 @@ class ProcessRunnerTests(unittest.TestCase):
         self.assertIsNone(result["returncode"])
         self.assertEqual(result["stderr"], "FileNotFoundError")
 
+    def test_explicit_cancel_event_stops_owned_child(self):
+        from threading import Event
+        cancelled = Event()
+        cancelled.set()
+        result = run_bounded(
+            [sys.executable, "-c", "import time;time.sleep(30)"], 10,
+            cancel_event=cancelled)
+        self.assertEqual(result["status"], "cancelled")
+        self.assertIsNone(result["returncode"])
+
+    def test_timeout_kills_descendant_process_before_file_write(self):
+        import json
+        import time
+        with TemporaryDirectory() as d:
+            target = Path(d) / "descendant-survived.txt"
+            grandchild = ("import time,pathlib;time.sleep(0.7);"
+                          "pathlib.Path(" + repr(str(target)) + ").write_text('orphan')")
+            parent = ("import subprocess,sys,time;"
+                      "subprocess.Popen([sys.executable,'-c'," +
+                      repr(grandchild) + "]);time.sleep(30)")
+            result = run_bounded(
+                [sys.executable, "-c", parent], 0.25,
+                capture_bytes=512, disk_limit_bytes=2048)
+            self.assertEqual(result["status"], "timeout")
+            time.sleep(0.85)
+            self.assertFalse(target.exists(),
+                             "timeout left a running descendant that escaped cleanup")
+
     def test_invalid_limits_rejected_before_execution(self):
         with self.assertRaises(ValueError):
             run_bounded([sys.executable], 10, capture_bytes=2048, disk_limit_bytes=512)

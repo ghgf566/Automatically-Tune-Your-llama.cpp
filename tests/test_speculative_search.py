@@ -174,7 +174,8 @@ class SpeculativePlanningTest(unittest.TestCase):
             self.assertFalse(payload["candidates"][1]["executable"])
             with patch("sys.argv", argv):
                 self.assertEqual(main(), 1)
-            self.assertTrue(s.read_text("utf-8").startswith('{"schema_version"'))
+            self.assertEqual(json.loads(s.read_text("utf-8"))["profile_id"],
+                             "illustrative-mtp-server-01")
 
     def test_complete_profile_is_bound_and_missing_model_digest_blocks_mtp(self):
         profile = json.loads(
