@@ -13,6 +13,7 @@ from engine_identity import observed_identity, sha256_file
 from device_inventory import observation as observe_devices, unknown as unknown_devices
 from registry_differences import interpret_differences, inspect_fit_reference
 from safe_output import write_text
+from runtime_snapshot import check_snapshot
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "data" / "cli-inventory.json"

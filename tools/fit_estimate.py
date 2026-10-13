@@ -20,6 +20,7 @@ from environment_observation import (clean_llama_env, observe as observe_environ
                                      summarize as summarize_environment)
 from fit_memory_parser import parse_memory_estimate
 from safe_output import write_text
+from runtime_snapshot import SnapshotValidationError, check_snapshot
 
 REQUIRED_FIT_FLAGS = frozenset({
     "--model", "--fit-print", "--fit", "--ctx-size", "--n-gpu-layers",
@@ -41,9 +42,10 @@ def _snapshot(path):
         doc = json.loads(Path(path).read_text(encoding="utf-8"))
     except (ValueError, OSError) as error:
         raise FitPlanError("cannot read runtime capability snapshot") from error
-    if not isinstance(doc, dict):
-        raise FitPlanError("runtime capability snapshot is not an object")
-    return doc
+    try:
+        return check_snapshot(doc)
+    except SnapshotValidationError as error:
+        raise FitPlanError(str(error)) from error
 
 
 def _same_engine(snapshot, sha):

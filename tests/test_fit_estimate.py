@@ -42,6 +42,7 @@ class FitEstimateTests(unittest.TestCase):
         self.fit_snapshot = self.root / "fit.json"
         self.device_snapshot = self.root / "devices.json"
         fit = {
+            "schema_version": "1.1.0", "kind": "runtime_help_observation",
             "binary": {"sha256": self.sha},
             "identity": {"binary_sha256": self.sha},
             "entrypoint": {"kind": "integrated", "command": "fit-params"},
@@ -54,6 +55,7 @@ class FitEstimateTests(unittest.TestCase):
             },
         }
         device = {
+            "schema_version": "1.1.0", "kind": "runtime_help_observation",
             "binary": {"sha256": self.sha},
             "identity": {"binary_sha256": self.sha},
             "entrypoint": {"kind": "integrated", "command": "serve"},
