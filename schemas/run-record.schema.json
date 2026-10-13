@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ghgf566/Automatically-Tune-Your-llama.cpp/blob/main/schemas/run-record.schema.json",
+  "title": "ATYL Benchmark Run Record v1",
+  "description": "Reproducible result with explicit requested, fitted, effective and launched states. Null is not proof of an effective configuration.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "profile_id",
+    "engine_commit",
+    "model_sha256",
+    "configuration",
+    "status",
+    "raw_artifacts",
+    "errors"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "engine_commit": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{64}$"
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested",
+        "fitted",
+        "effective",
+        "launched_argv"
+      ],
+      "properties": {
+        "requested": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/cliValue"
+          }
+        },
+        "fitted": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/cliValue"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "effective": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/cliValue"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "launched_argv": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Exact argv passed to subprocess, not an inferred effective configuration."
+        },
+        "observations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "description"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "status": {
+      "enum": [
+        "not_started",
+        "success",
+        "failed",
+        "timeout",
+        "cancelled"
+      ]
+    },
+    "benchmark_kind": {
+      "enum": [
+        "pp",
+        "tg",
+        "pg",
+        "server"
+      ]
+    },
+    "metrics": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "prompt_tokens_per_second": {
+          "type": "number",
+          "minimum": 0
+        },
+        "decode_tokens_per_second": {
+          "type": "number",
+          "minimum": 0
+        },
+        "time_to_first_token_ms": {
+          "type": "number",
+          "minimum": 0
+        },
+        "latency_p95_ms": {
+          "type": "number",
+          "minimum": 0
+        },
+        "peak_ram_mib": {
+          "type": "number",
+          "minimum": 0
+        },
+        "peak_vram_mib": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": true
+    },
+    "raw_artifacts": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "started_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "finished_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "cliValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "illustrative-27b-local-01",
+  "engine": {
+    "binary": "llama-bench",
+    "commit": "77c4540ce4667f4577753fe034a3a8042f510b8f",
+    "backend": "CUDA",
+    "device_ids": [
+      "CUDA0"
+    ]
+  },
+  "model": {
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "architecture": "illustrative-dense",
+    "quantization": "IQ4_XS"
+  },
+  "hardware": {
+    "comment": "SYNTHETIC DATA ONLY: example values are not measurements"
+  },
+  "workload": {
+    "mode": "bench",
+    "prompt_tokens": 512,
+    "generation_tokens": 128,
+    "context_tokens": 4096,
+    "concurrency": 1,
+    "repetitions": 3
+  },
+  "objective": {
+    "primary": "decode_tokens_per_second",
+    "secondary": [
+      "prompt_tokens_per_second"
+    ]
+  },
+  "user_locked_parameters": {
+    "--cache-type-k": "q4_0",
+    "--cache-type-v": "q4_0"
+  },
+  "candidate_parameters": {
+    "--threads": 4,
+    "--n-gpu-layers": 18
+  },
+  "constraints": {
+    "allow_quality_changes": false,
+    "allow_service_semantic_changes": false,
+    "memory_reserve_mib": 512,
+    "minimum_context_tokens": 4096,
+    "required_concurrency": 1
+  }
+}

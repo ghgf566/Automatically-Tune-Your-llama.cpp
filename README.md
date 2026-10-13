@@ -8,6 +8,8 @@ ATYL 研究如何根據使用者的硬體、模型、服務負載與目標，自
 
 - [文件索引](docs/README.md)
 - [能力與參數空間規格](docs/specification/parameter-space.md)
+- [CLI Registry v1](docs/specification/cli-registry.md)
+- [實驗 Profile／Result 契約 v1](docs/specification/experiment-contracts.md)
 - [量測與實驗方法](docs/research/benchmark-methodology.md)
 - [初步系統架構](docs/research/system-architecture.md)
 - [上游來源與版本](docs/sources.md)

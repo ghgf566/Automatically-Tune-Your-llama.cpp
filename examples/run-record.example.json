@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "illustrative-test-run-01",
+  "profile_id": "illustrative-27b-local-01",
+  "engine_commit": "77c4540ce4667f4577753fe034a3a8042f510b8f",
+  "model_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "configuration": {
+    "requested": {
+      "--cache-type-k": "q4_0",
+      "--cache-type-v": "q4_0",
+      "--threads": 4,
+      "--n-gpu-layers": 18
+    },
+    "fitted": null,
+    "effective": null,
+    "launched_argv": [],
+    "observations": []
+  },
+  "status": "not_started",
+  "benchmark_kind": "tg",
+  "metrics": null,
+  "raw_artifacts": [],
+  "errors": []
+}

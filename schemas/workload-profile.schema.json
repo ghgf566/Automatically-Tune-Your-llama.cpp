@@ -1,0 +1,250 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ghgf566/Automatically-Tune-Your-llama.cpp/blob/main/schemas/workload-profile.schema.json",
+  "title": "ATYL Research Workload Profile v1",
+  "description": "Immutable benchmark conditions, user-locked settings and allowed search domain. Does not start any process.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "engine",
+    "model",
+    "workload",
+    "objective",
+    "user_locked_parameters",
+    "candidate_parameters",
+    "constraints"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "binary",
+        "commit",
+        "backend"
+      ],
+      "properties": {
+        "binary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "commit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "backend": {
+          "type": "string",
+          "minLength": 1
+        },
+        "build_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "device_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha256",
+        "architecture",
+        "quantization"
+      ],
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        },
+        "architecture": {
+          "type": "string",
+          "minLength": 1
+        },
+        "quantization": {
+          "type": "string",
+          "minLength": 1
+        },
+        "draft_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-fA-F]{64}$"
+        }
+      }
+    },
+    "hardware": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Snapshot, including available VRAM/RAM and driver versions where observable."
+    },
+    "workload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "prompt_tokens",
+        "generation_tokens",
+        "context_tokens",
+        "concurrency"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "bench",
+            "server"
+          ]
+        },
+        "prompt_tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "generation_tokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "context_tokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "concurrency": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "repetitions": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 3
+        },
+        "request_kind": {
+          "enum": [
+            "completion",
+            "chat",
+            "embedding",
+            "multimodal"
+          ]
+        }
+      }
+    },
+    "objective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primary"
+      ],
+      "properties": {
+        "primary": {
+          "enum": [
+            "decode_tokens_per_second",
+            "prompt_tokens_per_second",
+            "latency_p95_ms",
+            "time_to_first_token_ms",
+            "memory_headroom_mib"
+          ]
+        },
+        "secondary": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "decode_tokens_per_second",
+              "prompt_tokens_per_second",
+              "latency_p95_ms",
+              "time_to_first_token_ms",
+              "memory_headroom_mib"
+            ]
+          }
+        }
+      }
+    },
+    "user_locked_parameters": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/cliValue"
+      }
+    },
+    "candidate_parameters": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/cliValue"
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allow_quality_changes",
+        "allow_service_semantic_changes",
+        "memory_reserve_mib"
+      ],
+      "properties": {
+        "allow_quality_changes": {
+          "type": "boolean",
+          "default": false
+        },
+        "allow_service_semantic_changes": {
+          "type": "boolean",
+          "default": false
+        },
+        "memory_reserve_mib": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minimum_context_tokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "required_concurrency": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  },
+  "$defs": {
+    "cliValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
