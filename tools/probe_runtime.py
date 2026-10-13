@@ -102,12 +102,20 @@ def probe_binary(binary, registry, *, include_devices=False, timeout_seconds=10)
         "observed_in_help" if help_result["status"] in ("success", "nonzero_exit")
         else "unavailable"
     )
-    comparison = {
-        "documented_observed_in_help": documented,
-        "documented_not_observed_in_help": sorted(
-            {item["name"] for item in relevant} - set(documented)),
-        "unregistered_flags_observed_in_help": sorted(listed - set(known_aliases)),
-    }
+    if help_result["status"] in ("success", "nonzero_exit"):
+        comparison = {
+            "documented_observed_in_help": documented,
+            "documented_not_observed_in_help": sorted(
+                {item["name"] for item in relevant} - set(documented)),
+            "unregistered_flags_observed_in_help": sorted(listed - set(known_aliases)),
+        }
+    else:
+        # A failed/expired help call produces NO usable capability evidence.
+        comparison = {
+            "documented_observed_in_help": None,
+            "documented_not_observed_in_help": None,
+            "unregistered_flags_observed_in_help": None,
+        }
     if include_devices:
         devices = run_cli(path, "--list-devices", timeout_seconds)
         reported["devices"] = compact_result(devices)

@@ -66,6 +66,9 @@ class RuntimeProbeTest(unittest.TestCase):
         self.assertEqual(result["command_results"]["help"]["status"], "timeout")
         self.assertEqual(result["command_results"]["help"]["documented_flag_presence"],
                          "unavailable")
+        self.assertIsNone(result["comparison"]["documented_observed_in_help"])
+        self.assertIsNone(result["comparison"]["documented_not_observed_in_help"])
+        self.assertIsNone(result["comparison"]["unregistered_flags_observed_in_help"])
 
     def test_unknown_executable_fails_before_execution(self):
         other = Path(self.tmp.name) / "suspicious.exe"
