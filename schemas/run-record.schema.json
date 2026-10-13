@@ -233,6 +233,14 @@
     },
     "speculative_observation": {
       "$ref": "https://github.com/ghgf566/Automatically-Tune-Your-llama.cpp/blob/main/schemas/speculative-search.schema.json#/$defs/observation"
+    },
+    "candidate_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Candidate ID from a schema-validated speculative search preview; separate from per-run run_id."
     }
   },
   "$defs": {

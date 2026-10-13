@@ -249,6 +249,21 @@ class SpeculativePlanningTest(unittest.TestCase):
             make_preview(profile["speculative_search"], observed,
                          serve_runtime(), profile=profile)
 
+    def test_measured_result_must_retain_candidate_id(self):
+        from validate_contracts import validate
+        obj = json.loads((ROOT / "examples/run-record.example.json").read_text("utf-8"))
+        obj["speculative_observation"]["mode"] = "embedded_mtp"
+        obj["speculative_observation"]["requested_draft_n_max"] = 2
+        obj["speculative_observation"]["measurement_status"] = "completed"
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "result.json"
+            path.write_text(json.dumps(obj), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "candidate_id"):
+                validate(ROOT / "schemas/run-record.schema.json", path)
+            obj["candidate_id"] = "a" * 64
+            path.write_text(json.dumps(obj), encoding="utf-8")
+            validate(ROOT / "schemas/run-record.schema.json", path)
+
     def test_run_result_crossfield_guards(self):
         base = json.loads((ROOT / "examples/run-record.example.json").read_text("utf-8"))
         from validate_contracts import check_speculative_result_consistency

@@ -175,6 +175,9 @@ def validate(schema_path, document_path):
         if "speculative_observation" in document:
             check_speculative_result_consistency(
                 document["speculative_observation"], document["status"])
+            if (document["speculative_observation"]["measurement_status"] == "completed"
+                    and not document.get("candidate_id")):
+                raise ValueError("completed speculative measurement requires candidate_id")
         if document["status"] == "success":
             if document["engine_binary_sha256"] is None or not document["configuration"]["launched_argv"]:
                 raise ValueError("successful run must record engine binary hash and launched_argv")
