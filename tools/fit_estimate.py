@@ -109,10 +109,12 @@ def build_plan(model, fit_snapshot, *, device="none", devices_snapshot=None,
     model_path = Path(model).expanduser().resolve()
     # Fresh read prevents accepting metadata from an unrelated or stale JSON.
     model_info = inspect(model_path)
-    model_fingerprint = fingerprint(model_path, model_info["metadata_bytes_scanned"],
-                                    full_sha256=full_model_sha256)
     if model_info["split"]["multiple_parts_reported"]:
         raise FitPlanError("multi-part GGUF requires a shard-completeness validator first")
+    # Reject unsupported bundles before an optional full-file hash can consume
+    # substantial disk I/O.
+    model_fingerprint = fingerprint(model_path, model_info["metadata_bytes_scanned"],
+                                    full_sha256=full_model_sha256)
     path = discover_binary(binary)
     entry = resolve_entrypoint(path, "fit-params")
     if entry.kind != "integrated":
