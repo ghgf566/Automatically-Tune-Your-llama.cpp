@@ -156,6 +156,26 @@ class FitEstimateTests(unittest.TestCase):
         self.assertNotIn("shell", launch.call_args.kwargs)
         self.assertNotIn("LLAMA_ARG_DEVICE", launch.call_args.kwargs["env"])
 
+    def test_fingerprint_is_part_of_new_model_descriptor(self):
+        plan = self.make()
+        identity = plan["model"]["fingerprint"]
+        self.assertEqual(identity["method"], "metadata_prefix_and_stat_v1")
+        self.assertEqual(len(identity["metadata_sha256"]), 64)
+        self.assertFalse(identity["full_file_hashed"])
+        self.assertIsNone(identity["full_file_sha256"])
+        self.validator.validate(plan)
+
+    def test_mutation_with_same_file_size_is_rejected_before_model_run(self):
+        plan = self.make()
+        raw = self.model.read_bytes()
+        changed = raw.replace(b"qwen35", b"qwen36")
+        self.assertEqual(len(raw), len(changed))
+        self.model.write_bytes(changed)
+        with patch("fit_estimate.subprocess.Popen") as process:
+            with self.assertRaisesRegex(FitPlanError, "model fingerprint changed"):
+                execute_plan(plan)
+            process.assert_not_called()
+
     def test_reject_execution_if_model_or_binary_changed(self):
         plan = self.make()
         self.model.write_bytes(self.model.read_bytes() + b"extra")
