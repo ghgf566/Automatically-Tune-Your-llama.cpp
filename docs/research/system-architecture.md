@@ -65,7 +65,7 @@ Benchmark Adapter（llama-bench 與未來 server workload）
 
 - `tools/safe_output.py`：原子 UTF-8 輸出，預設禁止覆寫，另外保護模型、能力快照、執行檔與資料來源路徑。
 - `tools/runtime_snapshot.py`：對產生及消費的 Runtime JSON 做結構驗證，SHA 不一致就拒絕。
-- `tools/process_runner.py`：共用逾時、輸出擷取與磁碟輸出限制，絕不經 shell；目前殺的是直接子程序，完整 Process Tree 管理仍待真正 Runner 階段。
+- `tools/process_runner.py`：共用逾時、輸出擷取與磁碟輸出限制，絕不經 shell；目前殺的是直接子程序，目前透過 `process_lifecycle.py` 對 ATYL 建立的 Session/Process Group 進行 best-effort 程序樹清理，取消與逾時皆會清理直接子程序及可追蹤的後代；完整 OS Job Objects／長期 Service 容器管理仍待後續。
 - `tools/model_identity.py`：預設低 I/O 模型 Metadata Prefix Hash；使用者可指定完整 SHA-256，但它也不等於權重內容正確可推論的證明。
 - GitHub CI 同時在 Windows／Linux、Python 3.11／3.13 跑模擬與平台檢查；仍無真 GPU、模型載入測試。
 

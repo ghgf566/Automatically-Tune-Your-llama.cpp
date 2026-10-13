@@ -50,7 +50,7 @@ python tools/probe_runtime.py --command fit-params --output fit-capability.json
 
 ## 共用搜尋空間：MTP／Draft N 已納入契約
 
-已新增 `schemas/speculative-search.schema.json`、`tools/plan_speculative_search.py` 和可選的 Profile／Result 專用欄位。現在可以**不載入模型**預覽 `off`、內建／外掛 MTP 的 Draft N 候選（例如 1、2、4、8），並保留欠缺的相容性證據；沒有任何 MTP 自動執行或效能宣稱。搜尋與結果格式集中在一處，避免未來 UI、Runner 和 Benchmark 各自設計欄位。詳見 [變數與實作路線圖](docs/specification/tuning-roadmap.md)。
+已新增 `schemas/speculative-search.schema.json`、`tools/plan_speculative_search.py` 和可選的 Profile／Result 專用欄位。現在用 **完整 Workload Profile**（`--profile`）即可不載入模型預覽 `off`、內建／外掛 MTP 的 Draft N 候選（例如 1、2、4、8），並保留欠缺的相容性證據；沒有任何 MTP 自動執行或效能宣稱。搜尋與結果格式集中在一處，每筆候選都有 SHA-256 `candidate_id`，量測後需能由 Run Record 追溯；缺乏完整模型雜湊紀錄時，MTP 仍保持不可執行及待驗證。避免未來 UI、Runner 和 Benchmark 各自設計欄位。詳見 [變數與實作路線圖](docs/specification/tuning-roadmap.md)。
 
 ## 未來調校變數：MTP／Speculative Decoding
 
@@ -58,7 +58,7 @@ python tools/probe_runtime.py --command fit-params --output fit-capability.json
 
 ## 穩定性與安全重構
 
-所有 JSON 輸出工具統一使用原子式安全寫入：**預設不覆寫已存在的 JSON**，重跑相同輸出檔名需加 `--overwrite`，且永遠禁止把重要輸入檔當輸出。估算若子程序逾時、失敗或輸出過量，即使保存了診斷 JSON，也會以**退出碼 2**結束（0 代表預覽或估算執行完成；1 代表驗證或檔案寫入失敗）。Runtime 快照有結構 Schema 驗證，所有引擎呼叫共用受輸出／時間限制的子程序執行器。
+所有 JSON 輸出工具統一使用原子式安全寫入：**預設不覆寫已存在的 JSON**，重跑相同輸出檔名需加 `--overwrite`，且永遠禁止把重要輸入檔當輸出。估算若子程序逾時、失敗或輸出過量，即使保存了診斷 JSON，也會以**退出碼 2**結束（0 代表預覽或估算執行完成；1 代表驗證或檔案寫入失敗）。Runtime 快照有結構 Schema 驗證，所有引擎呼叫共用受輸出／時間限制的子程序執行器；逾時、取消或 Ctrl+C 時會嘗試清理由 ATYL 啟動的程序樹（不管理外部服務）。
 
 GGUF 快速 Fingerprint 只雜湊 Metadata 前綴加上檔案大小／修改時間；需要完整模型內容 SHA-256 時，才明確加 `--full-model-sha256`（會對大型 GGUF 進行完整磁碟讀取）。[穩定性重構與操作注意](docs/research/stability-review.md)。
 

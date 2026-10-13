@@ -30,11 +30,13 @@ Current preview caps each requested N to **1–64** purely as an ATYL search-saf
 
 ```powershell
 python tools/plan_speculative_search.py `
-  --search examples/speculative-search.example.json `
+  --profile examples/workload-profile.speculative.example.json `
   --model-observation model-metadata.json `
   --runtime-snapshot server-capability.json `
   --output speculative-preview.json
 ```
+
+The CLI now accepts the **full workload Profile** instead of separate `--search`; use the research example only as a synthetic reference and replace its zero SHA256/model architecture with real verified values before meaningful use. The candidate output includes stable `candidate_id`, `profile_sha256` and `model_observation_sha256`. Model records are not automatically assumed identical: without independent complete-file evidence, enabled candidates are `blocked_missing_evidence`. When you have an earlier `fit_estimate.py --full-model-sha256` result, pass `--fit-plan fit-plan.json` for recorded digest/engine/filename/size checks. This **does not re-hash the file**, and a future executor must verify disk identity again before loading.
 
 This does not read model weights or launch `llama.exe`; use `--overwrite` only to explicitly replace an existing preview. A missing NextN field, incomplete Help flags or missing draft fingerprint leaves MTP candidates **blocked**, not labeled supported. Even good metadata/flags only yield **requires load verification**, not ready-to-run configuration.
 

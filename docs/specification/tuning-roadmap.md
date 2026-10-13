@@ -4,7 +4,7 @@
 
 ## One shared planning contract
 
-Research Profile (`workload-profile.schema.json`) → optional `speculative_search` (the shared schema's `search` definition) → candidate preview → model/load/memory validation → controlled benchmark → optional `speculative_observation` in Run Record (the shared schema's `observation` definition) → Pareto/reporting.
+Validated Research Profile (`workload-profile.schema.json`) → optional `speculative_search` (shared schema) → **full-profile-bound candidate preview with stable Candidate ID** → model/load/memory validation → controlled benchmark → optional `speculative_observation` in Run Record (the shared schema's `observation` definition) → Pareto/reporting.
 
 The search and observation definitions both live in **one** [`speculative-search.schema.json`](../../schemas/speculative-search.schema.json), resolved locally without network. New speculative families or result metrics are added there, rather than copied into independent CLI, GUI, benchmark and reporting schemas. The research Profile/Result versions remain `1.1.0` because these fields are optional; older files continue to validate.
 
@@ -28,8 +28,8 @@ Do not equate `nextn_predict_layers` with the upper limit for `draft_n_max`; act
 | Stage | Current state | Completion criterion |
 | --- | --- | --- |
 | Runtime / GGUF / Fit estimates / safe output / Windows CI | Implemented, partially real-Windows verified | maintain binary-linked snapshots and regression coverage |
-| Typed speculative search + requested Draft N | **Schema and non-executable preview implemented** | enumerate explicit candidate budgets, preserve baseline, reject unsupported evidence |
-| Target-draft pairing + multisplit/auxiliary identity | Not implemented | documented target/draft compatibility checks and model-bundle fingerprint |
+| Typed speculative search + requested Draft N | **Full-Profile-bound non-executable preview implemented** | enumerate bounded Draft N, preserve user locks and `off` baseline, trace SHA-bound candidate ID; unverified target hash blocks MTP |
+| Target-draft pairing + multisplit/auxiliary identity | Partially prepared (recorded target full-hash evidence; actual pairing untested) | verify real target+draft bytes, tokenizer/architecture and bundle at execution; prohibit unverified load |
 | Speculative memory feasibility | Not implemented | model+draft memory under same target context and offload, opt-in actual load, report failures |
 | Real speculative generation/serving benchmark | Not implemented | fixed prompts/sampling, accepted/drafted tokens, TTFT, p95, throughput, memory peaks, repetitions |
 | Adaptive bounded optimization | Not implemented | compare off vs candidate, coarse-to-fine N search, joint placement refinement within cap, stop on regressions |
@@ -48,3 +48,11 @@ Do not equate `nextn_predict_layers` with the upper limit for `draft_n_max`; act
 ## Compatibility with earlier artifacts
 
 The optional fields do **not** retrofit old Fit v0.3 JSON with hypothetical MTP measurements. A plain `fit-params` number cannot be taken as proof that an embedded or external MTP plan fits. Historic workload and result JSON without speculative fields continue to be valid; new runs may attach their planned spec search and observed result when those stages exist.
+
+## Pre-Feasibility integration review
+
+The CLI `tools/plan_speculative_search.py` now **requires** `--profile`, not an isolated `--search`: the full Profile schema/cross-field checks apply before proposal generation, including user-locked parameters and the Serve workload constraint. Speculative options and aliases are reserved from ordinary parameter dictionaries via the pinned llama-server Registry. Model GGUF observation must conform to the full GGUF Schema; SHA-linked runtime snapshot is verified structurally; reported target full digest evidence is accepted only when a previously saved Fit plan matches the profile model SHA, engine SHA, filename and file size. Since no model bytes are opened, all such checks remain *recorded evidence*, never permission to execute.
+
+Each candidate has a deterministic SHA256 `candidate_id` derived from full relevant Profile configuration, GGUF observation digest, actual observed runtime binary SHA and its individual Draft N/mode/placement. This key is intentionally distinct from Run ID. A Run Record with `speculative_observation.measurement_status=completed` must retain its `candidate_id` to support later correlation. Changing Profile workload/locks, model observation or candidate configuration creates a new identity.
+
+`tools/process_runner.py` now launches only ATYL-owned isolated processes and uses `process_lifecycle.py` to kill their owned process group/descendants on timeout, cancellation or Python interruption. This is a **best-effort** cleanup, not an OS-level containment boundary for detached processes or arbitrary services. Explicit user cancellation at the higher-level GUI/runner is still future work.

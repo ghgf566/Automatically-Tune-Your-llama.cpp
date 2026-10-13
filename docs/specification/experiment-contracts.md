@@ -63,3 +63,9 @@ These optional extensions deliberately retain the existing parent `schema_versio
 `tools/plan_speculative_search.py` is a schema-validated **preview only**. It does not transform a speculative candidate into a runnable CLI command. For the phased execution plan see [tuning roadmap](tuning-roadmap.md).
 
 For non-disabled speculative modes, use a **server workload** profile with `engine.command: serve` (the current framework does not claim `llama bench` exercises full speculative generation). See `examples/workload-profile.speculative.example.json`; the original ordinary benchmark example remains free of speculative settings to demonstrate backward compatibility.
+
+## Pre-Feasibility integration guarantee
+
+`tools/plan_speculative_search.py --profile ... --model-observation ... --runtime-snapshot ...` now passes the **entire Profile** through validation, rather than synthesizing empty locks and a default workload. All pinned speculative aliases (including `-ngld`, `--n-gpu-layers-draft`, `--model-draft` and option families) are checked against user-locked/candidate parameters. Profile `engine.binary_sha256` must match observed binary SHA when specified; recorded `--fit-plan` full-GGUF hash evidence is additionally checked against the Profile model SHA and observation source filename/size. Missing identity evidence blocks enabled MTP, not the non-executable baseline. This is not an actual disk or runtime proof.
+
+The new optional Run Record `candidate_id` contains the 64-character identity of a planned candidate, **not** the per-execution `run_id`. For any completed speculative measurement it is required; old not-started fixtures remain valid. The `candidate_id` remains stable for the same complete planning inputs; actual future execution must revalidate files and runtime before starting.
