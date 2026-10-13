@@ -48,7 +48,7 @@ def make_preview(search, target_observation, runtime_snapshot):
     try:
         SEARCH_VALIDATOR.validate(search)
         check_speculative_search_consistency(
-            search, {}, {}, {"request_kind": "completion"})
+            search, {}, {}, {"request_kind": "completion", "mode": "server"})
         runtime = check_snapshot(runtime_snapshot)
     except (ValidationError, SnapshotValidationError, ValueError) as exc:
         raise SpeculativePlanError("invalid search or runtime snapshot: " + str(exc)) from exc
