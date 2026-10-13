@@ -83,6 +83,26 @@ class GGUFInspectionTest(unittest.TestCase):
         self.assertFalse(out["validation"]["model_load_tested"])
         self.assertNotIn(self.folder.name, json.dumps(out))
 
+    def test_attention_kv_and_rope_metadata_are_retained_without_inference(self):
+        fields = [
+            ("general.architecture", 8, "qwen35"),
+            ("qwen35.attention.head_count_kv", 4, 8),
+            ("qwen35.attention.key_length", 4, 128),
+            ("qwen35.attention.value_length", 4, 128),
+            ("qwen35.attention.sliding_window", 4, 4096),
+            ("qwen35.rope.dimension_count", 4, 128),
+            ("qwen35.expert_count", 4, 128),
+        ]
+        out = inspect(self.write(synthetic_gguf(fields, tensor=False)))
+        self.validator.validate(out)
+        props = out["architecture_metadata"]
+        self.assertEqual(props["attention.head_count_kv"], 8)
+        self.assertEqual(props["attention.key_length"], 128)
+        self.assertEqual(props["attention.value_length"], 128)
+        self.assertEqual(props["rope.dimension_count"], 128)
+        self.assertNotIn("kv_cache_bytes", out)
+        self.assertFalse(out["validation"]["model_load_tested"])
+
     def test_synthetic_split_reports_incomplete_multifile(self):
         fields = [
             ("general.architecture", 8, "llama"),

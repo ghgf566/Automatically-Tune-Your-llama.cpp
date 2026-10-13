@@ -42,9 +42,13 @@ def _snapshot(path):
 
 
 def _same_engine(snapshot, sha):
-    return (snapshot.get("binary", {}).get("sha256") == sha
-            and snapshot.get("identity", {}).get("binary_sha256") == sha
-            and snapshot.get("entrypoint", {}).get("kind") == "integrated")
+    fields = [snapshot.get(key) for key in ("binary", "identity", "entrypoint")]
+    if not all(isinstance(value, dict) for value in fields):
+        return False
+    binary, identity, entrypoint = fields
+    return (binary.get("sha256") == sha
+            and identity.get("binary_sha256") == sha
+            and entrypoint.get("kind") == "integrated")
 
 
 def _validate_fit_snapshot(doc, sha):
@@ -68,7 +72,10 @@ def _validate_device_snapshot(doc, sha, device_id):
     if (doc.get("command_results", {}).get("devices", {}).get("status") != "success"
             or result.get("status") != "observed"):
         raise FitPlanError("device snapshot has no confirmed GGML device listing")
-    if device_id not in {item.get("id") for item in result.get("devices", [])}:
+    devices = result.get("devices")
+    if not isinstance(devices, list) or not all(isinstance(item, dict) for item in devices):
+        raise FitPlanError("device snapshot has invalid device structure")
+    if device_id not in {item.get("id") for item in devices}:
         raise FitPlanError("requested device ID not present in verified listing")
 
 
@@ -141,9 +148,15 @@ def execute_plan(plan, *, timeout_seconds=600):
     if plan["status"] != "prepared_not_executed" or plan["kind"] != "fit_estimate_plan":
         raise FitPlanError("only an unexecuted fit estimate plan can run")
     argv = plan["argv"]
-    if (len(argv) < 4 or argv[1:3] != ["fit-params", "--offline"]
-            or "--fit-print" not in argv or argv[-1] != "on"):
+    if (len(argv) != 13 or argv[1:3] != ["fit-params", "--offline"]
+            or argv[-4:] != ["--fit", "off", "--fit-print", "on"]
+            or argv[3] != "--model" or argv[5] != "--device"
+            or argv[7] != "--ctx-size" or argv[9] != "--n-gpu-layers"):
         raise FitPlanError("unexpected fit estimate command shape")
+    if sha256_file(Path(argv[0])) != plan["engine_sha256"]:
+        raise FitPlanError("engine changed since preview; create a new fit plan")
+    if Path(argv[4]).stat().st_size != plan["model"]["file_size_bytes"]:
+        raise FitPlanError("model file size changed since preview; create a new fit plan")
     # Upstream may emit verbose logs; send to temporary disk files, not
     # unbounded subprocess.PIPE memory. Do not invoke a shell.
     try:
