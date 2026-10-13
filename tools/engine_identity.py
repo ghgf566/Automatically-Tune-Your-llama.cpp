@@ -39,7 +39,11 @@ BUILD_LINE = re.compile(
 def parse_reported_build(version_text):
     """Return only unambiguous version evidence; abbreviated SHAs stay abbreviated."""
     matches = list(BUILD_LINE.finditer(version_text))
-    if len(matches) != 1:
+    # More than one reported version header is ambiguous even when only one
+    # header matches our known format.
+    header_count = sum(line.lstrip().startswith("version:")
+                       for line in version_text.splitlines())
+    if header_count != 1 or len(matches) != 1:
         return {"engine_version_label": None, "engine_build_number": None,
                 "engine_build_commit": None, "engine_build_commit_form": "unknown"}
     match = matches[0]
