@@ -1,0 +1,99 @@
+{
+  "schema_version": "0.1.0",
+  "scope": "curated_fit_params_only",
+  "upstream": {
+    "repository": "ggml-org/llama.cpp",
+    "commit": "77c4540ce4667f4577753fe034a3a8042f510b8f",
+    "evidence": [
+      "tools/fit-params/fit-params.cpp",
+      "tools/fit-params/README.md",
+      "common/arg.cpp"
+    ]
+  },
+  "limitations": [
+    "This is not a complete 197-flag registry.",
+    "Help presence is not proof that a model will fit or load.",
+    "Fit estimates or fitted arguments are not measured token throughput.",
+    "No fitting command is executed by the read-only ATYL probe."
+  ],
+  "entries": [
+    {
+      "flag": "--fit",
+      "role": "fit_toggle",
+      "semantics": "Controls adjustment of unset arguments to fit available device memory.",
+      "source": "common/arg.cpp"
+    },
+    {
+      "flag": "--fit-print",
+      "role": "estimated_memory_report",
+      "semantics": "When on, prints estimated memory information instead of the default fitted-CLI-arguments output.",
+      "source": "tools/fit-params/fit-params.cpp"
+    },
+    {
+      "flag": "--fit-target",
+      "role": "per_device_margin",
+      "semantics": "Target memory margin per device, expressed in MiB; values may be supplied as a sequence.",
+      "source": "common/arg.cpp"
+    },
+    {
+      "flag": "--fit-ctx",
+      "role": "minimum_context",
+      "semantics": "Lower context-size bound used by the fit process.",
+      "source": "common/arg.cpp"
+    },
+    {
+      "flag": "--model",
+      "role": "model_input",
+      "semantics": "GGUF model input path for a future fit operation; not supplied during help probing.",
+      "source": "tools/fit-params/README.md"
+    },
+    {
+      "flag": "--ctx-size",
+      "role": "context_input",
+      "semantics": "Requested context length, subject to fit constraints.",
+      "source": "common/arg.cpp"
+    },
+    {
+      "flag": "--device",
+      "role": "device_selection",
+      "semantics": "Selects offload devices; does not prove device kernel support.",
+      "source": "common/arg.cpp"
+    },
+    {
+      "flag": "--n-gpu-layers",
+      "role": "layer_offload",
+      "semantics": "Initial offloaded layer count; fitting may alter placement.",
+      "source": "tools/fit-params/fit-params.cpp"
+    },
+    {
+      "flag": "--tensor-split",
+      "role": "tensor_placement",
+      "semantics": "Tensor split policy across devices; fitting may propose a changed split.",
+      "source": "tools/fit-params/fit-params.cpp"
+    },
+    {
+      "flag": "--override-tensor",
+      "role": "tensor_override",
+      "semantics": "Specifies tensor buffer placement overrides; fitting can emit related CLI arguments.",
+      "source": "tools/fit-params/fit-params.cpp"
+    },
+    {
+      "flag": "--cpu-moe",
+      "role": "moe_placement",
+      "semantics": "Keeps supported MoE expert weights on CPU when applicable.",
+      "source": "common/arg.cpp"
+    },
+    {
+      "flag": "--n-cpu-moe",
+      "role": "moe_placement",
+      "semantics": "Controls number of MoE expert layers kept on CPU when applicable.",
+      "source": "common/arg.cpp"
+    },
+    {
+      "flag": "--list-devices",
+      "role": "device_listing",
+      "semantics": "Prints GGML-visible devices and exits; not an actual fitting operation.",
+      "source": "common/arg.cpp"
+    }
+  ]
+}

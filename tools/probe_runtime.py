@@ -11,6 +11,7 @@ from pathlib import Path
 from engine_adapter import ROUTES, discover_binary, resolve_entrypoint, probe_argv
 from engine_identity import observed_identity, sha256_file
 from device_inventory import observation as observe_devices, unknown as unknown_devices
+from registry_differences import interpret_differences, inspect_fit_reference
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "data" / "cli-inventory.json"
@@ -109,6 +110,13 @@ def probe_binary(binary, registry, *, command="serve", include_devices=False,
             "unregistered_flags_observed_in_help")}
         presence = ("no_pinned_registry" if observed and not rows else "unavailable")
 
+    diagnostics = interpret_differences(entry.registry_program, comparison)
+    fit_reference = None
+    if entry.command == "fit-params":
+        curated = json.loads((ROOT / "data/fit-capability-reference.json").read_text("utf-8"))
+        fit_reference = inspect_fit_reference(
+            parsed if observed else None, curated, registry["upstream"]["commit"])
+
     binary_sha = sha256_file(path)
     provenance = observed_identity(binary_sha, entry.command,
                                    registry["upstream"]["commit"], version, observed)
@@ -157,11 +165,13 @@ def probe_binary(binary, registry, *, command="serve", include_devices=False,
         "command_results": commands,
         "device_inventory": hardware,
         "comparison": comparison,
+        "diagnostics": diagnostics,
+        "fit_reference": fit_reference,
         "limitations": [
             "No build commit is inferred from the documentation registry SHA.",
             "Help presence does not guarantee accepted values or backend/model support.",
             "An absent or failed --help output is unknown, not proof of unsupported flags.",
-            "fit-params help has no pinned inventory yet; comparison is intentionally null.",
+            "Fit-params has a curated reference only, not a complete CLI inventory.",
             "Not listed in help all is not by itself proof of unsupported commands.",
             "Run only trusted binaries; --list-devices may initialize GPU drivers.",
             "The --list-devices listing excludes CPU and does not prove NPU support.",
