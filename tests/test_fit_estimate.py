@@ -157,6 +157,20 @@ class FitEstimateTests(unittest.TestCase):
                 execute_plan(plan)
             process.assert_not_called()
 
+    def test_reject_flag_shaped_device_id(self):
+        with self.assertRaisesRegex(FitPlanError, "GGML device"):
+            self.make(device="--version", gpu_layers=1)
+
+    def test_output_path_never_overwrites_model(self):
+        from fit_estimate import main
+        with patch("sys.argv", ["fit_estimate.py",
+                                "--model", str(self.model),
+                                "--fit-snapshot", str(self.fit_snapshot),
+                                "--binary", str(self.binary),
+                                "--output", str(self.model)]):
+            self.assertEqual(main(), 1)
+        self.assertTrue(self.model.read_bytes().startswith(b"GGUF"))
+
     def test_corrupted_snapshot_fails_closed(self):
         self.fit_snapshot.write_text('{"binary": null}', "utf-8")
         with self.assertRaises(FitPlanError):

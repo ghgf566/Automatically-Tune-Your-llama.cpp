@@ -156,6 +156,16 @@ class GGUFInspectionTest(unittest.TestCase):
         with self.assertRaisesRegex(GGUFMetadataError, "dimensions"):
             inspect(self.write(raw))
 
+    def test_output_path_does_not_overwrite_gguf(self):
+        from inspect_gguf import main
+        from unittest.mock import patch
+        original = synthetic_gguf()
+        self.write(original)
+        with patch("sys.argv", ["inspect_gguf.py", "--model", str(self.path),
+                                "--output", str(self.path)]):
+            self.assertEqual(main(), 1)
+        self.assertEqual(self.path.read_bytes(), original)
+
     def test_limit_rejects_implausible_counts(self):
         for tensors, keys in ((999999999, 0), (0, 999999999)):
             raw = b"GGUF" + struct.pack("<IQQ", 3, tensors, keys)

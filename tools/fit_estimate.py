@@ -7,6 +7,7 @@ memory estimate; it does not execute fitted arguments or launch a server.
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -86,7 +87,7 @@ def build_plan(model, fit_snapshot, *, device="none", devices_snapshot=None,
         raise FitPlanError("context must be between 128 and 262144")
     if not (0 <= gpu_layers <= MAX_GPU_LAYERS):
         raise FitPlanError("gpu layers must be between 0 and 4096")
-    if not device or any(c in device for c in ",/ \t\r\n"):
+    if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_.-]*", device):
         raise FitPlanError("select one specific GGML device ID or 'none'")
     if device == "none" and gpu_layers != 0:
         raise FitPlanError("CPU-only device none requires --gpu-layers 0")
@@ -213,6 +214,14 @@ def main():
             plan["status"] = "estimate_attempted"
         text = json.dumps(plan, indent=2, ensure_ascii=False) + "\n"
         if args.output:
+            destination = args.output.expanduser().resolve()
+            protected = {Path(args.model).expanduser().resolve(),
+                         Path(args.fit_snapshot).expanduser().resolve(),
+                         Path(plan["argv"][0]).resolve()}
+            if args.device_snapshot:
+                protected.add(Path(args.device_snapshot).expanduser().resolve())
+            if destination in protected:
+                raise FitPlanError("output must not overwrite model, snapshot or engine")
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(text, encoding="utf-8")
             print("Created fit estimate plan:", args.output)

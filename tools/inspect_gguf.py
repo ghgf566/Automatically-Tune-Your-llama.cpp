@@ -242,6 +242,8 @@ def main():
     try:
         result = json.dumps(inspect(args.model), indent=2, ensure_ascii=False) + "\n"
         if args.output:
+            if args.output.expanduser().resolve() == args.model.expanduser().resolve():
+                raise GGUFMetadataError("output must not overwrite input GGUF")
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(result, encoding="utf-8")
             print("Created model metadata observation:", args.output)
