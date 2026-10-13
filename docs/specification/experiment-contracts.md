@@ -1,4 +1,4 @@
-# ATYL Profile and Result Contract v1
+# ATYL Profile and Result Contract v1.1
 
 These are **research-stage JSON Schema contracts**. They define what must be captured *before* running a future tuner; no model was executed to produce the examples.
 
@@ -10,9 +10,22 @@ All parameters use a **canonical CLI name** and preserve the original CLI value 
 
 **User locks cannot be overridden.** The validation tool rejects keys appearing in both `user_locked_parameters` and `candidate_parameters`. Context and concurrency minima must be respected. This cross-field policy is not encoded fully by JSON Schema alone.
 
+## 版本識別 v1.1（與既有實驗檔不向下相容）
+
+現在 `schema_version` 是 `1.1.0`。此前的示範檔 `1.0.0` 只是研究樣例，沒有自動改寫舊資料。需要先按照以下分離方式遷移，而不是把研究來源 Commit 當作實際執行檔的 Build。
+
+- `registry_upstream_commit`（頂層、40 碼 SHA）：固定 CLI Inventory 的上游文件版本；只能說明文件來源。
+- `engine.build_commit`：**本機安裝 Build 的 Commit**，尚未辨識到時必須是 `null`。
+- `engine.binary_sha256`：真正探測的 exe 檔案指紋；未探測時為 `null`。
+- `engine.version_output`：由 `llama version` 回報的版本文字；未探測時為 `null`。
+- `engine.backend`：已證實的後端；未完成本機調查時為 `null`，不可因官方安裝器可能選擇 CUDA 而假設已選中。
+- `run-record` 分別記錄 `engine_build_commit`、`engine_binary_sha256`、`registry_upstream_commit`、`entrypoint`，可額外記錄 `identity_cache_key`。
+
+Registry 版本與真實引擎版本不能相互推論。CI 使用的 Profile／Result 樣例都故意標記為 `not_started`，所以不存在虛構的執行檔雜湊或 Backend。
+
 ## Engine entrypoint in profiles
 
-Prefer `engine.binary: "llama"`, `engine.command: "bench"` or `"serve"`, and `engine.installation_source: "llama.app"`. The registry target is inferred as `llama-bench` or `llama-server` *after resolving the subcommand*. Legacy profiles using `llama-bench` or `llama-server` may omit `engine.command`; conflicting explicit commands are rejected. The workload `mode` must match the effective command.
+Prefer `engine.binary: "llama"`, `engine.command: "bench"` or `"serve"`, and `engine.installation_source: "llama.app"`. The registry target is inferred as `llama-bench` or `llama-server` *after resolving the subcommand*. Legacy profiles using `llama-bench` or `llama-server` may omit `engine.command`; conflicting explicit commands are rejected. The workload `mode` must match the effective command. This logic now uses `tools/engine_adapter.py` (the same central routing rules used by the probe).
 
 Do not hard-code WindowsApps into the profile. The eventual process record's `configuration.launched_argv` must include the real executable path **and subcommand**. Updating `llama.exe` changes the binary fingerprint and invalidates old capability measurements.
 

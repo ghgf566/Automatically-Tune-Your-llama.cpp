@@ -105,7 +105,7 @@ class ContractTest(unittest.TestCase):
     def test_legacy_mismatched_command_rejected(self):
         def convert(doc):
             doc["engine"].update({"binary": "llama-bench", "command": "serve"})
-        with self.assertRaisesRegex(ValueError, "legacy binary command"):
+        with self.assertRaisesRegex(ValueError, "requires command bench"):
             self.validate_mutated_profile(convert)
 
 

@@ -11,7 +11,7 @@
 Profile（硬體、build、模型、工作負載、目標）
         │
         ▼
-Engine Discovery / Command Adapter（官方 PATH llama → serve／bench）
+Engine Discovery / Command Adapter（官方 PATH llama → serve／bench／fit-params）
         │
         ▼
 Capability Registry（上游旗標、支援條件、來源 commit）
@@ -38,7 +38,7 @@ Benchmark Adapter（llama-bench 與未來 server workload）
 ## 元件責任
 
 - **Profile**：描述比較所需的輸入條件與固定限制；應能匯出為版本化、可審閱的文字資料。
-- **Engine Discovery / Command Adapter**：優先從 PATH 使用官方 `llama.exe`，映射 `serve`／`bench` 子命令，固定 binary SHA-256 與版本；舊獨立執行檔僅作明確指定的相容模式。不自行安裝或修改引擎。
+- **Engine Discovery / Command Adapter**：優先從 PATH 使用官方 `llama.exe`，映射 `serve`／`bench`／`fit-params` 子命令，區分 binary SHA-256、實際引擎版本與 Registry 文件 Commit；舊獨立執行檔僅作明確指定的相容模式。不自行安裝或修改引擎。
 - **Capability Registry**：描述每個旗標的名稱、型別、範圍、預設、適用程式、前置條件、互斥、風險與上游證據。資料需綁定 llama.cpp commit，避免假設 CLI 長期不變。
 - **Candidate Generator**：從有限且受限的搜尋空間產生候選。初期不預設採用任何一種搜尋演算法。
 - **Feasibility Gate**：先檢查模型/裝置/功能相容性與記憶體條件；執行期錯誤也必須被保存，而不是當成慢速結果。
@@ -50,12 +50,12 @@ Benchmark Adapter（llama-bench 與未來 server workload）
 ## 已確定的引擎來源策略
 
 - 使用官方 llama.app 的整合式 CLI（`llama.exe`）作為 Windows 第一優先入口；ATYL 不管理上游 Release ZIP，不綁定安裝位置。
-- Registry 保持邏輯名稱 `llama-server`／`llama-bench`，但由指令分派器轉為 `llama serve`／`llama bench`。
+- Registry 保持邏輯名稱 `llama-server`／`llama-bench`，但由指令分派器轉為 `llama serve`／`llama bench`；Fit Help 由 `llama fit-params --help` 觀察，暫無固定 Fit 旗標 Registry。
 - 安裝器、GPU Backend 探測及自我更新交由官方和使用者；ATYL 只讀取並驗證其實際能力。工具變更後依版本／雜湊清除快取。
 
 ## 尚未決策
 
-- Profile / result 的序列化格式與 schema 演進方式。
+- Profile／Result 已有研究階段的 JSON Schema `1.1.0`，未來的正式資料遷移規則與 API 相容承諾仍待決策。
 - CPU-only、多 GPU、NUMA、RPC、UMA 及不同 backend 的支援順序。
 - 記憶體容量採上游 `--fit`、ATYL 量測或兩者組合的界線。
 - 是否需要 server 端到端 adapter、用何種 workload 和外部工具。

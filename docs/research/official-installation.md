@@ -35,7 +35,7 @@ llama help all
 
 ## 目前實作
 
-- `probe_runtime.py` 不帶 `--binary` 時，會透過 PATH 尋找官方 `llama`。
+- `probe_runtime.py` 不帶 `--binary` 時，會透過 PATH 尋找官方 `llama`；已由 `tools/engine_adapter.py` 集中管理所有子命令路由。
 - 使用 `--command serve` 或 `--command bench` 呼叫相應子命令的 `--help`，對照原有 257／45 筆邏輯旗標。
 - 將 SHA-256、`version` 輸出及查詢到的 CLI 內容保存為可觀測資料。可明確指定獨立 `llama-server.exe` 或 `llama-bench.exe` 作為相容模式。
 - **不呼叫** `llama serve`（沒有 `--help`）、`llama bench`（沒有 `--help`）、`llama update`，也不對系統安裝、模型與驅動做修改。

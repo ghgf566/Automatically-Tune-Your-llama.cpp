@@ -23,20 +23,28 @@ Windows 安裝腳本目前將實際執行檔放在 `%LOCALAPPDATA%\Microsoft\Win
 ```powershell
 python tools/probe_runtime.py --command serve --output server-capability.json
 python tools/probe_runtime.py --command bench --output bench-capability.json
+python tools/probe_runtime.py --command fit-params --output fit-capability.json
 ```
 
-探測器只呼叫版本與說明指令；上述命令不會載入模型或啟動伺服器。完整細節見 [官方安裝策略](docs/research/official-installation.md) 與 [Runtime CLI 探測文件](docs/research/runtime-capability.md)。
+探測器透過統一的 Command Adapter 只呼叫版本與說明指令；上述命令不會載入模型或啟動伺服器。完整細節見 [官方安裝策略](docs/research/official-installation.md) 與 [Runtime CLI 探測文件](docs/research/runtime-capability.md)。
 
 ## 目前文件
 
 - [文件索引](docs/README.md)
 - [能力與參數空間規格](docs/specification/parameter-space.md)
 - [CLI Registry v1](docs/specification/cli-registry.md)
-- [Runtime CLI 探測 v0.1](docs/research/runtime-capability.md)
+- [Runtime CLI 探測 v0.3](docs/research/runtime-capability.md)
 - [實驗 Profile／Result 契約 v1](docs/specification/experiment-contracts.md)
 - [量測與實驗方法](docs/research/benchmark-methodology.md)
 - [初步系統架構](docs/research/system-architecture.md)
 - [上游來源與版本](docs/sources.md)
+
+## 目前的架構分層
+
+- `tools/engine_adapter.py`：官方整合式 CLI 與 Legacy 命令路由的唯一來源。
+- `tools/engine_identity.py`：實際二進位 SHA-256、版本回報與獨立的 Registry 來源 Commit；更新版本時生成不同的能力快取 Key。
+- `schemas/*.json`：已升級為 `1.1.0`，實際引擎 Build 與文件 Registry SHA 不再互相冒充。Build／Backend 尚未證實時以 `null` 保存。
+- `fit-params` 目前僅支援不載入模型的 `--help` 探測，下一步才進行具體能力調查。
 
 ## 初步設計原則
 
