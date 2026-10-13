@@ -1,8 +1,7 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "run_id": "illustrative-test-run-01",
   "profile_id": "illustrative-27b-local-01",
-  "engine_commit": "77c4540ce4667f4577753fe034a3a8042f510b8f",
   "model_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
   "configuration": {
     "requested": {
@@ -20,5 +19,13 @@
   "benchmark_kind": "tg",
   "metrics": null,
   "raw_artifacts": [],
-  "errors": []
+  "errors": [],
+  "registry_upstream_commit": "77c4540ce4667f4577753fe034a3a8042f510b8f",
+  "engine_build_commit": null,
+  "engine_binary_sha256": null,
+  "entrypoint": {
+    "kind": "integrated",
+    "command": "bench"
+  },
+  "identity_cache_key": null
 }

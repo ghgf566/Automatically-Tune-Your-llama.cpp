@@ -25,7 +25,7 @@ class ContractTest(unittest.TestCase):
         Draft202012Validator.check_schema(self.r_schema)
 
     def test_illustrative_examples(self):
-        self.assertEqual(validate(ROOT / "schemas/workload-profile.schema.json", self.pfile)["schema_version"], "1.0.0")
+        self.assertEqual(validate(ROOT / "schemas/workload-profile.schema.json", self.pfile)["schema_version"], "1.1.0")
         self.assertEqual(validate(ROOT / "schemas/run-record.schema.json", self.rfile)["status"], "not_started")
 
     def test_quality_and_workload_are_explicit(self):
@@ -76,7 +76,7 @@ class ContractTest(unittest.TestCase):
                 lambda data: data["constraints"].update({"required_concurrency": 2}))
 
     def test_unknown_binary_fails_closed(self):
-        with self.assertRaisesRegex(ValueError, "cannot validate CLI aliases"):
+        with self.assertRaisesRegex(ValueError, "expected official"):
             self.validate_mutated_profile(
                 lambda data: data["engine"].update({"binary": "unrecognized.exe"}))
 
@@ -107,6 +107,37 @@ class ContractTest(unittest.TestCase):
             doc["engine"].update({"binary": "llama-bench", "command": "serve"})
         with self.assertRaisesRegex(ValueError, "legacy binary command"):
             self.validate_mutated_profile(convert)
+
+
+    def test_engine_commit_not_inferred_from_registry(self):
+        profile = json.loads(self.pfile.read_text("utf-8"))
+        result = json.loads(self.rfile.read_text("utf-8"))
+        self.assertEqual(profile["registry_upstream_commit"],
+                         result["registry_upstream_commit"])
+        self.assertIsNone(profile["engine"]["build_commit"])
+        self.assertIsNone(profile["engine"]["binary_sha256"])
+        self.assertIsNone(result["engine_build_commit"])
+        self.assertIsNone(result["engine_binary_sha256"])
+
+    def test_reject_mismatched_registry_snapshot(self):
+        with self.assertRaisesRegex(ValueError, "registry_upstream_commit"):
+            self.validate_mutated_profile(
+                lambda doc: doc.update({"registry_upstream_commit": "f" * 40}))
+
+    def test_result_requires_verified_binary_for_success(self):
+        from tempfile import TemporaryDirectory
+        record = json.loads(self.rfile.read_text("utf-8"))
+        record["status"] = "success"
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "result.json"
+            path.write_text(json.dumps(record), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "successful run"):
+                validate(ROOT / "schemas/run-record.schema.json", path)
+
+    def test_build_sha256_format_is_checked(self):
+        with self.assertRaises(ValidationError):
+            self.validate_mutated_profile(
+                lambda doc: doc["engine"].update({"binary_sha256": "not-a-sha"}))
 
 
 

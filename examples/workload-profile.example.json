@@ -1,15 +1,17 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "profile_id": "illustrative-27b-local-01",
   "engine": {
     "binary": "llama",
-    "commit": "77c4540ce4667f4577753fe034a3a8042f510b8f",
-    "backend": "CUDA",
+    "backend": null,
     "device_ids": [
       "CUDA0"
     ],
     "command": "bench",
-    "installation_source": "llama.app"
+    "installation_source": "llama.app",
+    "build_commit": null,
+    "binary_sha256": null,
+    "version_output": null
   },
   "model": {
     "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
@@ -47,5 +49,6 @@
     "memory_reserve_mib": 512,
     "minimum_context_tokens": 4096,
     "required_concurrency": 1
-  }
+  },
+  "registry_upstream_commit": "77c4540ce4667f4577753fe034a3a8042f510b8f"
 }

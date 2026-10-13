@@ -4,6 +4,7 @@ The adapter never launches a process or installs/updates llama.cpp.
 """
 from dataclasses import dataclass
 from pathlib import Path, PureWindowsPath
+from typing import Optional
 import shutil
 
 ROUTES = {
@@ -20,7 +21,7 @@ READ_ONLY_ACTIONS = {"version", "--help", "--list-devices"}
 class EntryPoint:
     kind: str
     command: str
-    registry_program: str | None
+    registry_program: Optional[str]
     binary: str
 
 
