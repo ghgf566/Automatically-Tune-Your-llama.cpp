@@ -1,4 +1,4 @@
-# Runtime CLI Capability Probe v0.4 — 官方整合式 CLI 優先
+# Runtime CLI Capability Probe v0.5 — 官方整合式 CLI 優先
 
 ATYL 目前只做 **唯讀探測**。不啟動伺服器、不載入模型、不做 Bench、不安裝或更新引擎。
 
@@ -47,6 +47,16 @@ python tools/probe_runtime.py --binary "D:\old-llama\llama-bench.exe" --command 
 `llama help all` 才會顯示部分預設隱藏的子命令，例如 `bench`、`fit-params`。Runtime Probe 現在對整合式 CLI 自動讀取該目錄，將純字串列表放在 `command_results.catalog.commands_observed_in_help_all`。
 
 如果 CLI 回傳不符合預期的格式、或目錄查詢失敗，就記錄 `null`（未能確認），**不推論該功能不存在**。對舊式獨立執行檔則標記 `not_applicable`。
+
+## 裝置資訊（需選擇性啟用）
+
+新增 `tools/device_inventory.py`，根據固定 upstream `common/arg.cpp` 中 `common_print_available_devices()` 的格式，辨識非 CPU 裝置 ID、名稱、記憶體總量與可用量。必須明確給 `--include-devices`，而且 `--help` 已觀察到 `--list-devices` 才會執行。
+
+`device_inventory` 只有三種狀態：`observed`、`none`、`unknown`。其中未知會保留原因，且不返回空裝置陣列以免誤判；空陣列只在成功解析 `(none)` 時產生。結構由 [JSON Schema](../../schemas/device-inventory.schema.json) 驗證。
+
+這個輸出**排除 CPU**、沒有 NPU 認證，也不提供模型算子／Kernel 相容性或 Benchmark 效能保證。
+
+實機檢查請依照 [Windows 官方版唯讀 Smoke Test](windows-smoke-test.md) 操作。
 
 ## 快照
 

@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ghgf566/Automatically-Tune-Your-llama.cpp/blob/main/schemas/device-inventory.schema.json",
+  "title": "ATYL GGML Device Inventory Observation v0.1",
+  "description": "Device ID, GGML description and MiB values observed from a zero-exit --list-devices command; non-CPU devices only; does not validate backend execution.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "reason",
+    "devices",
+    "non_cpu_device_count",
+    "cpu_devices_enumerated",
+    "model_backend_compatibility"
+  ],
+  "properties": {
+    "status": {
+      "enum": [
+        "observed",
+        "none",
+        "unknown"
+      ]
+    },
+    "reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "devices": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "description",
+              "total_memory_mib",
+              "free_memory_mib"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              },
+              "total_memory_mib": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "free_memory_mib": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "non_cpu_device_count": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "cpu_devices_enumerated": {
+      "const": false
+    },
+    "model_backend_compatibility": {
+      "const": "not_tested"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "unknown"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "devices": {
+            "type": "null"
+          },
+          "non_cpu_device_count": {
+            "type": "null"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "none"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "devices": {
+            "type": "array",
+            "maxItems": 0
+          },
+          "non_cpu_device_count": {
+            "const": 0
+          },
+          "reason": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "observed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "devices": {
+            "type": "array",
+            "minItems": 1
+          },
+          "non_cpu_device_count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "reason": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ]
+}
