@@ -171,6 +171,49 @@ class FitEstimateTests(unittest.TestCase):
             self.assertEqual(main(), 1)
         self.assertTrue(self.model.read_bytes().startswith(b"GGUF"))
 
+    def test_real_stdout_is_parsed_during_opt_in_execution(self):
+        plan = self.make(device="Vulkan0", gpu_layers=18,
+                         devices_snapshot=self.device_snapshot)
+        raw = b"Vulkan0 4136 101 525 \r\nHost 9111 304 44 \r\n"
+
+        class Dummy:
+            def wait(self, timeout=None):
+                return 0
+
+        def launch(argv, **kwargs):
+            kwargs["stdout"].write(raw)
+            kwargs["stderr"].write(b"estimate completed\n")
+            return Dummy()
+
+        with patch("fit_estimate.subprocess.Popen", side_effect=launch):
+            outcome = execute_plan(plan, timeout_seconds=10)
+        self.assertEqual(outcome["status"], "completed")
+        self.assertFalse(outcome["output_truncated_or_unknown"])
+        self.assertEqual(outcome["parsed_numeric_memory"]["devices"][0]["estimated_total_mib"], 4762)
+        self.assertEqual(outcome["parsed_numeric_memory"]["host"]["estimated_total_mib"], 9459)
+        self.assertEqual(outcome["parsed_numeric_memory"]["estimated_total_mib"], 14221)
+
+    def test_nonzero_output_is_not_treated_as_numeric_memory(self):
+        plan = self.make()
+        class Dummy:
+            def wait(self, timeout=None):
+                return 1
+        def launch(argv, **kwargs):
+            kwargs["stdout"].write(b"Host 100 20 30\n")
+            return Dummy()
+        with patch("fit_estimate.subprocess.Popen", side_effect=launch):
+            out = execute_plan(plan)
+        self.assertEqual(out["status"], "nonzero_exit")
+        self.assertIsNone(out["parsed_numeric_memory"])
+
+    def test_process_launch_error_returns_schema_valid_record(self):
+        plan = self.make()
+        with patch("fit_estimate.subprocess.Popen", side_effect=OSError("mock failure")):
+            out = execute_plan(plan)
+        self.assertEqual(out["status"], "process_error")
+        self.assertIsNone(out["parsed_numeric_memory"])
+        self.assertEqual(out["stderr_excerpt"], "OSError")
+
     def test_scenario_is_user_declared_even_in_preview(self):
         plan = self.make(scenario="reduced_background",
                          background_note="Wallpaper Engine manually paused")
