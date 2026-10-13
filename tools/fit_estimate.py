@@ -18,6 +18,7 @@ from engine_identity import sha256_file
 from inspect_gguf import GGUFMetadataError, inspect
 from environment_observation import (clean_llama_env, observe as observe_environment,
                                      summarize as summarize_environment)
+from fit_memory_parser import parse_memory_estimate
 
 REQUIRED_FIT_FLAGS = frozenset({
     "--model", "--fit-print", "--fit", "--ctx-size", "--n-gpu-layers",
@@ -123,7 +124,7 @@ def build_plan(model, fit_snapshot, *, device="none", devices_snapshot=None,
         "--fit", "off", "--fit-print", "on",
     ]
     return {
-        "schema_version": "0.2.0", "kind": "fit_estimate_plan",
+        "schema_version": "0.3.0", "kind": "fit_estimate_plan",
         "status": "prepared_not_executed",
         "engine_sha256": binary_sha,
         "model": {
@@ -190,8 +191,12 @@ def execute_plan(plan, *, timeout_seconds=600):
                 rc, status = None, "timeout"
             out.seek(0)
             err.seek(0)
-            stdout = out.read(MAX_STDIO_BYTES).decode("utf-8", "replace")
-            stderr = err.read(MAX_STDIO_BYTES).decode("utf-8", "replace")
+            stdout_bytes = out.read(MAX_STDIO_BYTES + 1)
+            stderr_bytes = err.read(MAX_STDIO_BYTES + 1)
+            was_truncated = (len(stdout_bytes) > MAX_STDIO_BYTES or
+                             len(stderr_bytes) > MAX_STDIO_BYTES)
+            stdout = stdout_bytes[:MAX_STDIO_BYTES].decode("utf-8", "replace")
+            stderr = stderr_bytes[:MAX_STDIO_BYTES].decode("utf-8", "replace")
     except OSError as exc:
         return {
             "status": "process_error", "returncode": None,
@@ -204,9 +209,12 @@ def execute_plan(plan, *, timeout_seconds=600):
     return {
         "status": status, "returncode": rc,
         "stdout_excerpt": stdout, "stderr_excerpt": stderr,
-        "output_truncated_or_unknown": True,
+        "output_truncated_or_unknown": was_truncated,
         "estimate_unit": "MiB (as reported by upstream, if recognizable)",
-        "parsed_numeric_memory": None,
+        "parsed_numeric_memory": (
+            parse_memory_estimate(stdout, plan["candidate"]["device_id"])
+            if status == "completed" and not was_truncated else None
+        ),
         "model_load_tested": False, "inference_tested": False,
     }
 
