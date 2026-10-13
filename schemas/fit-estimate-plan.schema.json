@@ -177,7 +177,8 @@
                 "nonzero_exit",
                 "timeout",
                 "process_error",
-                "output_limit"
+                "output_limit",
+                "cancelled"
               ]
             },
             "returncode": {

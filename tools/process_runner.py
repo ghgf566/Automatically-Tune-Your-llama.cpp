@@ -9,33 +9,44 @@ import subprocess
 import tempfile
 import time
 
+from process_lifecycle import isolation_options, stop_owned_tree
+
 
 def run_bounded(argv, timeout_seconds, *, capture_bytes=65536,
-                disk_limit_bytes=8 * 1024 * 1024, env=None):
-    """Status: success, nonzero_exit, timeout, output_limit, error."""
+                disk_limit_bytes=8 * 1024 * 1024, env=None, cancel_event=None):
+    """Status: success, nonzero_exit, timeout, output_limit, cancelled, error."""
     if not argv or timeout_seconds <= 0 or capture_bytes < 1 or disk_limit_bytes < capture_bytes:
         raise ValueError("invalid bounded-process settings")
     try:
         with tempfile.TemporaryFile(mode="w+b") as out, tempfile.TemporaryFile(mode="w+b") as err:
             proc = subprocess.Popen(
-                argv, stdin=subprocess.DEVNULL, stdout=out, stderr=err, env=env,
+                argv, stdin=subprocess.DEVNULL, stdout=out, stderr=err,
+                env=env, **isolation_options(),
             )
             deadline = time.monotonic() + timeout_seconds
             status, code = None, None
-            while True:
-                remaining = deadline - time.monotonic()
-                if remaining <= 0:
-                    status = "timeout"
-                    break
-                try:
-                    code = proc.wait(timeout=min(0.5, remaining))
-                    status = "success" if code == 0 else "nonzero_exit"
-                    break
-                except subprocess.TimeoutExpired:
-                    if (os.fstat(out.fileno()).st_size > disk_limit_bytes
-                            or os.fstat(err.fileno()).st_size > disk_limit_bytes):
-                        status = "output_limit"
+            try:
+                while True:
+                    if cancel_event is not None and cancel_event.is_set():
+                        status = "cancelled"
                         break
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        status = "timeout"
+                        break
+                    try:
+                        code = proc.wait(timeout=min(0.2, remaining))
+                        status = "success" if code == 0 else "nonzero_exit"
+                        break
+                    except subprocess.TimeoutExpired:
+                        if (os.fstat(out.fileno()).st_size > disk_limit_bytes
+                                or os.fstat(err.fileno()).st_size > disk_limit_bytes):
+                            status = "output_limit"
+                            break
+            except BaseException:
+                # Ctrl+C or an unexpected exception must never orphan a child.
+                stop_owned_tree(proc)
+                raise
             # A short-lived process can exit before the first periodic size
             # check. Its complete output still must not be treated as valid.
             if (status in ("success", "nonzero_exit")
@@ -43,12 +54,8 @@ def run_bounded(argv, timeout_seconds, *, capture_bytes=65536,
                          or os.fstat(err.fileno()).st_size > disk_limit_bytes)):
                 status = "output_limit"
                 code = None
-            if status in ("timeout", "output_limit"):
-                try:
-                    proc.kill()
-                except ProcessLookupError:
-                    pass
-                proc.wait()
+            if status in ("timeout", "output_limit", "cancelled"):
+                stop_owned_tree(proc)
             out.seek(0)
             err.seek(0)
             stdout_bytes = out.read(capture_bytes + 1)

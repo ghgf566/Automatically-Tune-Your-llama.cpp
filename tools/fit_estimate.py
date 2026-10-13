@@ -195,7 +195,7 @@ def execute_plan(plan, *, timeout_seconds=600):
     status = {
         "success": "completed", "nonzero_exit": "nonzero_exit",
         "timeout": "timeout", "error": "process_error",
-        "output_limit": "output_limit",
+        "output_limit": "output_limit", "cancelled": "cancelled",
     }[result["status"]]
     stdout, stderr = result["stdout"], result["stderr"]
     return {
