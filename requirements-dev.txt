@@ -1,1 +1,4 @@
 jsonschema>=4.20,<5
+referencing>=0.35,<1
+coverage>=7.5,<9
+ruff>=0.9,<1
