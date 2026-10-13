@@ -1,4 +1,4 @@
-# Runtime CLI Capability Probe v0.5 — 官方整合式 CLI 優先
+# Runtime CLI Capability Probe v0.6 — 官方整合式 CLI 優先
 
 ATYL 目前只做 **唯讀探測**。不啟動伺服器、不載入模型、不做 Bench、不安裝或更新引擎。
 
@@ -39,8 +39,8 @@ python tools/probe_runtime.py --binary "D:\old-llama\llama-bench.exe" --command 
 - `tools/engine_adapter.py` 是單一指令分派表，支援 `serve`、`bench` 以及唯讀 `fit-params --help`。過去探測器和驗證器各寫一份路由規則的情況已消除。
 - `tools/engine_identity.py` 提供獨立的 SHA-256 版本識別與候選能力快取 Key：輸入包含執行檔 SHA-256、子命令、固定 Registry 上游 Commit 和實際版本輸出。
 - 只有 `llama version` 成功且 `--help` 能辨識參數時，身份資料才設 `cacheable: true`。**目前尚未儲存或重用能力快取**；只生成可比較的 Key。
-- 現階段不在版本輸出中猜測 Build Commit，因此 `identity.engine_build_commit` 為 `null`。這與 `identity.registry_upstream_commit`（文件研究 SHA）刻意分離。
-- `fit-params` 尚未建立逐參數 Registry，故它只會顯示觀察到的 Help 參數，不產生偽造的「缺失參數」清單。`--include-devices` 對 `fit-params` 會拒絕執行。
+- 對已核對的官方 `version: ... (build N, commit HEX)` 單一格式，`identity.engine_build_commit` 可記錄**執行檔回報的短 Commit**，並分別保留 `engine_build_number`、`engine_build_commit_form`。格式未知或模糊時仍為 `null`，絕不複製 Registry 文件 SHA。
+- `fit-params` 尚無完整參數 Registry；現在有 13 個來源固定的**精選參數能力基準** `data/fit-capability-reference.json`，只比對 Help 出現與否，不能當成 197 項完整清單，也不會聲稱模型可 Fit。`--include-devices` 對 `fit-params` 會拒絕執行。
 
 ## 子命令目錄觀察（延續 Runtime Capability 研究）
 
@@ -66,6 +66,12 @@ python tools/probe_runtime.py --binary "D:\old-llama\llama-bench.exe" --command 
 - 說明指令失敗或沒有任何可辨識旗標時，對比欄位為 `null`（未知），不能誤判為全面不支援。
 - 摘要內容有限長度、但仍可能包含路徑或環境字串；分享前應檢視或遮蔽敏感資訊。
 
+## 依 Windows 實機資料改進
+
+原始三份實測 JSON 沒有直接存入儲存庫，只保留去識別化的最小回歸樣本。診斷欄位 `diagnostics` 分辨「文件已記載但 Help 未觀察到」以及「Help 有但固定文件未登錄」；對 Bench `--rpc` 會標記上游 `llama_supports_rpc()` 條件式顯示，**不是斷言不支援 RPC**。尾端只有 `-` 的不完整旗標會由解析器過濾。
+
+Fit Help 透過 `fit_reference` 對照 13 筆精選旗標，特別注意 `--fit-print on` 是估算記憶體輸出，並非已調整好的啟動參數。詳見 [實機回歸證據與 Fit 參數](windows-build11574-fit-reference.md)。
+
 ## 尚未驗證
 
-目前僅在 GitHub CI 裡使用合成執行檔及 mock subprocess 測試；尚未用真正的 llama.app Windows 版本、GPU 驅動或模型驗證。支援 `fit-params --help` 不代表能推導合適的 Fit 參數。旗標出現在 `--help` 中不代表該 Backend 支援、參數值有效或能在模型上提升效能。
+目前已收到並分析一組使用者自行執行的官方 llama.app Windows 版本輸出；GitHub CI 仍只使用去識別化摘要與 mock subprocess，**CI 沒有在真實 Windows GPU 上執行**。支援 `fit-params --help` 不代表能推導合適的 Fit 參數。旗標出現在 `--help` 中不代表該 Backend 支援、參數值有效或能在模型上提升效能。

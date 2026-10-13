@@ -53,4 +53,4 @@ Available devices:
 - 若要分享 JSON，請先檢查版本摘要、裝置描述與本機訊息是否包含隱私資訊。
 - 不需要執行 `llama update`；ATYL 不會安裝、修改或重啟 llama.cpp。
 
-這份手動 Smoke Test 的目的是驗證官方版本的真實文字格式與平台差異；尚未取代後續的模型載入相容性測試。
+已有一組官方 llama.app Windows build 11574 的真實探測結果供 ATYL 回歸研究（見 [實機回歸證據](windows-build11574-fit-reference.md)），但仍應在每次更新引擎後重新執行；這份手動 Smoke Test 尚未取代後續的模型載入相容性測試。

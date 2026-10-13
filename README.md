@@ -33,7 +33,7 @@ python tools/probe_runtime.py --command fit-params --output fit-capability.json
 - [文件索引](docs/README.md)
 - [能力與參數空間規格](docs/specification/parameter-space.md)
 - [CLI Registry v1](docs/specification/cli-registry.md)
-- [Runtime CLI 探測 v0.5](docs/research/runtime-capability.md)
+- [Runtime CLI 探測 v0.6](docs/research/runtime-capability.md)
 - [實驗 Profile／Result 契約 v1](docs/specification/experiment-contracts.md)
 - [量測與實驗方法](docs/research/benchmark-methodology.md)
 - [初步系統架構](docs/research/system-architecture.md)
@@ -44,9 +44,13 @@ python tools/probe_runtime.py --command fit-params --output fit-capability.json
 - `tools/engine_adapter.py`：官方整合式 CLI 與 Legacy 命令路由的唯一來源。
 - `tools/engine_identity.py`：實際二進位 SHA-256、版本回報與獨立的 Registry 來源 Commit；更新版本時生成不同的能力快取 Key。
 - `schemas/*.json`：已升級為 `1.1.0`，實際引擎 Build 與文件 Registry SHA 不再互相冒充。Build／Backend 尚未證實時以 `null` 保存。
-- `fit-params` 目前僅支援不載入模型的 `--help` 探測。
+- `fit-params` 目前僅支援不載入模型的 `--help` 探測，已加入 13 項精選 Fit 旗標作為能力研究基準。
 - `tools/device_inventory.py`：可選擇性列舉 GGML 回報的非 CPU 裝置及可用記憶體；尚未驗證實際 Backend／模型能力。
 - [Windows 手動 Smoke Test](docs/research/windows-smoke-test.md)：操作官方已安裝的 llama.exe，不需要啟動推理服務。
+
+## Windows 實機回歸證據
+
+根據使用者提供的官方 llama.app build 11574 三份唯讀探測輸出，已核對 Serve／Bench／Fit 子命令與裝置列舉、整理去識別化回歸測試。差異診斷會將上游條件式 `--rpc` 與文件版本缺口分開，而非直接認定不支援。更多細節見 [Windows Build 11574 回歸與 Fit 參數基準](docs/research/windows-build11574-fit-reference.md)。
 
 ## 初步設計原則
 

@@ -44,3 +44,7 @@ Run local tests after installing development dependencies:
 - [Run Record JSON schema](../../schemas/run-record.schema.json)
 - [Illustrative example profile](../../examples/workload-profile.example.json)
 - [Illustrative example result](../../examples/run-record.example.json)
+
+## Runtime CLI discrepancies are advisory
+
+The pinned 302-row inventory is not modified by live Help output. ATYL's `diagnostics` reports build-conditional flags separately from unknown absences and extra observed flags. The `bench --rpc` flag, for example, is guarded by `llama_supports_rpc()` in the pinned upstream code. A new 13-entry curated Fit reference exists in [data/fit-capability-reference.json](../../data/fit-capability-reference.json), **separate** from the server/bench inventory. See [Windows evidence](../research/windows-build11574-fit-reference.md).
