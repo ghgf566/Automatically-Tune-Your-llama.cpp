@@ -32,11 +32,27 @@ def canonical_cli_name(program, flag, inventory):
 def check_profile_consistency(document):
     """Enforce user locks and workload minima beyond JSON Schema."""
     inventory = load_json(ROOT / "data" / "cli-inventory.json")
-    binary = Path(document["engine"]["binary"]).name.lower()
-    program = binary.removesuffix(".exe")
-    if program not in ("llama-server", "llama-bench"):
-        # Fail closed for unknown binaries: we cannot safely normalize aliases.
+    engine = document["engine"]
+    binary = Path(engine["binary"]).name.lower().removesuffix(".exe")
+    command = engine.get("command")
+    routes = {"serve": "llama-server", "bench": "llama-bench"}
+    legacy_routes = {value: key for key, value in routes.items()}
+    if binary == "llama":
+        if command not in routes:
+            raise ValueError("official llama binary requires engine.command serve or bench")
+        program = routes[command]
+    elif binary in legacy_routes:
+        expected = legacy_routes[binary]
+        if command is not None and command != expected:
+            raise ValueError("legacy binary command does not match executable")
+        program = binary
+        command = expected
+    else:
         raise ValueError("cannot validate CLI aliases for executable: " + binary)
+    if document["workload"]["mode"] == "bench" and command != "bench":
+        raise ValueError("bench workload requires the bench subcommand")
+    if document["workload"]["mode"] == "server" and command != "serve":
+        raise ValueError("server workload requires the serve subcommand")
     locks = document["user_locked_parameters"]
     candidates = document["candidate_parameters"]
     canonical_locks = {canonical_cli_name(program, flag, inventory) for flag in locks}

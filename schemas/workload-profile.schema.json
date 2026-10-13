@@ -58,6 +58,20 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "command": {
+          "enum": [
+            "serve",
+            "bench"
+          ],
+          "description": "For official llama[.exe], select the subcommand. Legacy llama-server and llama-bench may omit it."
+        },
+        "installation_source": {
+          "enum": [
+            "llama.app",
+            "external"
+          ],
+          "description": "Research metadata; official llama.app installation is the preferred path."
         }
       }
     },

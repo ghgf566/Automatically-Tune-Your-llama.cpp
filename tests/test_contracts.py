@@ -80,6 +80,35 @@ class ContractTest(unittest.TestCase):
             self.validate_mutated_profile(
                 lambda data: data["engine"].update({"binary": "unrecognized.exe"}))
 
+    def test_official_integrated_profile_has_command(self):
+        data = self.validate_mutated_profile(lambda document: None)
+        self.assertEqual(data["engine"]["binary"], "llama")
+        self.assertEqual(data["engine"]["command"], "bench")
+
+    def test_official_missing_command_rejected(self):
+        with self.assertRaisesRegex(ValueError, "engine.command"):
+            self.validate_mutated_profile(
+                lambda doc: doc["engine"].pop("command"))
+
+    def test_official_subcommand_workload_mismatch_rejected(self):
+        with self.assertRaisesRegex(ValueError, "bench workload"):
+            self.validate_mutated_profile(
+                lambda doc: doc["engine"].update({"command": "serve"}))
+
+    def test_legacy_profile_still_accepted(self):
+        def convert(doc):
+            doc["engine"].update({"binary": "llama-bench", "installation_source": "external"})
+            doc["engine"].pop("command")
+        self.assertEqual(self.validate_mutated_profile(convert)["engine"]["binary"],
+                         "llama-bench")
+
+    def test_legacy_mismatched_command_rejected(self):
+        def convert(doc):
+            doc["engine"].update({"binary": "llama-bench", "command": "serve"})
+        with self.assertRaisesRegex(ValueError, "legacy binary command"):
+            self.validate_mutated_profile(convert)
+
+
 
 if __name__ == "__main__":
     unittest.main()
