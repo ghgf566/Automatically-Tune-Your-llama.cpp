@@ -1,0 +1,215 @@
+#!/usr/bin/env python3
+"""Plan an explicit, opt-in offline llama fit-params MEMORY ESTIMATE.
+
+A plan does not load a model or run llama. --execute is required for a real
+memory estimate; it does not execute fitted arguments or launch a server.
+"""
+import argparse
+import json
+import os
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+from engine_adapter import command_prefix, discover_binary, resolve_entrypoint
+from engine_identity import sha256_file
+from inspect_gguf import GGUFMetadataError, inspect
+
+REQUIRED_FIT_FLAGS = frozenset({
+    "--model", "--fit-print", "--fit", "--ctx-size", "--n-gpu-layers",
+    "--device", "--offline",
+})
+MAX_STDIO_BYTES = 16384
+MIN_CONTEXT = 128
+MAX_CONTEXT = 262144
+MAX_GPU_LAYERS = 4096
+MAX_TIMEOUT_SECONDS = 1800
+
+
+class FitPlanError(ValueError):
+    pass
+
+
+def _snapshot(path):
+    try:
+        doc = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (ValueError, OSError) as error:
+        raise FitPlanError("cannot read runtime capability snapshot") from error
+    if not isinstance(doc, dict):
+        raise FitPlanError("runtime capability snapshot is not an object")
+    return doc
+
+
+def _same_engine(snapshot, sha):
+    return (snapshot.get("binary", {}).get("sha256") == sha
+            and snapshot.get("identity", {}).get("binary_sha256") == sha
+            and snapshot.get("entrypoint", {}).get("kind") == "integrated")
+
+
+def _validate_fit_snapshot(doc, sha):
+    if not _same_engine(doc, sha) or doc.get("entrypoint", {}).get("command") != "fit-params":
+        raise FitPlanError("fit snapshot belongs to another engine/build or command")
+    version = doc.get("command_results", {}).get("version", {})
+    help_observation = doc.get("command_results", {}).get("help", {})
+    observed = help_observation.get("flag_names_observed")
+    if (version.get("status") != "success" or help_observation.get("status") != "success"
+            or not isinstance(observed, list)):
+        raise FitPlanError("fit snapshot lacks successful version/help evidence")
+    missing = REQUIRED_FIT_FLAGS - set(observed)
+    if missing:
+        raise FitPlanError("fit snapshot missing required flags: " + ", ".join(sorted(missing)))
+
+
+def _validate_device_snapshot(doc, sha, device_id):
+    if not _same_engine(doc, sha):
+        raise FitPlanError("device snapshot belongs to another engine/build")
+    result = doc.get("device_inventory", {})
+    if (doc.get("command_results", {}).get("devices", {}).get("status") != "success"
+            or result.get("status") != "observed"):
+        raise FitPlanError("device snapshot has no confirmed GGML device listing")
+    if device_id not in {item.get("id") for item in result.get("devices", [])}:
+        raise FitPlanError("requested device ID not present in verified listing")
+
+
+def build_plan(model, fit_snapshot, *, device="none", devices_snapshot=None,
+               context=4096, gpu_layers=0, binary=None):
+    """Fail closed on stale engine snapshots; preview a single fixed configuration."""
+    if not (MIN_CONTEXT <= context <= MAX_CONTEXT):
+        raise FitPlanError("context must be between 128 and 262144")
+    if not (0 <= gpu_layers <= MAX_GPU_LAYERS):
+        raise FitPlanError("gpu layers must be between 0 and 4096")
+    if not device or any(c in device for c in ",/ \t\r\n"):
+        raise FitPlanError("select one specific GGML device ID or 'none'")
+    if device == "none" and gpu_layers != 0:
+        raise FitPlanError("CPU-only device none requires --gpu-layers 0")
+    if device != "none" and gpu_layers == 0:
+        raise FitPlanError("GPU device requires a positive explicit --gpu-layers")
+    model_path = Path(model).expanduser().resolve()
+    # Fresh read prevents accepting metadata from an unrelated or stale JSON.
+    model_info = inspect(model_path)
+    if model_info["split"]["multiple_parts_reported"]:
+        raise FitPlanError("multi-part GGUF requires a shard-completeness validator first")
+    path = discover_binary(binary)
+    entry = resolve_entrypoint(path, "fit-params")
+    if entry.kind != "integrated":
+        raise FitPlanError("use official integrated llama for the first controlled estimator")
+    binary_sha = sha256_file(path)
+    fit_doc = _snapshot(fit_snapshot)
+    _validate_fit_snapshot(fit_doc, binary_sha)
+    if device != "none":
+        if not devices_snapshot:
+            raise FitPlanError("a recent device snapshot is required for GPU execution")
+        _validate_device_snapshot(_snapshot(devices_snapshot), binary_sha, device)
+    argv = command_prefix(entry) + [
+        "--offline", "--model", str(model_path),
+        "--device", device,
+        "--ctx-size", str(context),
+        "--n-gpu-layers", str(gpu_layers),
+        "--fit", "off", "--fit-print", "on",
+    ]
+    return {
+        "schema_version": "0.1.0", "kind": "fit_estimate_plan",
+        "status": "prepared_not_executed",
+        "engine_sha256": binary_sha,
+        "model": {
+            "filename": model_info["source"]["filename"],
+            "file_size_bytes": model_info["source"]["file_size_bytes"],
+            "architecture": model_info["general"]["architecture"],
+            "gguf_version": model_info["gguf_version"],
+        },
+        "candidate": {
+            "device_id": device, "context_tokens": context, "gpu_layers": gpu_layers,
+            "fit_adjustment": "off", "output_mode": "estimated_memory",
+        },
+        "argv": argv,
+        "estimate": None,
+        "limitations": [
+            "Plan generation never reads tensor payloads or launches llama.",
+            "Executing runs llama fit-params for a requested offline memory estimate.",
+            "Runtime snapshots are observations tied to a binary, not a proof of compatibility.",
+            "GGML estimates are not a validated model load, speed benchmark or guaranteed VRAM fit.",
+            "Command argv includes local file paths; redact before sharing.",
+        ],
+    }
+
+
+def execute_plan(plan, *, timeout_seconds=600):
+    """Execute exactly the prepared argv with bounded output, no shell or server."""
+    if not (1 <= timeout_seconds <= MAX_TIMEOUT_SECONDS):
+        raise FitPlanError("timeout must be in [1, 1800] seconds")
+    if plan["status"] != "prepared_not_executed" or plan["kind"] != "fit_estimate_plan":
+        raise FitPlanError("only an unexecuted fit estimate plan can run")
+    argv = plan["argv"]
+    if (len(argv) < 4 or argv[1:3] != ["fit-params", "--offline"]
+            or "--fit-print" not in argv or argv[-1] != "on"):
+        raise FitPlanError("unexpected fit estimate command shape")
+    # Upstream may emit verbose logs; send to temporary disk files, not
+    # unbounded subprocess.PIPE memory. Do not invoke a shell.
+    try:
+        with tempfile.TemporaryFile(mode="w+b") as out, tempfile.TemporaryFile(mode="w+b") as err:
+            process = subprocess.Popen(
+                argv, stdin=subprocess.DEVNULL, stdout=out, stderr=err,
+                env={k: v for k, v in os.environ.items()
+                     if not k.startswith("LLAMA_ARG_") and k not in ("HF_TOKEN", "HUGGING_FACE_HUB_TOKEN")},
+            )
+            try:
+                rc = process.wait(timeout=timeout_seconds)
+                status = "completed" if rc == 0 else "nonzero_exit"
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+                rc, status = None, "timeout"
+            out.seek(0)
+            err.seek(0)
+            stdout = out.read(MAX_STDIO_BYTES).decode("utf-8", "replace")
+            stderr = err.read(MAX_STDIO_BYTES).decode("utf-8", "replace")
+    except OSError as exc:
+        return {"status": "process_error", "returncode": None,
+                "stdout_excerpt": "", "stderr_excerpt": type(exc).__name__}
+    return {
+        "status": status, "returncode": rc,
+        "stdout_excerpt": stdout, "stderr_excerpt": stderr,
+        "output_truncated_or_unknown": True,
+        "estimate_unit": "MiB (as reported by upstream, if recognizable)",
+        "parsed_numeric_memory": None,
+        "model_load_tested": False, "inference_tested": False,
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--model", type=Path, required=True)
+    parser.add_argument("--fit-snapshot", type=Path, required=True)
+    parser.add_argument("--device-snapshot", type=Path)
+    parser.add_argument("--device", default="none")
+    parser.add_argument("--context", type=int, default=4096)
+    parser.add_argument("--gpu-layers", type=int, default=0)
+    parser.add_argument("--binary", type=Path)
+    parser.add_argument("--execute", action="store_true",
+                        help="Explicitly run llama fit-params (may read model files and initialize GPU)")
+    parser.add_argument("--timeout", type=int, default=600)
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args()
+    try:
+        plan = build_plan(args.model, args.fit_snapshot, device=args.device,
+                          devices_snapshot=args.device_snapshot, context=args.context,
+                          gpu_layers=args.gpu_layers, binary=args.binary)
+        if args.execute:
+            plan["estimate"] = execute_plan(plan, timeout_seconds=args.timeout)
+            plan["status"] = "estimate_attempted"
+        text = json.dumps(plan, indent=2, ensure_ascii=False) + "\n"
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(text, encoding="utf-8")
+            print("Created fit estimate plan:", args.output)
+        else:
+            print(text, end="")
+    except (OSError, ValueError) as exc:
+        print("Fit estimate plan rejected:", exc, file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
