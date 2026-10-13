@@ -38,6 +38,7 @@ fit-daily*.json
 fit-reduced*.json
 fit-estimate-result*.json
 fit-environment-comparison*.json
+speculative-preview*.json
 
 # Local experiment outputs
 results/
