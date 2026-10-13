@@ -21,6 +21,7 @@ from environment_observation import (clean_llama_env, observe as observe_environ
 from fit_memory_parser import parse_memory_estimate
 from safe_output import write_text
 from runtime_snapshot import SnapshotValidationError, check_snapshot
+from process_runner import run_bounded
 
 REQUIRED_FIT_FLAGS = frozenset({
     "--model", "--fit-print", "--fit", "--ctx-size", "--n-gpu-layers",
@@ -177,50 +178,27 @@ def execute_plan(plan, *, timeout_seconds=600):
         raise FitPlanError("engine changed since preview; create a new fit plan")
     if Path(argv[4]).stat().st_size != plan["model"]["file_size_bytes"]:
         raise FitPlanError("model file size changed since preview; create a new fit plan")
-    # Upstream may emit verbose logs; send to temporary disk files, not
-    # unbounded subprocess.PIPE memory. Do not invoke a shell.
-    try:
-        with tempfile.TemporaryFile(mode="w+b") as out, tempfile.TemporaryFile(mode="w+b") as err:
-            process = subprocess.Popen(
-                argv, stdin=subprocess.DEVNULL, stdout=out, stderr=err,
-                env=clean_llama_env(),
-            )
-            try:
-                rc = process.wait(timeout=timeout_seconds)
-                status = "completed" if rc == 0 else "nonzero_exit"
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait()
-                rc, status = None, "timeout"
-            out.seek(0)
-            err.seek(0)
-            stdout_bytes = out.read(MAX_STDIO_BYTES + 1)
-            stderr_bytes = err.read(MAX_STDIO_BYTES + 1)
-            was_truncated = (len(stdout_bytes) > MAX_STDIO_BYTES or
-                             len(stderr_bytes) > MAX_STDIO_BYTES)
-            stdout = stdout_bytes[:MAX_STDIO_BYTES].decode("utf-8", "replace")
-            stderr = stderr_bytes[:MAX_STDIO_BYTES].decode("utf-8", "replace")
-    except OSError as exc:
-        return {
-            "status": "process_error", "returncode": None,
-            "stdout_excerpt": "", "stderr_excerpt": type(exc).__name__,
-            "output_truncated_or_unknown": True,
-            "estimate_unit": "MiB (as reported by upstream, if recognizable)",
-            "parsed_numeric_memory": None,
-            "model_load_tested": False, "inference_tested": False,
-        }
+    result = run_bounded(
+        argv, timeout_seconds, capture_bytes=MAX_STDIO_BYTES,
+        disk_limit_bytes=8 * 1024 * 1024, env=clean_llama_env(),
+    )
+    status = {
+        "success": "completed", "nonzero_exit": "nonzero_exit",
+        "timeout": "timeout", "error": "process_error",
+        "output_limit": "output_limit",
+    }[result["status"]]
+    stdout, stderr = result["stdout"], result["stderr"]
     return {
-        "status": status, "returncode": rc,
+        "status": status, "returncode": result["returncode"],
         "stdout_excerpt": stdout, "stderr_excerpt": stderr,
-        "output_truncated_or_unknown": was_truncated,
+        "output_truncated_or_unknown": result["truncated"],
         "estimate_unit": "MiB (as reported by upstream, if recognizable)",
         "parsed_numeric_memory": (
             parse_memory_estimate(stdout, plan["candidate"]["device_id"])
-            if status == "completed" and not was_truncated else None
+            if status == "completed" and not result["truncated"] else None
         ),
         "model_load_tested": False, "inference_tested": False,
     }
-
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)

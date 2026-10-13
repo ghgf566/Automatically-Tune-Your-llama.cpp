@@ -128,7 +128,8 @@
                 "completed",
                 "nonzero_exit",
                 "timeout",
-                "process_error"
+                "process_error",
+                "output_limit"
               ]
             },
             "returncode": {

@@ -14,6 +14,8 @@ from device_inventory import observation as observe_devices, unknown as unknown_
 from registry_differences import interpret_differences, inspect_fit_reference
 from safe_output import write_text
 from runtime_snapshot import check_snapshot
+from environment_observation import clean_llama_env
+from process_runner import run_bounded
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "data" / "cli-inventory.json"
@@ -55,19 +57,15 @@ def commands_from_help_all(output):
 
 def run_cli(argv, timeout_seconds):
     """Run an explicit argv, never through a shell."""
-    try:
-        completed = subprocess.run(
-            argv, stdin=subprocess.DEVNULL, capture_output=True, text=True,
-            errors="replace", timeout=timeout_seconds, check=False,
-        )
-    except subprocess.TimeoutExpired:
-        return {"status": "timeout", "returncode": None, "stdout": "", "stderr": ""}
-    except OSError as exc:
-        return {"status": "error", "returncode": None, "stdout": "",
-                "stderr": type(exc).__name__ + ": " + str(exc)[:500]}
-    return {"status": "success" if completed.returncode == 0 else "nonzero_exit",
-            "returncode": completed.returncode,
-            "stdout": completed.stdout, "stderr": completed.stderr}
+    result = run_bounded(argv, timeout_seconds, capture_bytes=1024 * 1024,
+                         disk_limit_bytes=8 * 1024 * 1024, env=clean_llama_env())
+    if result["truncated"] and result["status"] in ("success", "nonzero_exit"):
+        result["status"] = "error"
+        result["stdout"] = ""
+        result["stderr"] = "truncated_help_output"
+    if result["status"] == "output_limit":
+        result["status"] = "error"
+    return result
 
 
 def compact_result(result, limit=4096):

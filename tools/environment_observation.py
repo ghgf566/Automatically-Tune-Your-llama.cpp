@@ -12,6 +12,7 @@ import tempfile
 from datetime import datetime, timezone
 
 from device_inventory import observation as parse_observation
+from process_runner import run_bounded
 
 MIB = 1024 * 1024
 DEVICE_PROBE_TIMEOUT = 15
@@ -85,30 +86,15 @@ def ggml_headroom(binary, device_id):
     result = {"status": "unknown", "reason": "unverified_device",
               "device_id": device_id, "backend_id": None, "description": None,
               "total_mib": None, "available_mib": None}
-    try:
-        with tempfile.TemporaryFile(mode="w+b") as stdout, tempfile.TemporaryFile(mode="w+b") as stderr:
-            proc = subprocess.Popen(
-                [str(binary), "serve", "--list-devices"],
-                stdin=subprocess.DEVNULL, stdout=stdout, stderr=stderr,
-                env=clean_llama_env(),
-            )
-            try:
-                code = proc.wait(timeout=DEVICE_PROBE_TIMEOUT)
-            except subprocess.TimeoutExpired:
-                proc.kill()
-                proc.wait()
-                result["reason"] = "device_probe_timeout"
-                return result
-            if code != 0:
-                result["reason"] = "device_probe_nonzero_exit"
-                return result
-            stdout.seek(0)
-            stderr.seek(0)
-            raw_stdout = stdout.read(MAX_DEVICE_OUTPUT).decode("utf-8", "replace")
-            raw_stderr = stderr.read(MAX_DEVICE_OUTPUT).decode("utf-8", "replace")
-    except OSError:
-        result["reason"] = "device_probe_os_error"
+    observed = run_bounded(
+        [str(binary), "serve", "--list-devices"], DEVICE_PROBE_TIMEOUT,
+        capture_bytes=MAX_DEVICE_OUTPUT, disk_limit_bytes=1024 * 1024,
+        env=clean_llama_env(),
+    )
+    if observed["status"] != "success" or observed["truncated"]:
+        result["reason"] = "device_probe_" + observed["status"]
         return result
+    raw_stdout, raw_stderr = observed["stdout"], observed["stderr"]
 
     inventory = parse_observation({"status": "success",
                                    "stdout": raw_stdout, "stderr": raw_stderr})
