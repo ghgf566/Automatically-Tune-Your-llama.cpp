@@ -6,6 +6,7 @@ proof of model loading, or a source of automatic GPU-layer recommendations.
 import ctypes
 import os
 import platform
+import re
 import subprocess
 import tempfile
 from datetime import datetime, timezone
@@ -121,7 +122,7 @@ def ggml_headroom(binary, device_id):
     device = selected[0]
     return {
         "status": "observed", "reason": None, "device_id": device_id,
-        "backend_id": device_id.split("0")[0] if device_id.endswith("0") else None,
+        "backend_id": re.sub(r"[0-9]+$", "", device_id) or None,
         "description": device["description"],
         "total_mib": device["total_memory_mib"],
         "available_mib": device["free_memory_mib"],

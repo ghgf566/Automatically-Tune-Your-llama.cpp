@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "ATYL single-candidate llama fit-params memory estimate plan v0.1",
+  "title": "ATYL single-candidate llama fit-params memory estimate plan v0.2",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -12,11 +12,12 @@
     "candidate",
     "argv",
     "estimate",
-    "limitations"
+    "limitations",
+    "environment"
   ],
   "properties": {
     "schema_version": {
-      "const": "0.1.0"
+      "const": "0.2.0"
     },
     "kind": {
       "const": "fit_estimate_plan"
@@ -167,6 +168,9 @@
       "items": {
         "type": "string"
       }
+    },
+    "environment": {
+      "$ref": "environment-observation.schema.json"
     }
   },
   "allOf": [
@@ -198,6 +202,46 @@
         "properties": {
           "estimate": {
             "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "prepared_not_executed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "environment": {
+            "properties": {
+              "capture_status": {
+                "const": "not_sampled"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "estimate_attempted"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "environment": {
+            "properties": {
+              "capture_status": {
+                "const": "captured_best_effort"
+              }
+            }
           }
         }
       }

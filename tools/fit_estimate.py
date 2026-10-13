@@ -16,6 +16,7 @@ from pathlib import Path
 from engine_adapter import command_prefix, discover_binary, resolve_entrypoint
 from engine_identity import sha256_file
 from inspect_gguf import GGUFMetadataError, inspect
+from environment_observation import observe as observe_environment, summarize as summarize_environment
 
 REQUIRED_FIT_FLAGS = frozenset({
     "--model", "--fit-print", "--fit", "--ctx-size", "--n-gpu-layers",
@@ -81,8 +82,12 @@ def _validate_device_snapshot(doc, sha, device_id):
 
 
 def build_plan(model, fit_snapshot, *, device="none", devices_snapshot=None,
-               context=4096, gpu_layers=0, binary=None):
+               context=4096, gpu_layers=0, binary=None, scenario="daily", background_note=None):
     """Fail closed on stale engine snapshots; preview a single fixed configuration."""
+    if scenario not in ("daily", "reduced_background"):
+        raise FitPlanError("scenario must be daily or reduced_background")
+    if background_note is not None and len(background_note) > 300:
+        raise FitPlanError("background note must have at most 300 characters")
     if not (MIN_CONTEXT <= context <= MAX_CONTEXT):
         raise FitPlanError("context must be between 128 and 262144")
     if not (0 <= gpu_layers <= MAX_GPU_LAYERS):
@@ -117,7 +122,7 @@ def build_plan(model, fit_snapshot, *, device="none", devices_snapshot=None,
         "--fit", "off", "--fit-print", "on",
     ]
     return {
-        "schema_version": "0.1.0", "kind": "fit_estimate_plan",
+        "schema_version": "0.2.0", "kind": "fit_estimate_plan",
         "status": "prepared_not_executed",
         "engine_sha256": binary_sha,
         "model": {
@@ -132,11 +137,20 @@ def build_plan(model, fit_snapshot, *, device="none", devices_snapshot=None,
         },
         "argv": argv,
         "estimate": None,
+        "environment": {
+            "scenario": scenario,
+            "scenario_is_user_declared": True,
+            "background_note": background_note,
+            "capture_status": "not_sampled",
+            "before": None, "after": None, "available_memory_change": None,
+        },
         "limitations": [
             "Plan generation never reads tensor payloads or launches llama.",
             "Executing runs llama fit-params for a requested offline memory estimate.",
             "Runtime snapshots are observations tied to a binary, not a proof of compatibility.",
             "GGML estimates are not a validated model load, speed benchmark or guaranteed VRAM fit.",
+            "Before/after headroom is not a measure of peak model/process memory use.",
+            "Background-load labels are declared by the user, never verified from processes.",
             "Command argv includes local file paths; redact before sharing.",
         ],
     }
@@ -200,6 +214,8 @@ def main():
     parser.add_argument("--context", type=int, default=4096)
     parser.add_argument("--gpu-layers", type=int, default=0)
     parser.add_argument("--binary", type=Path)
+    parser.add_argument("--scenario", choices=("daily", "reduced_background"), default="daily")
+    parser.add_argument("--background-note", help="Optional manual note (e.g. Wallpaper Engine running)")
     parser.add_argument("--execute", action="store_true",
                         help="Explicitly run llama fit-params (may read model files and initialize GPU)")
     parser.add_argument("--timeout", type=int, default=600)
@@ -208,11 +224,9 @@ def main():
     try:
         plan = build_plan(args.model, args.fit_snapshot, device=args.device,
                           devices_snapshot=args.device_snapshot, context=args.context,
-                          gpu_layers=args.gpu_layers, binary=args.binary)
-        if args.execute:
-            plan["estimate"] = execute_plan(plan, timeout_seconds=args.timeout)
-            plan["status"] = "estimate_attempted"
-        text = json.dumps(plan, indent=2, ensure_ascii=False) + "\n"
+                          gpu_layers=args.gpu_layers, binary=args.binary,
+                          scenario=args.scenario, background_note=args.background_note)
+        # Reject destructive destinations BEFORE optional subprocess execution.
         if args.output:
             destination = args.output.expanduser().resolve()
             protected = {Path(args.model).expanduser().resolve(),
@@ -222,6 +236,21 @@ def main():
                 protected.add(Path(args.device_snapshot).expanduser().resolve())
             if destination in protected:
                 raise FitPlanError("output must not overwrite model, snapshot or engine")
+        if args.execute:
+            environment = plan["environment"]
+            environment["before"] = observe_environment(
+                plan["argv"][0], plan["candidate"]["device_id"])
+            try:
+                plan["estimate"] = execute_plan(plan, timeout_seconds=args.timeout)
+                plan["status"] = "estimate_attempted"
+            finally:
+                environment["after"] = observe_environment(
+                    plan["argv"][0], plan["candidate"]["device_id"])
+                environment["available_memory_change"] = summarize_environment(
+                    environment["before"], environment["after"])
+                environment["capture_status"] = "captured_best_effort"
+        text = json.dumps(plan, indent=2, ensure_ascii=False) + "\n"
+        if args.output:
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(text, encoding="utf-8")
             print("Created fit estimate plan:", args.output)
