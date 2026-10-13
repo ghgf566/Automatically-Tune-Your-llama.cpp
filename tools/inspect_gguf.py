@@ -249,7 +249,7 @@ def main():
             print("Created model metadata observation:", args.output)
         else:
             print(result, end="")
-    except (OSError, GGUFMetadataError) as error:
+    except (OSError, ValueError) as error:
         print("GGUF inspection failed:", error, file=sys.stderr)
         return 1
     return 0
