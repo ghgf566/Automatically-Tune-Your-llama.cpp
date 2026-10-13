@@ -89,7 +89,7 @@ class CommandAdapterTest(unittest.TestCase):
             return {"status": "success", "returncode": 0, "stdout": "version 777", "stderr": ""}
         with patch.object(probe, "run_cli", side_effect=fake):
             got = probe.probe_binary(self.bin, self.registry)
-        self.assertEqual(calls, [["version"], ["serve", "--help"]])
+        self.assertEqual(calls, [["version"], ["help", "all"], ["serve", "--help"]])
         self.assertEqual(got["program"], "llama-server")
         self.assertIn("--gpu-layers", got["comparison"]["documented_observed_in_help"])
         self.assertIn("--brand-new", got["comparison"]["unregistered_flags_observed_in_help"])
@@ -104,7 +104,7 @@ class CommandAdapterTest(unittest.TestCase):
                     "stdout": "  -m, --model <file>\n", "stderr": ""}
         with patch.object(probe, "run_cli", side_effect=fake):
             found = probe.probe_binary(self.bin, self.registry, command="fit-params")
-        self.assertEqual(calls, [["version"], ["fit-params", "--help"]])
+        self.assertEqual(calls, [["version"], ["help", "all"], ["fit-params", "--help"]])
         self.assertIsNone(found["comparison"]["documented_not_observed_in_help"])
         self.assertEqual(found["command_results"]["help"]["documented_flag_presence"],
                          "no_pinned_registry")
@@ -117,7 +117,7 @@ class CommandAdapterTest(unittest.TestCase):
                     "stdout": "  --help\n", "stderr": ""}
         with patch.object(probe, "run_cli", side_effect=fake):
             probe.probe_binary(self.bin, self.registry, include_devices=True)
-        self.assertEqual(calls, [["version"], ["serve", "--help"], ["serve", "--list-devices"]])
+        self.assertEqual(calls, [["version"], ["help", "all"], ["serve", "--help"], ["serve", "--list-devices"]])
         with patch.object(probe, "run_cli") as call:
             with self.assertRaises(ValueError):
                 probe.probe_binary(self.bin, self.registry, command="fit-params",
@@ -134,6 +134,56 @@ class CommandAdapterTest(unittest.TestCase):
     def test_help_parser_ignores_prose(self):
         raw = "  -h, --help\n  -ngl, --gpu-layers N\n  words mention --wrong option\n"
         self.assertEqual(probe.flags_from_help(raw), {"-h", "--help", "-ngl", "--gpu-layers"})
+
+    def test_catalog_parser_finds_hidden_fit_params(self):
+        txt = ("Usage: llama <command>\n\nAvailable commands:\n"
+               "  serve           HTTP server\n"
+               "  bench           Benchmark\n"
+               "  fit-params      Memory fitting\n\n"
+               "Other help text that should not be parsed\n")
+        self.assertEqual(probe.commands_from_help_all(txt),
+                         {"serve", "bench", "fit-params"})
+        route = adapter.resolve_entrypoint(self.bin, "serve")
+        self.assertEqual(adapter.probe_argv(route, "help all"),
+                         [str(self.bin), "help", "all"])
+
+    def test_catalog_observation_is_independent_from_flag_registry(self):
+        def fake(args, timeout):
+            if args[1:] == ["help", "all"]:
+                return {"status": "success", "returncode": 0,
+                        "stdout": "Available commands:\n  serve  Server\n  fit-params  Fit\n",
+                        "stderr": ""}
+            if args[-1] == "--help":
+                return {"status": "success", "returncode": 0,
+                        "stdout": "  -h, --help\n", "stderr": ""}
+            return {"status": "success", "returncode": 0, "stdout": "v1", "stderr": ""}
+        with patch.object(probe, "run_cli", side_effect=fake):
+            out = probe.probe_binary(self.bin, self.registry, command="fit-params")
+        self.assertEqual(out["command_results"]["catalog"]["commands_observed_in_help_all"],
+                         ["fit-params", "serve"])
+        self.assertTrue(out["command_results"]["catalog"]["requested_command_observed"])
+        self.assertIsNone(out["comparison"]["documented_not_observed_in_help"])
+
+    def test_broken_catalog_does_not_mean_absent_command(self):
+        with patch.object(probe, "run_cli", return_value={
+                "status": "nonzero_exit", "returncode": 1,
+                "stdout": "", "stderr": "unknown"}):
+            out = probe.probe_binary(self.bin, self.registry, command="fit-params")
+        self.assertIsNone(out["command_results"]["catalog"]["requested_command_observed"])
+
+    def test_legacy_binary_skips_integrated_command_catalog(self):
+        binary = Path(self.tmp.name) / "llama-bench.exe"
+        binary.write_bytes(b"synthetic-legacy-exe")
+        calls = []
+        def fake(argv, timeout):
+            calls.append(argv[1:])
+            return {"status": "success", "returncode": 0,
+                    "stdout": "  -h, --help\n", "stderr": ""}
+        with patch.object(probe, "run_cli", side_effect=fake):
+            out = probe.probe_binary(binary, self.registry, command="bench")
+        self.assertEqual(calls, [["--version"], ["--help"]])
+        self.assertEqual(out["command_results"]["catalog"]["status"], "not_applicable")
+
 
 
 if __name__ == "__main__":

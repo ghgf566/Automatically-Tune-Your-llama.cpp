@@ -27,6 +27,28 @@ def flags_from_help(output):
     return found
 
 
+def commands_from_help_all(output):
+    """Parse the upstream app router's 'Available commands:' help-all section."""
+    in_commands = False
+    found = set()
+    for line in ANSI.sub("", output).splitlines():
+        if line.strip() == "Available commands:":
+            in_commands = True
+            continue
+        if not in_commands:
+            continue
+        if not line.strip():
+            if found:
+                break
+            continue
+        match = re.match(r"^\s{2,}([a-z][a-z0-9-]*)\s{2,}\S", line)
+        if not match:
+            # If help format changes, return only verifiably observed commands.
+            break
+        found.add(match.group(1))
+    return found
+
+
 def run_cli(argv, timeout_seconds):
     """Run an explicit argv, never through a shell."""
     try:
@@ -60,6 +82,8 @@ def probe_binary(binary, registry, *, command="serve", include_devices=False,
     if include_devices:
         probe_argv(entry, "--list-devices")
     version = run_cli(probe_argv(entry, "version"), timeout_seconds)
+    catalog_result = (run_cli(probe_argv(entry, "help all"), timeout_seconds)
+                      if entry.kind == "integrated" else None)
     help_result = run_cli(probe_argv(entry, "--help"), timeout_seconds)
 
     raw_help = help_result["stdout"] + "\n" + help_result["stderr"]
@@ -87,8 +111,24 @@ def probe_binary(binary, registry, *, command="serve", include_devices=False,
     binary_sha = sha256_file(path)
     provenance = observed_identity(binary_sha, entry.command,
                                    registry["upstream"]["commit"], version, observed)
+    available_commands = None
+    catalog_status = "not_applicable"
+    if catalog_result is not None:
+        catalog_status = catalog_result["status"]
+        if catalog_result["status"] in ("success", "nonzero_exit"):
+            available = commands_from_help_all(
+                catalog_result["stdout"] + "\n" + catalog_result["stderr"])
+            if available:
+                available_commands = sorted(available)
     commands = {
         "version": compact_result(version),
+        "catalog": {
+            "status": catalog_status,
+            "commands_observed_in_help_all": available_commands,
+            "requested_command_observed": (
+                entry.command in available_commands if available_commands is not None
+                else None),
+        },
         "help": {"status": help_result["status"], "returncode": help_result["returncode"],
                  "documented_flag_presence": presence,
                  "flag_names_observed": sorted(parsed) if observed else None},
@@ -112,6 +152,7 @@ def probe_binary(binary, registry, *, command="serve", include_devices=False,
             "Help presence does not guarantee accepted values or backend/model support.",
             "An absent or failed --help output is unknown, not proof of unsupported flags.",
             "fit-params help has no pinned inventory yet; comparison is intentionally null.",
+            "Not listed in help all is not by itself proof of unsupported commands.",
             "Run only trusted binaries; --list-devices may initialize GPU drivers.",
         ],
     }

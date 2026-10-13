@@ -1,4 +1,4 @@
-# Runtime CLI Capability Probe v0.3 — 官方整合式 CLI 優先
+# Runtime CLI Capability Probe v0.4 — 官方整合式 CLI 優先
 
 ATYL 目前只做 **唯讀探測**。不啟動伺服器、不載入模型、不做 Bench、不安裝或更新引擎。
 
@@ -27,8 +27,9 @@ python tools/probe_runtime.py --binary "D:\old-llama\llama-bench.exe" --command 
 
 ## 會呼叫什麼？
 
-- 整合式 `serve`：`llama version`、`llama serve --help`；可選 `llama serve --list-devices`。
-- 整合式 `bench`：`llama version`、`llama bench --help`；可選 `llama bench --list-devices`。
+- 整合式 `serve`：`llama version`、`llama help all`、`llama serve --help`；可選 `llama serve --list-devices`。
+- 整合式 `bench`：`llama version`、`llama help all`、`llama bench --help`；可選 `llama bench --list-devices`。
+- 整合式 `fit-params`：`llama version`、`llama help all`、`llama fit-params --help`；**不**執行模型 Fitting。
 - 舊式執行檔：`llama-server --version`、`llama-server --help`（或 `llama-bench` 的對應指令）。
 
 必須傳入 `--include-devices` 才會執行裝置查詢（可能初始化 GPU 驅動）。每個命令都有 timeout。透過 `subprocess` argv 陣列執行，**不使用 shell**，沒有任何自動下載或更新。
@@ -40,6 +41,12 @@ python tools/probe_runtime.py --binary "D:\old-llama\llama-bench.exe" --command 
 - 只有 `llama version` 成功且 `--help` 能辨識參數時，身份資料才設 `cacheable: true`。**目前尚未儲存或重用能力快取**；只生成可比較的 Key。
 - 現階段不在版本輸出中猜測 Build Commit，因此 `identity.engine_build_commit` 為 `null`。這與 `identity.registry_upstream_commit`（文件研究 SHA）刻意分離。
 - `fit-params` 尚未建立逐參數 Registry，故它只會顯示觀察到的 Help 參數，不產生偽造的「缺失參數」清單。`--include-devices` 對 `fit-params` 會拒絕執行。
+
+## 子命令目錄觀察（延續 Runtime Capability 研究）
+
+`llama help all` 才會顯示部分預設隱藏的子命令，例如 `bench`、`fit-params`。Runtime Probe 現在對整合式 CLI 自動讀取該目錄，將純字串列表放在 `command_results.catalog.commands_observed_in_help_all`。
+
+如果 CLI 回傳不符合預期的格式、或目錄查詢失敗，就記錄 `null`（未能確認），**不推論該功能不存在**。對舊式獨立執行檔則標記 `not_applicable`。
 
 ## 快照
 

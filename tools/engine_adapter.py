@@ -14,7 +14,7 @@ ROUTES = {
 }
 LEGACY = {program: command for command, program in ROUTES.items() if program}
 LEGACY["llama-fit-params"] = "fit-params"
-READ_ONLY_ACTIONS = {"version", "--help", "--list-devices"}
+READ_ONLY_ACTIONS = {"version", "--help", "--list-devices", "help all"}
 
 
 @dataclass(frozen=True)
@@ -90,6 +90,10 @@ def probe_argv(entrypoint, action):
     """Permit only proven read-only CLI invocations, never a bare 'serve'."""
     if action not in READ_ONLY_ACTIONS:
         raise ValueError("not a read-only probe action: " + str(action))
+    if action == "help all":
+        if entrypoint.kind != "integrated":
+            raise ValueError("global help all requires integrated llama")
+        return [entrypoint.binary, "help", "all"]
     if action == "--list-devices" and entrypoint.command == "fit-params":
         raise ValueError("device listing is not validated for fit-params")
     if action == "version":
