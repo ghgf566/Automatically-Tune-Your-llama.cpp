@@ -37,6 +37,17 @@ ARCH_SUFFIXES = {
     ".block_count", ".embedding_length", ".attention.head_count",
     ".expert_count", ".expert_used_count", ".feed_forward_length",
     ".context_length",
+    # Upstream gguf-py Keys.Attention and Keys.Rope at the pinned commit.
+    # Capture fields literally; do not infer KV cache size from incomplete keys.
+    ".attention.head_count_kv", ".attention.key_length",
+    ".attention.value_length", ".attention.sliding_window",
+    ".attention.key_length_mla", ".attention.value_length_mla",
+    ".attention.key_length_swa", ".attention.value_length_swa",
+    ".attention.kv_lora_rank", ".attention.kv_lora_rank_swa",
+    ".rope.dimension_count", ".rope.dimension_count_swa",
+    ".rope.freq_base", ".rope.scaling.type", ".rope.scaling.factor",
+    ".rope.scaling.original_context_length",
+    ".expert_feed_forward_length", ".expert_shared_count",
 }
 
 
