@@ -18,7 +18,7 @@ def flag_info(s):
     if not names:
         raise ValueError("unparsable CLI row: " + s)
     primary = next((n for n in names if n.startswith("--")), names[0])
-    remainder = re.sub(r"(?:^|[,\s]+)-{1,2}[A-Za-z][\w-]*", " ", s).strip()
+    remainder = re.sub(r"(?:^|[,\s]+)-{1,2}[A-Za-z][\w-]*", " ", s).strip().replace(r"\|", "|")
     return {"name": primary, "aliases": [n for n in names if n != primary],
             "value_syntax": remainder or None}
 

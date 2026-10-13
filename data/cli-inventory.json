@@ -173,7 +173,7 @@
       "group": "common",
       "name": "--cpu-strict",
       "aliases": [],
-      "value_syntax": "<0\\|1>",
+      "value_syntax": "<0|1>",
       "arity": "value_or_optional_value",
       "value_type": "not_verified",
       "documented_default": "0",
@@ -267,7 +267,7 @@
       "group": "common",
       "name": "--cpu-strict-batch",
       "aliases": [],
-      "value_syntax": "<0\\|1>",
+      "value_syntax": "<0|1>",
       "arity": "value_or_optional_value",
       "value_type": "not_verified",
       "documented_default": "same as --cpu-strict",
@@ -303,7 +303,7 @@
       "group": "common",
       "name": "--poll-batch",
       "aliases": [],
-      "value_syntax": "<0\\|1>",
+      "value_syntax": "<0|1>",
       "arity": "value_or_optional_value",
       "value_type": "not_verified",
       "documented_default": "same as --poll",
@@ -440,7 +440,7 @@
       "aliases": [
         "-fa"
       ],
-      "value_syntax": "[on\\|off\\|auto]",
+      "value_syntax": "[on|off|auto]",
       "arity": "value_or_optional_value",
       "value_type": "not_verified",
       "documented_default": null,
@@ -1077,7 +1077,7 @@
       "aliases": [
         "-fit"
       ],
-      "value_syntax": "[on\\|off]",
+      "value_syntax": "[on|off]",
       "arity": "value_or_optional_value",
       "value_type": "not_verified",
       "documented_default": null,
@@ -1458,7 +1458,7 @@
       "group": "common",
       "name": "--log-colors",
       "aliases": [],
-      "value_syntax": "[on\\|off\\|auto]",
+      "value_syntax": "[on|off|auto]",
       "arity": "value_or_optional_value",
       "value_type": "not_verified",
       "documented_default": null,
@@ -3604,7 +3604,7 @@
       "aliases": [
         "-rea"
       ],
-      "value_syntax": "[on\\|off\\|auto]",
+      "value_syntax": "[on|off|auto]",
       "arity": "value_or_optional_value",
       "value_type": "not_verified",
       "documented_default": null,
@@ -3954,7 +3954,7 @@
       "aliases": [
         "--cpu-strict-draft"
       ],
-      "value_syntax": "<0\\|1>",
+      "value_syntax": "<0|1>",
       "arity": "value_or_optional_value",
       "value_type": "not_verified",
       "documented_default": "same as --cpu-strict",
@@ -3994,7 +3994,7 @@
       "aliases": [
         "--poll-draft"
       ],
-      "value_syntax": "<0\\|1>",
+      "value_syntax": "<0|1>",
       "arity": "value_or_optional_value",
       "value_type": "not_verified",
       "documented_default": "same as --poll",
@@ -4035,7 +4035,7 @@
       "aliases": [
         "--cpu-strict-batch-draft"
       ],
-      "value_syntax": "<0\\|1>",
+      "value_syntax": "<0|1>",
       "arity": "value_or_optional_value",
       "value_type": "not_verified",
       "documented_default": "--cpu-strict-draft",
@@ -4075,7 +4075,7 @@
       "aliases": [
         "--poll-batch-draft"
       ],
-      "value_syntax": "<0\\|1>",
+      "value_syntax": "<0|1>",
       "arity": "value_or_optional_value",
       "value_type": "not_verified",
       "documented_default": "--poll-draft",
