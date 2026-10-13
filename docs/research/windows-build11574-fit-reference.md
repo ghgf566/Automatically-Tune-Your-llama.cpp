@@ -37,3 +37,7 @@ python tools/probe_runtime.py --command fit-params --output fit-capability-v2.js
 ```
 
 This regenerates evidence under the repaired parser. It will not perform a benchmark, fit a model, or alter the installed runtime. GitHub CI uses synthetic/mock data and does not replace this local verification.
+
+## First real memory estimate
+
+An opt-in daily scenario estimate for Qwen3.8-27B IQ4_XS, `Vulkan0`, context 4096 and 18 offloaded layers returned rows `Vulkan0 4136 101 525` and `Host 9111 304 44` (model/context/compute MiB); exit code was 0. There was **no inference or model load test**. The reduced rows now form [Fit parser regression evidence](fit-memory-output.md).

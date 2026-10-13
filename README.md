@@ -56,6 +56,10 @@ python tools/inspect_gguf.py --model "D:\AIModels\Author\Repository\model.gguf" 
 
 可以只掃描 GGUF 標頭、特定架構欄位及張量描述（不讀權重），為下一階段的安全 Fitting 做資料準備。**不會在此推估模型可用 VRAM，或宣稱特定 Backend 相容。** 詳見 [GGUF Metadata Inspector v0.1](docs/research/gguf-metadata-inspection.md)。
 
+## 官方 Fit 估算值的結構化解析
+
+已經以真實 Windows build 11574 確認 `Vulkan0` 與 `Host` 的 Model／Context／Compute MiB 三欄格式。新估算輸出增加 `estimate.parsed_numeric_memory`（資料契約 v0.3.0）；舊版結果可使用 `tools/parse_fit_record.py` **離線轉換**，無須重新讀取 GGUF。詳細見 [Fit 記憶體解析](docs/research/fit-memory-output.md)。
+
 ## 日常 vs 低背景負載（不自動停止程式）
 
 `fit_estimate.py --execute` 現在會保留估算前後的系統 RAM、GGML GPU 記憶體餘量與環境標籤；可分別執行 `--scenario daily`／`--scenario reduced_background`，再用 `tools/compare_scenarios.py` 比較。**這些都是當下可用量，並非模型峰值或實測吞吐量。** 詳見 [環境觀察與比較](docs/research/environment-observation.md)。

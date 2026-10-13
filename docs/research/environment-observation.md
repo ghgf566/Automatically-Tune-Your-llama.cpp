@@ -61,4 +61,4 @@ python tools/compare_scenarios.py --daily fit-daily.json `
 
 ## 下一步
 
-拿到首份 `fit-daily.json` 後先驗證引擎估算原始輸出的格式，才新增精準的記憶體需求 Parser。模型載入成功率、運算效能及尖峰記憶體的量測，應在真正的 Feasibility Runner 階段獨立設計。
+已取得首份真實 `fit-daily.json` 並確認原始 MiB 格式；可參考 [結構化解析器與歷史結果離線轉換](fit-memory-output.md)。模型載入成功率、運算效能及尖峰記憶體的量測，應在真正的 Feasibility Runner 階段獨立設計。

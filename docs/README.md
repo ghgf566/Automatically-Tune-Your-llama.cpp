@@ -11,6 +11,7 @@
 
 ## 研究
 
+- [官方 Fit 記憶體輸出解析](research/fit-memory-output.md)：實機 MiB 格式、三欄定義及舊結果離線轉換。
 - [日常環境與低背景負載比較](research/environment-observation.md)：同設定量測前後系統 RAM 與 GGML GPU 可用量，不干預背景程式。
 - [Fit 記憶體估算：預覽優先](research/fit-estimate-preview.md)：基於新鮮 GGUF Metadata、官方 Runtime Snapshot 的單候選估算；只有 `--execute` 會呼叫引擎。
 - [GGUF Metadata Inspector v0.1](research/gguf-metadata-inspection.md)：唯讀解析模型架構、量化格式代號、張量描述與分檔提示。
