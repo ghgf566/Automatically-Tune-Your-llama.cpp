@@ -20,6 +20,26 @@ ATYL must treat speculative decoding as an independent, conditional candidate di
 
 An external MTP head is not interchangeable with an arbitrary small draft GGUF. The exact pairing behavior can change by engine build; use actual Help + GGUF metadata + an opt-in load check. Require explicit user selection for external files and never download or guess a companion from filenames alone.
 
+## Draft N is an independent, bounded search axis
+
+`--spec-draft-n-max` is the **requested maximum drafted token count** per speculation step, not the number accepted or a promise that each step will produce N tokens. ATYL preserves the user's exact candidate set (example: `1, 2, 4, 8`), never assumes N equals the GGUF's `nextn_predict_layers`, and records `requested_draft_n_max` separately from the eventual `effective_draft_n_max`. Unknown or silently clamped effective values remain `null` until independently observed. Very large N is not automatically better, since validation and draft overhead may outweigh accepted tokens.
+
+Current preview caps each requested N to **1–64** purely as an ATYL search-safety bound, *not an upstream architectural limit*; limits must later be refined by installed-engine and draft-model evidence. The preview refuses candidate combinations above `max_candidates` instead of silently truncating the search.
+
+**Quick, no-execution preview** (after refreshing the GGUF observation so `nextn_predict_layers` can appear):
+
+```powershell
+python tools/plan_speculative_search.py `
+  --search examples/speculative-search.example.json `
+  --model-observation model-metadata.json `
+  --runtime-snapshot server-capability.json `
+  --output speculative-preview.json
+```
+
+This does not read model weights or launch `llama.exe`; use `--overwrite` only to explicitly replace an existing preview. A missing NextN field, incomplete Help flags or missing draft fingerprint leaves MTP candidates **blocked**, not labeled supported. Even good metadata/flags only yield **requires load verification**, not ready-to-run configuration.
+
+Search and observed result shapes are defined centrally in [`speculative-search.schema.json`](../../schemas/speculative-search.schema.json) and integrated as optional fields of the Profile/Result contract. See [dependency-aware tuner roadmap](../specification/tuning-roadmap.md).
+
 ## Candidate variables (only after feasibility gating)
 
 - `spec_mode`: `off`, `embedded_mtp`, `external_mtp` (future: other families). A categorical variable, not an unbounded numeric flag.
@@ -40,4 +60,4 @@ An external MTP head is not interchangeable with an arbitrary small draft GGUF. 
 
 ## Current implementation status
 
-The read-only `tools/inspect_gguf.py` can now **preserve** `{arch}.nextn_predict_layers` when present. It does **not** infer `mtp_supported=true`; no CLI composition for MTP, target-head matcher, MTP-aware fitting, real model load or benchmark has been implemented. This page only specifies a future search dimension and preconditions.
+The read-only `tools/inspect_gguf.py` preserves `{arch}.nextn_predict_layers` when present. `tools/plan_speculative_search.py` now performs **bounded, non-executable candidate enumeration** with `draft_n_max`, mode/evidence gating and explicit baseline. It does **not** infer `mtp_supported=true`, compose runnable MTP argv, authenticate target-draft pairing, do MTP-aware fitting, load actual models or benchmark.

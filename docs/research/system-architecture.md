@@ -73,6 +73,10 @@ Benchmark Adapter（llama-bench 與未來 server workload）
 
 目前可選擇性以 `--list-devices` 查詢 GGML 列出的**非 CPU** 裝置及其記憶體，並保留成功、沒有列出與未知三種狀態。這只屬於引擎環境觀察，尚未驗證 CPU／NPU 的可運算能力、後端算子支援或特定模型能否載入。真正的可行性閘門不能只靠該輸出。
 
+## Speculative Decoding 的結構化調校路線
+
+Profile 可透過 `speculative_search` 引用共用 Speculative Schema，描述 MTP 開關／模式、`draft_n_max_candidates`、外掛 Draft 識別與獨立 Draft Placement。`plan_speculative_search.py` 目前僅產生有限候選與未驗證證據狀態；尚未執行任何 MTP。將來同一份 Result Schema 的 `speculative_observation` 記錄 Requested vs Effective N、接受率、吞吐、TTFT、尾延遲與記憶體，避免將數據直接混入未經驗證的參數字典。詳見 [調校變數的相依圖與階段規劃](../specification/tuning-roadmap.md)。
+
 ## 尚未決策
 
 - Profile／Result 已有研究階段的 JSON Schema `1.1.0`，未來的正式資料遷移規則與 API 相容承諾仍待決策。

@@ -54,3 +54,7 @@ The opt-in fit-estimate stage captures declared `daily` and `reduced_background`
 ## MTP／Speculative Decoding 的量測邊界
 
 完整 generation 基準應以 `spec_mode=off` 對照 `embedded_mtp` 與已驗證的 `external_mtp`，保持 target model、Context、取樣契約、併發與測試文本一致；在公平容量比較中保留 Draft 的額外 RAM/VRAM 消耗。記錄 drafted/accepted token 數、實際接受率、純 generation throughput、TTFT、p50/p95 延遲及端到端效能。草稿若拖慢生成就不要列為最佳候選。`llama-bench` 核心測試不一定覆蓋完整伺服器 speculative 路徑，因此須獨立以 Server/CLI 實際工作負載驗證。參考 [MTP 條件式候選研究](mtp-speculative-search.md)。
+
+## Draft N 預測數量的交互效應
+
+對 MTP，不只記錄 `--spec-type`，也要固定／搜尋 `--spec-draft-n-max`：先在相同主模型、Context、Offload、Draft 放置及取樣條件下測不同 N（例如 1/2/4/8），再依有限預算細部搜尋；另外記錄引擎實際生效的 N（未知保持 `null`）。Acceptance Rate、每輪接受 Token 數、完整端到端 Tokens/s、TTFT、p95、Host/GPU 記憶體額外成本必須一併觀察，不能因 N 大就認定更快，也不能把 GGUF NextN 層數等同最大草稿長度。參見 [調校架構路線圖](../specification/tuning-roadmap.md)。

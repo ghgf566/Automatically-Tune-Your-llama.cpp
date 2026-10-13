@@ -38,6 +38,8 @@ ATYL 的目標是針對明確指定的模型、建置、硬體與工作負載，
 
 MTP 至少有「關閉」、「主模型內建 NextN/MTP Head」、「外掛相容 MTP Head」三種模式；另外的一般小 Draft Model（`draft-simple`）不得混為 MTP。是否啟用、草稿 Token 數與外掛模型的放置都可能改變最佳 Offload 與記憶體可行性。嚴禁僅依檔名宣稱支援，須以 `{arch}.nextn_predict_layers`、額外 GGUF 配對資料、當前引擎 Help 及後續實際載入驗證逐層確認。詳見 [MTP 與 Speculative Decoding 條件式調校規格](../research/mtp-speculative-search.md)。
 
+搜尋規格的核心將使用可重用的 `speculative_search` 欄位，而不是把 `--spec-draft-n-max`、MTP 模式、外掛模型、Draft GPU 層數分散成獨立硬編碼流程。先離散探索 `1/2/4/8` 類似候選，再基於實測接受率與吞吐細化；這些候選還須受記憶體可行性與使用者固定條件約束。詳見 [調校變數相依關係與階段規劃](tuning-roadmap.md)。
+
 ## 3. 上游自動 fit 與 ATYL 的差異
 
 上游已有 `--fit` / `--fit-target` / `--fit-ctx` 與 `llama-fit-params` 能力，會根據裝置可用記憶體調整部分記憶體相關設定。#18049 討論記錄了其設計動機和早期策略：先試原設定，再降低 context，仍不足時將 tensor 從 VRAM 移至 RAM，並優先保留 dense tensors。

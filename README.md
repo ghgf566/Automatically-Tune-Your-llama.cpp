@@ -48,6 +48,10 @@ python tools/probe_runtime.py --command fit-params --output fit-capability.json
 - `tools/device_inventory.py`：可選擇性列舉 GGML 回報的非 CPU 裝置及可用記憶體；尚未驗證實際 Backend／模型能力。
 - [Windows 手動 Smoke Test](docs/research/windows-smoke-test.md)：操作官方已安裝的 llama.exe，不需要啟動推理服務。
 
+## 共用搜尋空間：MTP／Draft N 已納入契約
+
+已新增 `schemas/speculative-search.schema.json`、`tools/plan_speculative_search.py` 和可選的 Profile／Result 專用欄位。現在可以**不載入模型**預覽 `off`、內建／外掛 MTP 的 Draft N 候選（例如 1、2、4、8），並保留欠缺的相容性證據；沒有任何 MTP 自動執行或效能宣稱。搜尋與結果格式集中在一處，避免未來 UI、Runner 和 Benchmark 各自設計欄位。詳見 [變數與實作路線圖](docs/specification/tuning-roadmap.md)。
+
 ## 未來調校變數：MTP／Speculative Decoding
 
 已將內建 NextN/MTP Head、外掛 MTP Head 和一般 Draft Model 分為不同候選，GGUF Inspector 現可唯讀擷取 `{arch}.nextn_predict_layers`。**這只是中繼資料觀察，不代表引擎相容或實測加速**；後續將以 `off` 基準、完整容量檢查與實際 Generation/Server Benchmark 比較。詳細規格見 [MTP／Speculative Decoding](docs/research/mtp-speculative-search.md)。

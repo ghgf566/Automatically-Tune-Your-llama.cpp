@@ -2,6 +2,7 @@
 
 ## 規格
 
+- [調校變數架構與實作路線圖](specification/tuning-roadmap.md)：正式納入 MTP Draft N、外掛模型與其他配置的相依關係、驗證階段及搜尋策略。
 - [CLI 能力登錄表 v1](specification/cli-registry.md)：固定來源的 302 筆 CLI 文件清單及 32 筆調校知識。
 - [官方安裝與引擎入口](research/official-installation.md)：官方 Windows PowerShell 安裝通道、整合式子命令和不自動更新原則。
 - [Runtime CLI 探測 v0.6](research/runtime-capability.md)：唯讀查詢本地執行檔並與固定登錄表比對。
