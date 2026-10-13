@@ -296,6 +296,38 @@ class FitEstimateTests(unittest.TestCase):
         self.assertEqual(output["environment"]["background_note"], "Wallpaper Engine running")
         self.assertEqual(output["status"], "estimate_attempted")
 
+    def test_failed_estimate_saves_record_but_returns_nonzero(self):
+        from fit_estimate import main
+        snapshot = {
+            "timestamp_utc": "2026-10-14T01:00:00+00:00",
+            "ram": {"status": "unknown", "reason": "test",
+                    "total_mib": None, "available_mib": None},
+            "gpu": {"status": "not_requested", "reason": "cpu_only",
+                    "device_id": None, "backend_id": None, "description": None,
+                    "total_mib": None, "available_mib": None},
+        }
+        failed = {
+            "status": "timeout", "returncode": None,
+            "stdout_excerpt": "", "stderr_excerpt": "",
+            "output_truncated_or_unknown": False,
+            "estimate_unit": "MiB (as reported by upstream, if recognizable)",
+            "parsed_numeric_memory": None,
+            "model_load_tested": False, "inference_tested": False,
+        }
+        target = self.root / "failure.json"
+        argv = ["fit_estimate.py", "--model", str(self.model),
+                "--fit-snapshot", str(self.fit_snapshot),
+                "--binary", str(self.binary),
+                "--execute", "--output", str(target)]
+        with patch("sys.argv", argv), \
+             patch("fit_estimate.observe_environment", side_effect=[snapshot, snapshot]), \
+             patch("fit_estimate.execute_plan", return_value=failed):
+            self.assertEqual(main(), 2)
+        saved = json.loads(target.read_text("utf-8"))
+        self.validator.validate(saved)
+        self.assertEqual(saved["status"], "estimate_attempted")
+        self.assertEqual(saved["estimate"]["status"], "timeout")
+
     def test_corrupted_snapshot_fails_closed(self):
         self.fit_snapshot.write_text('{"binary": null}', "utf-8")
         with self.assertRaises(FitPlanError):
