@@ -12,6 +12,8 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+from safe_output import write_text
+
 MAGIC = b"GGUF"
 VERSIONS = {2, 3}
 TYPE_FMT = {
@@ -238,14 +240,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", type=Path, required=True, help="Existing local GGUF")
     parser.add_argument("--output", type=Path, help="Optional JSON output path")
+    parser.add_argument("--overwrite", action="store_true", help="Explicitly replace existing output JSON")
     args = parser.parse_args()
     try:
         result = json.dumps(inspect(args.model), indent=2, ensure_ascii=False) + "\n"
         if args.output:
-            if args.output.expanduser().resolve() == args.model.expanduser().resolve():
-                raise GGUFMetadataError("output must not overwrite input GGUF")
-            args.output.parent.mkdir(parents=True, exist_ok=True)
-            args.output.write_text(result, encoding="utf-8")
+            write_text(args.output, result, protected=(args.model,), overwrite=args.overwrite)
             print("Created model metadata observation:", args.output)
         else:
             print(result, end="")

@@ -9,6 +9,8 @@ import json
 import sys
 from pathlib import Path
 
+from safe_output import write_text
+
 
 class ComparisonError(ValueError):
     pass
@@ -107,17 +109,14 @@ def main():
     parser.add_argument("--daily", type=Path, required=True)
     parser.add_argument("--reduced", type=Path, required=True)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--overwrite", action="store_true", help="Explicitly replace existing output JSON")
     args = parser.parse_args()
     try:
         result = compare(load(args.daily), load(args.reduced))
         data = json.dumps(result, indent=2, ensure_ascii=False) + "\n"
         if args.output:
-            destination = args.output.expanduser().resolve()
-            if destination in {args.daily.expanduser().resolve(),
-                               args.reduced.expanduser().resolve()}:
-                raise ComparisonError("comparison output cannot replace input result")
-            args.output.parent.mkdir(parents=True, exist_ok=True)
-            args.output.write_text(data, encoding="utf-8")
+            write_text(args.output, data, protected=(args.daily, args.reduced),
+                       overwrite=args.overwrite)
             print("Created scenario comparison:", args.output)
         else:
             print(data, end="")

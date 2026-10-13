@@ -12,6 +12,7 @@ from engine_adapter import ROUTES, discover_binary, resolve_entrypoint, probe_ar
 from engine_identity import observed_identity, sha256_file
 from device_inventory import observation as observe_devices, unknown as unknown_devices
 from registry_differences import interpret_differences, inspect_fit_reference
+from safe_output import write_text
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "data" / "cli-inventory.json"
@@ -186,6 +187,7 @@ def main():
     parser.add_argument("--command", choices=tuple(ROUTES), default="serve")
     parser.add_argument("--registry", type=Path, default=REGISTRY)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--overwrite", action="store_true", help="Explicitly replace existing output JSON")
     parser.add_argument("--include-devices", action="store_true")
     parser.add_argument("--timeout", type=int, default=10)
     args = parser.parse_args()
@@ -195,8 +197,9 @@ def main():
                               include_devices=args.include_devices, timeout_seconds=args.timeout)
         text = json.dumps(result, indent=2, ensure_ascii=False) + "\n"
         if args.output:
-            args.output.parent.mkdir(parents=True, exist_ok=True)
-            args.output.write_text(text, encoding="utf-8")
+            write_text(args.output, text, protected=(
+                args.registry, discover_binary(args.binary)),
+                overwrite=args.overwrite)
             print("Created capability snapshot:", args.output)
         else:
             print(text, end="")

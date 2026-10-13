@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 from fit_memory_parser import parse_memory_estimate
+from safe_output import write_text
 
 MAX_RECORD_BYTES = 2 * 1024 * 1024
 
@@ -60,6 +61,7 @@ def main():
     arg.add_argument("--input", type=Path, required=True,
                      help="Already saved fit-daily.json or another fit estimate")
     arg.add_argument("--output", type=Path, help="New JSON destination; no in-place editing")
+    arg.add_argument("--overwrite", action="store_true", help="Explicitly replace existing output JSON")
     args = arg.parse_args()
     try:
         source = args.input.expanduser().resolve()
@@ -68,10 +70,7 @@ def main():
         doc = json.loads(source.read_text(encoding="utf-8"))
         result = json.dumps(upgrade(doc), indent=2, ensure_ascii=False) + "\n"
         if args.output:
-            if args.output.expanduser().resolve() == source:
-                raise RecordParseError("output must not overwrite original estimate")
-            args.output.parent.mkdir(parents=True, exist_ok=True)
-            args.output.write_text(result, encoding="utf-8")
+            write_text(args.output, result, protected=(source,), overwrite=args.overwrite)
             print("Created structured estimate record:", args.output)
         else:
             print(result, end="")

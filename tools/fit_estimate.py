@@ -19,6 +19,7 @@ from inspect_gguf import GGUFMetadataError, inspect
 from environment_observation import (clean_llama_env, observe as observe_environment,
                                      summarize as summarize_environment)
 from fit_memory_parser import parse_memory_estimate
+from safe_output import write_text
 
 REQUIRED_FIT_FLAGS = frozenset({
     "--model", "--fit-print", "--fit", "--ctx-size", "--n-gpu-layers",
@@ -234,22 +235,22 @@ def main():
                         help="Explicitly run llama fit-params (may read model files and initialize GPU)")
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--overwrite", action="store_true", help="Explicitly replace existing output JSON")
     args = parser.parse_args()
     try:
         plan = build_plan(args.model, args.fit_snapshot, device=args.device,
                           devices_snapshot=args.device_snapshot, context=args.context,
                           gpu_layers=args.gpu_layers, binary=args.binary,
                           scenario=args.scenario, background_note=args.background_note)
-        # Reject destructive destinations BEFORE optional subprocess execution.
+        # Fail before launching expensive work, even if --execute was requested.
+        protected = [args.model, args.fit_snapshot, plan["argv"][0], args.device_snapshot]
         if args.output:
             destination = args.output.expanduser().resolve()
-            protected = {Path(args.model).expanduser().resolve(),
-                         Path(args.fit_snapshot).expanduser().resolve(),
-                         Path(plan["argv"][0]).resolve()}
-            if args.device_snapshot:
-                protected.add(Path(args.device_snapshot).expanduser().resolve())
-            if destination in protected:
+            if destination in {Path(path).expanduser().resolve()
+                               for path in protected if path is not None}:
                 raise FitPlanError("output must not overwrite model, snapshot or engine")
+            if destination.exists() and not args.overwrite:
+                raise FitPlanError("output exists; choose a new name or pass --overwrite")
         if args.execute:
             environment = plan["environment"]
             environment["before"] = observe_environment(
@@ -265,11 +266,12 @@ def main():
                 environment["capture_status"] = "captured_best_effort"
         text = json.dumps(plan, indent=2, ensure_ascii=False) + "\n"
         if args.output:
-            args.output.parent.mkdir(parents=True, exist_ok=True)
-            args.output.write_text(text, encoding="utf-8")
+            write_text(args.output, text, protected=protected, overwrite=args.overwrite)
             print("Created fit estimate plan:", args.output)
         else:
             print(text, end="")
+        if args.execute and plan["estimate"]["status"] != "completed":
+            return 2  # Record saved successfully; estimate itself failed.
     except (OSError, ValueError) as exc:
         print("Fit estimate plan rejected:", exc, file=sys.stderr)
         return 1
