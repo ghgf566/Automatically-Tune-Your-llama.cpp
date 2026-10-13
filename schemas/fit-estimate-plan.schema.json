@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ATYL single-candidate llama fit-params memory estimate plan v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "status",
+    "engine_sha256",
+    "model",
+    "candidate",
+    "argv",
+    "estimate",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "kind": {
+      "const": "fit_estimate_plan"
+    },
+    "status": {
+      "enum": [
+        "prepared_not_executed",
+        "estimate_attempted"
+      ]
+    },
+    "engine_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "filename",
+        "file_size_bytes",
+        "architecture",
+        "gguf_version"
+      ],
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "file_size_bytes": {
+          "type": "integer",
+          "minimum": 24
+        },
+        "architecture": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "gguf_version": {
+          "enum": [
+            2,
+            3
+          ]
+        }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "device_id",
+        "context_tokens",
+        "gpu_layers",
+        "fit_adjustment",
+        "output_mode"
+      ],
+      "properties": {
+        "device_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context_tokens": {
+          "type": "integer",
+          "minimum": 128,
+          "maximum": 262144
+        },
+        "gpu_layers": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fit_adjustment": {
+          "const": "off"
+        },
+        "output_mode": {
+          "const": "estimated_memory"
+        }
+      }
+    },
+    "argv": {
+      "type": "array",
+      "minItems": 15,
+      "maxItems": 15,
+      "items": {
+        "type": "string"
+      }
+    },
+    "estimate": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "returncode",
+            "stdout_excerpt",
+            "stderr_excerpt",
+            "output_truncated_or_unknown",
+            "estimate_unit",
+            "parsed_numeric_memory",
+            "model_load_tested",
+            "inference_tested"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "completed",
+                "nonzero_exit",
+                "timeout",
+                "process_error"
+              ]
+            },
+            "returncode": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "stdout_excerpt": {
+              "type": "string"
+            },
+            "stderr_excerpt": {
+              "type": "string"
+            },
+            "output_truncated_or_unknown": {
+              "const": true
+            },
+            "estimate_unit": {
+              "type": "string"
+            },
+            "parsed_numeric_memory": {
+              "type": "null"
+            },
+            "model_load_tested": {
+              "const": false
+            },
+            "inference_tested": {
+              "const": false
+            }
+          }
+        }
+      ]
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "prepared_not_executed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "estimate": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "estimate_attempted"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "estimate": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  ]
+}

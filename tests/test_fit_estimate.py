@@ -9,6 +9,8 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
+from jsonschema import Draft202012Validator
+
 from engine_identity import sha256_file
 from fit_estimate import FitPlanError, build_plan, execute_plan
 
@@ -61,6 +63,9 @@ class FitEstimateTests(unittest.TestCase):
                  "free_memory_mib": 7500},
             ]},
         }
+        schema = json.loads((ROOT / "schemas/fit-estimate-plan.schema.json").read_text("utf-8"))
+        Draft202012Validator.check_schema(schema)
+        self.validator = Draft202012Validator(schema)
         self.fit_snapshot.write_text(json.dumps(fit), "utf-8")
         self.device_snapshot.write_text(json.dumps(device), "utf-8")
 
@@ -72,6 +77,7 @@ class FitEstimateTests(unittest.TestCase):
             out = self.make()
             process.assert_not_called()
         self.assertEqual(out["status"], "prepared_not_executed")
+        self.validator.validate(out)
         self.assertIsNone(out["estimate"])
         self.assertEqual(out["candidate"]["device_id"], "none")
         self.assertEqual(out["argv"][1:3], ["fit-params", "--offline"])
@@ -134,6 +140,9 @@ class FitEstimateTests(unittest.TestCase):
         with patch("fit_estimate.subprocess.Popen", return_value=Dummy()) as launch:
             out = execute_plan(plan, timeout_seconds=10)
         self.assertEqual(out["status"], "completed")
+        plan["estimate"] = out
+        plan["status"] = "estimate_attempted"
+        self.validator.validate(plan)
         self.assertFalse(out["inference_tested"])
         launch.assert_called_once()
         self.assertEqual(launch.call_args.args[0], plan["argv"])
