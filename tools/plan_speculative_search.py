@@ -18,6 +18,7 @@ from validate_contracts import validate_profile_document
 from safe_output import write_text
 from validate_contracts import (
     ROOT, _registry, load_json, check_speculative_search_consistency,
+    canonical_cli_name,
 )
 
 SPEC_SCHEMA = load_json(ROOT / "schemas/speculative-search.schema.json")
@@ -112,8 +113,11 @@ def make_preview(search, target_observation, runtime_snapshot, *, profile=None, 
                          not isinstance(nextn, bool) and nextn > 0)
     help_result = runtime["command_results"]["help"]
     flags = help_result.get("flag_names_observed")
-    flags = set(flags) if (help_result["status"] == "success" and
-                          isinstance(flags, list)) else set()
+    raw_flags = set(flags) if (help_result["status"] == "success" and
+                              isinstance(flags, list)) else set()
+    inventory = load_json(ROOT / "data/cli-inventory.json")
+    flags = {canonical_cli_name("llama-server", flag, inventory)
+             for flag in raw_flags}
     engine_serve = runtime["entrypoint"]["command"] == "serve"
     candidates = []
     if "off" in search["modes"]:

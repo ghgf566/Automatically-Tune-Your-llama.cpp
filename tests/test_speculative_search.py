@@ -92,6 +92,19 @@ class SpeculativePlanningTest(unittest.TestCase):
         self.assertIn("embedded_nextn_not_observed_or_invalid",
                       plan["candidates"][1]["reasons"])
 
+    def test_engine_help_draft_aliases_resolve_to_canonical_names(self):
+        flags = ["--spec-type", "--spec-draft-n-max", "--model-draft",
+                 "-ngld", "-devd"]
+        cfg = search_config()
+        cfg["modes"] = ["off", "external_mtp"]
+        cfg["external_artifacts"] = [{
+            "mode": "external_mtp", "artifact_id": "head1",
+            "sha256": "f" * 64, "pairing_evidence": None}]
+        cfg["draft_placements"] = [{"device_id": "Vulkan0", "gpu_layers": 1}]
+        result = make_preview(cfg, model_observation(), serve_runtime(flags))
+        self.assertEqual(result["candidates"][1]["readiness"],
+                         "requires_pairing_and_load_test")
+
     def test_unobserved_engine_flags_blocks_enabled_mode(self):
         plan = make_preview(search_config(), model_observation(), serve_runtime(["--help"]))
         self.assertEqual(plan["candidates"][1]["readiness"], "blocked_missing_evidence")
