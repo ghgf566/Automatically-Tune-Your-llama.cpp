@@ -36,6 +36,13 @@ def run_bounded(argv, timeout_seconds, *, capture_bytes=65536,
                             or os.fstat(err.fileno()).st_size > disk_limit_bytes):
                         status = "output_limit"
                         break
+            # A short-lived process can exit before the first periodic size
+            # check. Its complete output still must not be treated as valid.
+            if (status in ("success", "nonzero_exit")
+                    and (os.fstat(out.fileno()).st_size > disk_limit_bytes
+                         or os.fstat(err.fileno()).st_size > disk_limit_bytes)):
+                status = "output_limit"
+                code = None
             if status in ("timeout", "output_limit"):
                 try:
                     proc.kill()
