@@ -32,7 +32,7 @@ The scan reads GGUF header/KV information and walks tensor **descriptors** only.
 | `general.architecture` / `general.name` | Whitelisted GGUF strings, if supplied |
 | `general.file_type_id` | Original **numeric** GGUF type ID; not a verified tensor quantization label |
 | `general.quantization_version` | Format's quantization version, if supplied |
-| `architecture_metadata` | Whitelisted numerical architecture keys such as `block_count`, `embedding_length`, `expert_count`, `expert_used_count`, `attention.head_count` |
+| `architecture_metadata` | Whitelisted numerical architecture keys such as `block_count`, `embedding_length`, `expert_count`, `expert_used_count`, `attention.head_count`, `attention.head_count_kv`, `attention.key_length`, `attention.value_length`, `rope.dimension_count` |
 | `tensor_type_id_counts` | Count of reported tensor type IDs, *not validated tensor contents* |
 | `split` | Part metadata when declared; **never assumes all companion files were inspected** |
 | `validation` | Explicitly distinguishes parsed metadata from unverified weights and model/backend execution |
@@ -52,4 +52,4 @@ Unknown or absent metadata stays `null` or omitted; MoE capability is **not infe
 
 The layout and v2/v3 support are grounded in the upstream [GGUF header](https://github.com/ggml-org/llama.cpp/blob/77c4540ce4667f4577753fe034a3a8042f510b8f/ggml/include/gguf.h) and [GGUF Reader](https://github.com/ggml-org/llama.cpp/blob/77c4540ce4667f4577753fe034a3a8042f510b8f/gguf-py/gguf/gguf_reader.py), pinned to the registry's baseline commit. CI tests construct **synthetic GGUF binaries** and never execute a real model.
 
-Next: cross-check the observed model with a fresh runtime snapshot, then prepare an explicit, opt-in memory-fitting candidate using `llama fit-params` only when model paths, device selection, user-locked constraints and limits are validated. Do not treat file size or `--list-devices` free memory as a fitted result.
+Next: `tools/fit_estimate.py` now previews one fixed-configuration memory-estimate command using a current binary-matched Fit snapshot and, for GPU usage, a device snapshot. Real GGUF reads by llama are gated behind `--execute`. See [controlled fit preview](fit-estimate-preview.md). This is not a benchmark or a tested fit, and file size/device free-memory comparisons are not a substitute for it.

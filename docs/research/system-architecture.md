@@ -55,7 +55,7 @@ Benchmark Adapter（llama-bench 與未來 server workload）
 
 ## GGUF 模型可行性資料階段
 
-新增 `tools/inspect_gguf.py` 作為獨立模型中繼資料入口：只讀取 GGUF 標頭、KV 與張量描述，保留檔案局部性與分檔狀態；不讀權重、不啟動推論引擎。解析出來的模型資訊不能直接與 GGML 裝置剩餘記憶體比較，因為模型載入、KV Cache、Context 和 Backend Buffer 的需求仍未知。下一階段再研究 Fit 預備流程與實測成功條件。
+新增 `tools/inspect_gguf.py` 作為獨立模型中繼資料入口：只讀取 GGUF 標頭、KV 與張量描述，保留檔案局部性與分檔狀態；不讀權重、不啟動推論引擎。解析出來的模型資訊不能直接與 GGML 裝置剩餘記憶體比較，因為模型載入、KV Cache、Context 和 Backend Buffer 的需求仍未知。已加入單一候選參數的 `tools/fit_estimate.py`：預設預覽，只有明確 `--execute` 才會讓官方引擎讀取模型並列印估算。它驗證 Fit Help 與設備快照的 SHA-256 相符，仍不代表實際載入成功或找到最佳配置。多候選搜尋、完整分檔確認與可靠的估算輸出解析仍待開發。
 
 ## 裝置探測的狀態界線
 

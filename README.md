@@ -56,6 +56,10 @@ python tools/inspect_gguf.py --model "D:\AIModels\Author\Repository\model.gguf" 
 
 可以只掃描 GGUF 標頭、特定架構欄位及張量描述（不讀權重），為下一階段的安全 Fitting 做資料準備。**不會在此推估模型可用 VRAM，或宣稱特定 Backend 相容。** 詳見 [GGUF Metadata Inspector v0.1](docs/research/gguf-metadata-inspection.md)。
 
+## 官方 Fit 記憶體估算：先預覽，再明確執行
+
+已加入 `tools/fit_estimate.py`。**預設只產生估算計畫，不會啟動 llama.exe**。必須提供 `fit-params` 實機探測 JSON，若指定 GPU，還需要相同執行檔版本的裝置探測 JSON。真正讓官方引擎讀取 GGUF 及估算記憶體，必須明確加上 `--execute`。請先看 [Windows Fit 估算說明](docs/research/fit-estimate-preview.md)；**不會自動搜尋最優 GPU 層數或啟動 Server**。
+
 ## Windows 實機回歸證據
 
 根據使用者提供的官方 llama.app build 11574 三份唯讀探測輸出，已核對 Serve／Bench／Fit 子命令與裝置列舉、整理去識別化回歸測試。差異診斷會將上游條件式 `--rpc` 與文件版本缺口分開，而非直接認定不支援。更多細節見 [Windows Build 11574 回歸與 Fit 參數基準](docs/research/windows-build11574-fit-reference.md)。
