@@ -22,6 +22,7 @@ from validate_contracts import (
 )
 
 SPEC_SCHEMA = load_json(ROOT / "schemas/speculative-search.schema.json")
+GGUF_VALIDATOR = Draft202012Validator(load_json(ROOT / "schemas/gguf-observation.schema.json"))
 SEARCH_VALIDATOR = Draft202012Validator(SPEC_SCHEMA, registry=_registry())
 PREVIEW_VALIDATOR = Draft202012Validator(
     {**SPEC_SCHEMA, "$ref": "#/$defs/preview"}, registry=_registry()
@@ -66,6 +67,10 @@ def make_preview(search, target_observation, runtime_snapshot, *, profile=None, 
             or not isinstance(source.get("filename"), str)):
         raise SpeculativePlanError("incomplete GGUF metadata evidence")
     if profile is not None:
+        try:
+            GGUF_VALIDATOR.validate(target_observation)
+        except ValidationError as exc:
+            raise SpeculativePlanError("incomplete or invalid GGUF observation: " + str(exc)) from exc
         try:
             validate_profile_document(profile)
         except (ValidationError, ValueError, KeyError) as exc:

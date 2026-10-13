@@ -24,11 +24,27 @@ def search_config():
 def model_observation(nextn=2):
     arch = {"nextn_predict_layers": nextn} if nextn is not None else {}
     return {
+        "schema_version": "0.1.0",
         "kind": "gguf_metadata_observation",
         "source": {"filename": "example.gguf", "file_size_bytes": 4000},
+        "gguf_version": 3,
+        "tensor_count_in_this_file": 0,
+        "metadata_key_count": 2,
+        "general": {"architecture": "illustrative-dense", "name": "synthetic",
+                    "file_type_id": 30, "quantization_version": 2},
         "architecture_metadata": arch,
+        "tensor_type_id_counts": {},
+        "split": {"part_index": None, "part_count": None,
+                  "total_tensor_count_reported": None,
+                  "multiple_parts_reported": False, "all_parts_inspected": False},
+        "metadata_bytes_scanned": 128,
         "validation": {"metadata_structure_parsed": True,
-                       "model_load_tested": False},
+                       "tensor_descriptors_parsed": True,
+                       "tensor_data_read": False,
+                       "tensor_payload_integrity_verified": False,
+                       "model_load_tested": False,
+                       "model_backend_compatibility": "not_tested"},
+        "limitations": ["Synthetic research fixture; no model read"],
     }
 
 
@@ -189,6 +205,15 @@ class SpeculativePlanningTest(unittest.TestCase):
                 self.assertEqual(main(), 1)
             self.assertEqual(json.loads(s.read_text("utf-8"))["profile_id"],
                              "illustrative-mtp-server-01")
+
+    def test_full_profile_rejects_incomplete_gguf_record(self):
+        profile = json.loads(
+            (ROOT / "examples/workload-profile.speculative.example.json").read_text("utf-8"))
+        incomplete = model_observation()
+        del incomplete["tensor_type_id_counts"]
+        with self.assertRaisesRegex(SpeculativePlanError, "GGUF observation"):
+            make_preview(profile["speculative_search"], incomplete,
+                         serve_runtime(), profile=profile)
 
     def test_complete_profile_is_bound_and_missing_model_digest_blocks_mtp(self):
         profile = json.loads(
