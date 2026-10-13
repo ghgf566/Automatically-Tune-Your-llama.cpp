@@ -61,3 +61,5 @@ The shared [`speculative-search.schema.json`](../../schemas/speculative-search.s
 These optional extensions deliberately retain the existing parent `schema_version = 1.1.0`; historical profiles/results without them remain valid. The local validator resolves both shared references without contacting GitHub; it also rejects conflicting user CLI locks, missing external artifacts and impossible accepted-token counts. `not_started` examples contain only `null` measurements—**no fabricated benchmark evidence**.
 
 `tools/plan_speculative_search.py` is a schema-validated **preview only**. It does not transform a speculative candidate into a runnable CLI command. For the phased execution plan see [tuning roadmap](tuning-roadmap.md).
+
+For non-disabled speculative modes, use a **server workload** profile with `engine.command: serve` (the current framework does not claim `llama bench` exercises full speculative generation). See `examples/workload-profile.speculative.example.json`; the original ordinary benchmark example remains free of speculative settings to demonstrate backward compatibility.

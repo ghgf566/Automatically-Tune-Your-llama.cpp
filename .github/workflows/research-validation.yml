@@ -25,5 +25,6 @@ jobs:
       - run: python -m compileall -q tools tests
       - run: python -m unittest discover -s tests -v
       - run: python tools/validate_contracts.py profile examples/workload-profile.example.json
+      - run: python tools/validate_contracts.py profile examples/workload-profile.speculative.example.json
       - run: python tools/validate_contracts.py result examples/run-record.example.json
       - run: python tools/generate_cli_registry.py --check

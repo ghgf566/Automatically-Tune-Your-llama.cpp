@@ -50,12 +50,27 @@ def serve_runtime(flags=None, command="serve"):
 
 class SpeculativePlanningTest(unittest.TestCase):
     def test_profile_result_examples_with_shared_local_schema(self):
+        old = validate(ROOT / "schemas/workload-profile.schema.json",
+                       ROOT / "examples/workload-profile.example.json")
         p = validate(ROOT / "schemas/workload-profile.schema.json",
-                     ROOT / "examples/workload-profile.example.json")
+                     ROOT / "examples/workload-profile.speculative.example.json")
         r = validate(ROOT / "schemas/run-record.schema.json",
                      ROOT / "examples/run-record.example.json")
+        self.assertNotIn("speculative_search", old)
+        self.assertEqual(p["workload"]["mode"], "server")
         self.assertEqual(p["speculative_search"]["draft_n_max_candidates"], [1, 2, 4, 8])
         self.assertEqual(r["speculative_observation"]["measurement_status"], "not_started")
+
+    def test_non_server_speculative_profiles_fail_closed(self):
+        from validate_contracts import check_speculative_search_consistency
+        with self.assertRaisesRegex(ValueError, "server workload"):
+            check_speculative_search_consistency(
+                search_config(), {}, {}, {"mode": "bench", "request_kind": "completion"})
+        configuration = search_config()
+        configuration["draft_placements"] = [{"device_id": "none", "gpu_layers": 4}]
+        with self.assertRaisesRegex(ValueError, "CPU-only"):
+            check_speculative_search_consistency(
+                configuration, {}, {}, {"mode": "server", "request_kind": "chat"})
 
     def test_embedded_mtp_uses_each_requested_draft_n_without_inferring_head_limit(self):
         plan = make_preview(search_config(), model_observation(nextn=2), serve_runtime())

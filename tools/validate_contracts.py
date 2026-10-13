@@ -90,6 +90,12 @@ def check_speculative_search_consistency(search, locks, candidates, workload):
         raise ValueError("speculative controls must not be duplicated in CLI parameters")
     if workload.get("request_kind") == "embedding" and modes != ["off"]:
         raise ValueError("embedding workload cannot tune speculative generation")
+    if workload.get("mode") != "server" and modes != ["off"]:
+        raise ValueError("enabled speculative search requires server workload for current runner")
+
+    for placement in search["draft_placements"]:
+        if placement["device_id"] == "none" and placement["gpu_layers"] != 0:
+            raise ValueError("CPU-only draft placement requires zero GPU layers")
     artifacts = search["external_artifacts"]
     used = set()
     for item in artifacts:
@@ -131,6 +137,9 @@ def check_speculative_result_consistency(observation, run_status):
         raise ValueError("not_started speculative experiment must not have measured values")
     if run_status == "success" and mode != "off" and observation["load_verification"] != "passed":
         raise ValueError("successful speculative run requires actual load verification")
+    if run_status == "success" and mode != "off" and observation["measurement_status"] != "completed":
+        raise ValueError("successful speculative run requires completed measurement")
+
 
 def validate(schema_path, document_path):
     schema = load_json(schema_path)

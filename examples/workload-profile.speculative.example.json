@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.1.0",
+  "profile_id": "illustrative-mtp-server-01",
+  "engine": {
+    "binary": "llama",
+    "backend": null,
+    "device_ids": [
+      "CUDA0"
+    ],
+    "command": "serve",
+    "installation_source": "llama.app",
+    "build_commit": null,
+    "binary_sha256": null,
+    "version_output": null
+  },
+  "model": {
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "architecture": "illustrative-dense",
+    "quantization": "IQ4_XS"
+  },
+  "hardware": {
+    "comment": "SYNTHETIC DATA ONLY: example values are not measurements"
+  },
+  "workload": {
+    "mode": "server",
+    "prompt_tokens": 512,
+    "generation_tokens": 128,
+    "context_tokens": 4096,
+    "concurrency": 1,
+    "repetitions": 3,
+    "request_kind": "chat"
+  },
+  "objective": {
+    "primary": "decode_tokens_per_second",
+    "secondary": [
+      "prompt_tokens_per_second"
+    ]
+  },
+  "user_locked_parameters": {
+    "--cache-type-k": "q4_0",
+    "--cache-type-v": "q4_0"
+  },
+  "candidate_parameters": {
+    "--threads": 4,
+    "--n-gpu-layers": 18
+  },
+  "constraints": {
+    "allow_quality_changes": false,
+    "allow_service_semantic_changes": false,
+    "memory_reserve_mib": 512,
+    "minimum_context_tokens": 4096,
+    "required_concurrency": 1
+  },
+  "registry_upstream_commit": "77c4540ce4667f4577753fe034a3a8042f510b8f",
+  "speculative_search": {
+    "schema_version": "0.1.0",
+    "modes": [
+      "off",
+      "embedded_mtp"
+    ],
+    "draft_n_max_candidates": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "max_candidates": 16,
+    "external_artifacts": [],
+    "draft_placements": []
+  }
+}
