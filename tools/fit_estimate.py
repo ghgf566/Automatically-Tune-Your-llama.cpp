@@ -148,7 +148,7 @@ def execute_plan(plan, *, timeout_seconds=600):
     if plan["status"] != "prepared_not_executed" or plan["kind"] != "fit_estimate_plan":
         raise FitPlanError("only an unexecuted fit estimate plan can run")
     argv = plan["argv"]
-    if (len(argv) != 13 or argv[1:3] != ["fit-params", "--offline"]
+    if (len(argv) != 15 or argv[1:3] != ["fit-params", "--offline"]
             or argv[-4:] != ["--fit", "off", "--fit-print", "on"]
             or argv[3] != "--model" or argv[5] != "--device"
             or argv[7] != "--ctx-size" or argv[9] != "--n-gpu-layers"):
