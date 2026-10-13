@@ -71,22 +71,44 @@ def check_profile_consistency(document):
         raise ValueError("concurrency falls below required_concurrency")
     speculative = document.get("speculative_search")
     if speculative is not None:
-        check_speculative_search_consistency(speculative, locks, candidates, work)
+        check_speculative_search_consistency(speculative, locks, candidates, work, inventory)
 
 
 
-SPEC_FLAGS = {
-    "--spec-type", "--spec-draft-n-max", "--spec-draft-model",
-    "--model-draft", "-md", "--spec-draft-device", "--spec-draft-ngl",
-    "--gpu-layers-draft", "--device-draft",
-}
+def speculative_aliases(inventory):
+    """All pinned draft/spec aliases; never depend on a hand-maintained subset."""
+    reserved = set()
+    for entry in inventory["entries"]:
+        if entry["program"] != "llama-server":
+            continue
+        name = entry["name"]
+        if (name.startswith("--spec-") or name.startswith("--draft")
+                or name == "--spec-default"):
+            reserved.update([name, *entry["aliases"]])
+    return reserved
 
 
-def check_speculative_search_consistency(search, locks, candidates, workload):
+def _is_speculative_flag(flag, reserved):
+    return (flag in reserved or flag.startswith("--spec-")
+            or flag.startswith("--draft-") or flag == "--draft")
+
+
+def validate_profile_document(document):
+    schema = load_json(ROOT / "schemas/workload-profile.schema.json")
+    Draft202012Validator(schema, format_checker=FormatChecker(),
+                         registry=_registry()).validate(document)
+    check_profile_consistency(document)
+    return document
+
+
+def check_speculative_search_consistency(search, locks, candidates, workload, inventory=None):
     modes = search["modes"]
     if "off" not in modes:
         raise ValueError("speculative search requires explicit off baseline")
-    if any(k in SPEC_FLAGS for k in [*locks, *candidates]):
+    if inventory is None:
+        inventory = load_json(ROOT / "data/cli-inventory.json")
+    reserved = speculative_aliases(inventory)
+    if any(_is_speculative_flag(k, reserved) for k in [*locks, *candidates]):
         raise ValueError("speculative controls must not be duplicated in CLI parameters")
     if workload.get("request_kind") == "embedding" and modes != ["off"]:
         raise ValueError("embedding workload cannot tune speculative generation")
