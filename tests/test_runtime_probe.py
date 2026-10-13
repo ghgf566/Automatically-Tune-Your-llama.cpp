@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 import engine_adapter as adapter
 import engine_identity as identity
 import probe_runtime as probe
+import device_inventory as dev_inventory
 
 
 class CommandAdapterTest(unittest.TestCase):
@@ -113,11 +114,14 @@ class CommandAdapterTest(unittest.TestCase):
         calls = []
         def fake(args, timeout):
             calls.append(args[1:])
+            output = ("Available devices:\n  (none)\n"
+                      if args[-1] == "--list-devices" else "  --list-devices\n")
             return {"status": "success", "returncode": 0,
-                    "stdout": "  --help\n", "stderr": ""}
+                    "stdout": output, "stderr": ""}
         with patch.object(probe, "run_cli", side_effect=fake):
-            probe.probe_binary(self.bin, self.registry, include_devices=True)
+            observed = probe.probe_binary(self.bin, self.registry, include_devices=True)
         self.assertEqual(calls, [["version"], ["help", "all"], ["serve", "--help"], ["serve", "--list-devices"]])
+        self.assertEqual(observed["device_inventory"]["status"], "none")
         with patch.object(probe, "run_cli") as call:
             with self.assertRaises(ValueError):
                 probe.probe_binary(self.bin, self.registry, command="fit-params",
@@ -183,6 +187,61 @@ class CommandAdapterTest(unittest.TestCase):
             out = probe.probe_binary(binary, self.registry, command="bench")
         self.assertEqual(calls, [["--version"], ["--help"]])
         self.assertEqual(out["command_results"]["catalog"]["status"], "not_applicable")
+
+
+    def test_ggml_device_output_with_two_accelerators(self):
+        raw = ("ggml_backend_load_all: checking plugins\nAvailable devices:\n"
+               "  CUDA0: NVIDIA GeForce RTX 5080 (16384 MiB, 14000 MiB free)\n"
+               "  Vulkan0: Intel Arc Graphics (8192 MiB, 7100 MiB free)\n")
+        parsed = dev_inventory.parse_list_devices(raw)
+        self.assertEqual(parsed["status"], "observed")
+        self.assertEqual(parsed["non_cpu_device_count"], 2)
+        self.assertEqual(parsed["devices"][0]["id"], "CUDA0")
+        self.assertEqual(parsed["devices"][1]["free_memory_mib"], 7100)
+        self.assertFalse(parsed["cpu_devices_enumerated"])
+        self.assertEqual(parsed["model_backend_compatibility"], "not_tested")
+
+    def test_ggml_none_does_not_mean_no_cpu(self):
+        parsed = dev_inventory.parse_list_devices("Available devices:\n  (none)\n")
+        self.assertEqual(parsed["status"], "none")
+        self.assertEqual(parsed["devices"], [])
+        self.assertFalse(parsed["cpu_devices_enumerated"])
+
+    def test_device_output_fail_closed(self):
+        cases = [
+            "no device information",
+            "Available devices:\n  CUDA0: an unknown future layout\n",
+            "Available devices:\n  (none)\n  CUDA0: NVIDIA (1024 MiB, 900 MiB free)\n",
+            "Available devices:\n  CUDA0: NVIDIA (10 MiB, 20 MiB free)\n",
+            "Available devices:\n  CUDA0: NVIDIA (1024 MiB, 900 MiB free)\n"
+            "  CUDA0: another (1024 MiB, 800 MiB free)\n",
+        ]
+        for raw in cases:
+            with self.subTest(raw=raw):
+                self.assertEqual(dev_inventory.parse_list_devices(raw)["status"], "unknown")
+        self.assertEqual(dev_inventory.observation(
+            {"status": "timeout", "stdout": "", "stderr": ""})["reason"],
+            "command_timeout")
+
+    def test_missing_flag_skips_actual_device_invocation(self):
+        calls = []
+        def fake(args, timeout):
+            calls.append(args[1:])
+            return {"status": "success", "returncode": 0,
+                    "stdout": "  --help\n", "stderr": ""}
+        with patch.object(probe, "run_cli", side_effect=fake):
+            result = probe.probe_binary(self.bin, self.registry, include_devices=True)
+        self.assertEqual(calls, [["version"], ["help", "all"], ["serve", "--help"]])
+        self.assertEqual(result["command_results"]["devices"]["status"],
+                         "skipped_unverified_flag")
+        self.assertEqual(result["device_inventory"]["status"], "unknown")
+
+    def test_ggml_backend_output_with_cpu_excluded(self):
+        raw = ("Available devices:\n"
+               "  HIP0: AMD Radeon RX 7900 XT (20480 MiB, 19550 MiB free)\n")
+        got = dev_inventory.parse_list_devices(raw)
+        self.assertEqual(got["devices"][0]["id"], "HIP0")
+        self.assertEqual(got["non_cpu_device_count"], 1)
 
 
 

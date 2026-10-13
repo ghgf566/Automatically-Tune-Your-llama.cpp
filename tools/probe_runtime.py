@@ -10,6 +10,7 @@ from pathlib import Path
 
 from engine_adapter import ROUTES, discover_binary, resolve_entrypoint, probe_argv
 from engine_identity import observed_identity, sha256_file
+from device_inventory import observation as observe_devices, unknown as unknown_devices
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "data" / "cli-inventory.json"
@@ -134,9 +135,17 @@ def probe_binary(binary, registry, *, command="serve", include_devices=False,
                  "flag_names_observed": sorted(parsed) if observed else None},
         "devices": {"status": "not_requested"},
     }
+    hardware = unknown_devices("not_requested")
     if include_devices:
-        commands["devices"] = compact_result(
-            run_cli(probe_argv(entry, "--list-devices"), timeout_seconds))
+        # The pinned upstream supports --list-devices for serve and bench,
+        # but never execute it against an unknown build without seeing its flag.
+        if "--list-devices" not in parsed:
+            commands["devices"] = {"status": "skipped_unverified_flag"}
+            hardware = unknown_devices("list_devices_not_observed_in_help")
+        else:
+            device_output = run_cli(probe_argv(entry, "--list-devices"), timeout_seconds)
+            commands["devices"] = compact_result(device_output)
+            hardware = observe_devices(device_output)
     return {
         "schema_version": "1.1.0", "kind": "runtime_help_observation",
         "observed_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -146,6 +155,7 @@ def probe_binary(binary, registry, *, command="serve", include_devices=False,
         "registry_commit": registry["upstream"]["commit"],  # Backward-compatible alias.
         "identity": provenance,
         "command_results": commands,
+        "device_inventory": hardware,
         "comparison": comparison,
         "limitations": [
             "No build commit is inferred from the documentation registry SHA.",
@@ -154,6 +164,8 @@ def probe_binary(binary, registry, *, command="serve", include_devices=False,
             "fit-params help has no pinned inventory yet; comparison is intentionally null.",
             "Not listed in help all is not by itself proof of unsupported commands.",
             "Run only trusted binaries; --list-devices may initialize GPU drivers.",
+            "The --list-devices listing excludes CPU and does not prove NPU support.",
+            "Device detection is not proof that a model can execute on that backend.",
         ],
     }
 
