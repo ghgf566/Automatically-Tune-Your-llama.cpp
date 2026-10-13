@@ -6,8 +6,16 @@ import sys
 from pathlib import Path
 
 from jsonschema import Draft202012Validator, FormatChecker
+from referencing import Registry, Resource
 
 ROOT = Path(__file__).resolve().parents[1]
+
+def _registry():
+    """Resolve shared contracts locally, never via network or GitHub URLs."""
+    spec = load_json(ROOT / "schemas" / "speculative-search.schema.json")
+    return Registry().with_resource(spec["$id"], Resource.from_contents(spec))
+
+
 
 
 def load_json(path):
@@ -61,15 +69,81 @@ def check_profile_consistency(document):
     if (constraints.get("required_concurrency") is not None
             and work["concurrency"] < constraints["required_concurrency"]):
         raise ValueError("concurrency falls below required_concurrency")
+    speculative = document.get("speculative_search")
+    if speculative is not None:
+        check_speculative_search_consistency(speculative, locks, candidates, work)
+
+
+
+SPEC_FLAGS = {
+    "--spec-type", "--spec-draft-n-max", "--spec-draft-model",
+    "--model-draft", "-md", "--spec-draft-device", "--spec-draft-ngl",
+    "--gpu-layers-draft", "--device-draft",
+}
+
+
+def check_speculative_search_consistency(search, locks, candidates, workload):
+    modes = search["modes"]
+    if "off" not in modes:
+        raise ValueError("speculative search requires explicit off baseline")
+    if any(k in SPEC_FLAGS for k in [*locks, *candidates]):
+        raise ValueError("speculative controls must not be duplicated in CLI parameters")
+    if workload.get("request_kind") == "embedding" and modes != ["off"]:
+        raise ValueError("embedding workload cannot tune speculative generation")
+    artifacts = search["external_artifacts"]
+    used = set()
+    for item in artifacts:
+        key = (item["mode"], item["artifact_id"])
+        if key in used:
+            raise ValueError("duplicate speculative external artifact")
+        used.add(key)
+    for mode in ("external_mtp", "external_draft_simple"):
+        if mode in modes and not any(item["mode"] == mode for item in artifacts):
+            raise ValueError(mode + " requires an explicitly named external artifact")
+    if search["draft_placements"] and not any(
+        mode.startswith("external_") for mode in modes
+    ):
+        raise ValueError("draft placement candidates require an external mode")
+
+
+def check_speculative_result_consistency(observation, run_status):
+    mode = observation["mode"]
+    if mode == "off":
+        if any(observation[k] is not None for k in
+               ("requested_draft_n_max", "effective_draft_n_max",
+                "draft_artifact_id", "drafted_tokens", "accepted_tokens", "acceptance_rate")):
+            raise ValueError("off baseline cannot report speculative draft values")
+    if mode.startswith("external_") and not observation["draft_artifact_id"]:
+        raise ValueError("external speculative result must identify draft artifact")
+    drafted = observation["drafted_tokens"]
+    accepted = observation["accepted_tokens"]
+    if drafted is not None and accepted is not None and accepted > drafted:
+        raise ValueError("accepted draft tokens cannot exceed drafted tokens")
+    rate = observation["acceptance_rate"]
+    if drafted not in (None, 0) and accepted is not None and rate is not None:
+        if abs(rate - accepted / drafted) > 0.005:
+            raise ValueError("reported speculative acceptance rate inconsistent with counts")
+    if observation["measurement_status"] == "not_started" and any(
+            observation[x] is not None for x in
+            ("drafted_tokens", "accepted_tokens", "acceptance_rate",
+             "decode_tokens_per_second", "time_to_first_token_ms",
+             "peak_host_mib", "peak_device_mib")):
+        raise ValueError("not_started speculative experiment must not have measured values")
+    if run_status == "success" and mode != "off" and observation["load_verification"] != "passed":
+        raise ValueError("successful speculative run requires actual load verification")
 
 def validate(schema_path, document_path):
     schema = load_json(schema_path)
     Draft202012Validator.check_schema(schema)
     document = load_json(document_path)
-    Draft202012Validator(schema, format_checker=FormatChecker()).validate(document)
+    Draft202012Validator(schema, format_checker=FormatChecker(),
+                         registry=_registry()).validate(document)
     if Path(schema_path).name == "workload-profile.schema.json":
         check_profile_consistency(document)
     if Path(schema_path).name == "run-record.schema.json":
+        if "speculative_observation" in document:
+            check_speculative_result_consistency(
+                document["speculative_observation"], document["status"])
         if document["status"] == "success":
             if document["engine_binary_sha256"] is None or not document["configuration"]["launched_argv"]:
                 raise ValueError("successful run must record engine binary hash and launched_argv")
