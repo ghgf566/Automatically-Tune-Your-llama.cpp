@@ -46,15 +46,39 @@ class ContractTest(unittest.TestCase):
         with self.assertRaises(ValidationError):
             Draft202012Validator(self.r_schema).validate(data)
 
-    def test_locked_parameter_conflict_fails(self):
+    def validate_mutated_profile(self, mutate):
+        from tempfile import TemporaryDirectory
         data = json.loads(self.pfile.read_text("utf-8"))
-        data["candidate_parameters"]["--cache-type-k"] = "q8_0"
+        mutate(data)
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "mutated.json"
+            path.write_text(json.dumps(data), encoding="utf-8")
+            return validate(ROOT / "schemas/workload-profile.schema.json", path)
+
+    def test_locked_parameter_conflict_fails(self):
         with self.assertRaisesRegex(ValueError, "user-locked"):
-            locks = set(data["user_locked_parameters"])
-            candidates = set(data["candidate_parameters"])
-            overlaps = locks & candidates
-            if overlaps:
-                raise ValueError("candidate overrides user-locked parameters: " + str(overlaps))
+            self.validate_mutated_profile(
+                lambda data: data["candidate_parameters"].update({"--cache-type-k": "q8_0"}))
+
+    def test_alias_locked_parameter_conflict_fails(self):
+        with self.assertRaisesRegex(ValueError, "user-locked"):
+            self.validate_mutated_profile(
+                lambda data: data["candidate_parameters"].update({"-ctk": "q8_0"}))
+
+    def test_minimum_context_is_enforced(self):
+        with self.assertRaisesRegex(ValueError, "minimum_context"):
+            self.validate_mutated_profile(
+                lambda data: data["constraints"].update({"minimum_context_tokens": 8192}))
+
+    def test_required_concurrency_is_enforced(self):
+        with self.assertRaisesRegex(ValueError, "required_concurrency"):
+            self.validate_mutated_profile(
+                lambda data: data["constraints"].update({"required_concurrency": 2}))
+
+    def test_unknown_binary_fails_closed(self):
+        with self.assertRaisesRegex(ValueError, "cannot validate CLI aliases"):
+            self.validate_mutated_profile(
+                lambda data: data["engine"].update({"binary": "unrecognized.exe"}))
 
 
 if __name__ == "__main__":
