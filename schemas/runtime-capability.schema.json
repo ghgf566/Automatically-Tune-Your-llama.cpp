@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ATYL runtime CLI capability observation contract 1.1.0",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "kind",
+    "binary",
+    "identity",
+    "entrypoint",
+    "command_results"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.1.0"
+    },
+    "kind": {
+      "const": "runtime_help_observation"
+    },
+    "binary": {
+      "type": "object",
+      "required": [
+        "sha256"
+      ],
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "required": [
+        "binary_sha256"
+      ],
+      "properties": {
+        "binary_sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "engine_build_commit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cacheable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "entrypoint": {
+      "type": "object",
+      "required": [
+        "kind",
+        "command"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "integrated",
+            "legacy"
+          ]
+        },
+        "command": {
+          "enum": [
+            "serve",
+            "bench",
+            "fit-params"
+          ]
+        }
+      }
+    },
+    "command_results": {
+      "type": "object",
+      "required": [
+        "version",
+        "help"
+      ],
+      "properties": {
+        "version": {
+          "type": "object",
+          "required": [
+            "status"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "success",
+                "nonzero_exit",
+                "timeout",
+                "error",
+                "not_requested",
+                "skipped_unverified_flag"
+              ]
+            },
+            "returncode": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          }
+        },
+        "help": {
+          "type": "object",
+          "required": [
+            "status",
+            "flag_names_observed"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "success",
+                "nonzero_exit",
+                "timeout",
+                "error",
+                "not_requested",
+                "skipped_unverified_flag"
+              ]
+            },
+            "flag_names_observed": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^-{1,2}[A-Za-z][\\w-]*$"
+              }
+            }
+          }
+        },
+        "devices": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "success",
+                "nonzero_exit",
+                "timeout",
+                "error",
+                "not_requested",
+                "skipped_unverified_flag"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "device_inventory": {
+      "type": "object",
+      "required": [
+        "status",
+        "devices"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "unknown",
+            "none",
+            "observed"
+          ]
+        },
+        "devices": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_.-]*$"
+              },
+              "total_memory_mib": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "free_memory_mib": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
