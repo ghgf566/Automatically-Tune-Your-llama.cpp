@@ -59,7 +59,11 @@ class FitEstimateTests(unittest.TestCase):
             "binary": {"sha256": self.sha},
             "identity": {"binary_sha256": self.sha},
             "entrypoint": {"kind": "integrated", "command": "serve"},
-            "command_results": {"devices": {"status": "success"}},
+            "command_results": {
+                "version": {"status": "success"},
+                "help": {"status": "success", "flag_names_observed": ["--list-devices"]},
+                "devices": {"status": "success"},
+            },
             "device_inventory": {"status": "observed", "devices": [
                 {"id": "Vulkan0", "description": "Synthetic", "total_memory_mib": 8000,
                  "free_memory_mib": 7500},
@@ -114,6 +118,7 @@ class FitEstimateTests(unittest.TestCase):
                       devices_snapshot=self.device_snapshot)
         obj = json.loads(self.device_snapshot.read_text("utf-8"))
         obj["device_inventory"]["status"] = "unknown"
+        obj["device_inventory"]["devices"] = None
         self.device_snapshot.write_text(json.dumps(obj), "utf-8")
         with self.assertRaisesRegex(FitPlanError, "no confirmed"):
             self.make(device="Vulkan0", gpu_layers=18,
