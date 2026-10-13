@@ -171,6 +171,61 @@ class FitEstimateTests(unittest.TestCase):
             self.assertEqual(main(), 1)
         self.assertTrue(self.model.read_bytes().startswith(b"GGUF"))
 
+    def test_scenario_is_user_declared_even_in_preview(self):
+        plan = self.make(scenario="reduced_background",
+                         background_note="Wallpaper Engine manually paused")
+        self.validator.validate(plan)
+        self.assertEqual(plan["environment"]["scenario"], "reduced_background")
+        self.assertTrue(plan["environment"]["scenario_is_user_declared"])
+        self.assertEqual(plan["environment"]["capture_status"], "not_sampled")
+        self.assertIsNone(plan["environment"]["before"])
+        with self.assertRaises(FitPlanError):
+            self.make(scenario="autoclose_wallpaper")
+        with self.assertRaises(FitPlanError):
+            self.make(background_note="X" * 301)
+
+    def test_execute_main_brackets_estimate_with_memory_snapshots(self):
+        from fit_estimate import main
+        from environment_observation import summarize
+        ram = {"status": "observed", "reason": None,
+               "total_mib": 16000, "available_mib": 12000}
+        gpu = {"status": "observed", "reason": None, "device_id": "Vulkan0",
+               "backend_id": "Vulkan", "description": "Synthetic",
+               "total_mib": 8000, "available_mib": 7500}
+        before = {"timestamp_utc": "2026-10-14T01:00:00+00:00",
+                  "ram": ram, "gpu": gpu}
+        after = {"timestamp_utc": "2026-10-14T01:01:00+00:00",
+                 "ram": dict(ram, available_mib=11900),
+                 "gpu": dict(gpu, available_mib=7450)}
+        estimate = {"status": "completed", "returncode": 0,
+                    "stdout_excerpt": "synthetic upstream memory estimate",
+                    "stderr_excerpt": "", "output_truncated_or_unknown": True,
+                    "estimate_unit": "MiB (as reported by upstream, if recognizable)",
+                    "parsed_numeric_memory": None, "model_load_tested": False,
+                    "inference_tested": False}
+        destination = self.root / "daily.json"
+        argv = ["fit_estimate.py", "--model", str(self.model),
+                "--fit-snapshot", str(self.fit_snapshot),
+                "--device-snapshot", str(self.device_snapshot),
+                "--device", "Vulkan0", "--gpu-layers", "18",
+                "--binary", str(self.binary), "--scenario", "daily",
+                "--background-note", "Wallpaper Engine running",
+                "--execute", "--output", str(destination)]
+        with patch("sys.argv", argv), \
+             patch("fit_estimate.observe_environment", side_effect=[before, after]) as observe, \
+             patch("fit_estimate.execute_plan", return_value=estimate) as execute:
+            self.assertEqual(main(), 0)
+        self.assertEqual(observe.call_count, 2)
+        execute.assert_called_once()
+        output = json.loads(destination.read_text("utf-8"))
+        self.validator.validate(output)
+        self.assertEqual(output["environment"]["capture_status"], "captured_best_effort")
+        self.assertEqual(output["environment"]["available_memory_change"]["gpu_available_delta_mib"], -50)
+        self.assertEqual(output["environment"]["available_memory_change"]["system_ram_available_delta_mib"], -100)
+        self.assertIsNone(output["environment"]["available_memory_change"]["peak_gpu_usage_mib"])
+        self.assertEqual(output["environment"]["background_note"], "Wallpaper Engine running")
+        self.assertEqual(output["status"], "estimate_attempted")
+
     def test_corrupted_snapshot_fails_closed(self):
         self.fit_snapshot.write_text('{"binary": null}', "utf-8")
         with self.assertRaises(FitPlanError):
