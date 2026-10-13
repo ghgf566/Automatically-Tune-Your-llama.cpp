@@ -1,0 +1,360 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ghgf566/Automatically-Tune-Your-llama.cpp/blob/main/schemas/speculative-search.schema.json",
+  "title": "ATYL speculative decoding planning and observations v0.1.0",
+  "$ref": "#/$defs/search",
+  "$defs": {
+    "mode": {
+      "enum": [
+        "off",
+        "embedded_mtp",
+        "external_mtp",
+        "external_draft_simple"
+      ]
+    },
+    "placement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "device_id",
+        "gpu_layers"
+      ],
+      "properties": {
+        "device_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "gpu_layers": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4096
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "artifact_id",
+        "sha256",
+        "pairing_evidence"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "external_mtp",
+            "external_draft_simple"
+          ]
+        },
+        "artifact_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-fA-F]{64}$"
+        },
+        "pairing_evidence": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 512,
+          "description": "Optional local reference to pairing evidence; a string is not validation"
+        }
+      }
+    },
+    "search": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "modes",
+        "draft_n_max_candidates",
+        "max_candidates",
+        "external_artifacts",
+        "draft_placements"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "0.1.0"
+        },
+        "modes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/mode"
+          }
+        },
+        "draft_n_max_candidates": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 64
+          },
+          "description": "Explicit bounded search values; not actual guaranteed draft/accepted token counts"
+        },
+        "max_candidates": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 128
+        },
+        "external_artifacts": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/artifact"
+          }
+        },
+        "draft_placements": {
+          "type": "array",
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/placement"
+          }
+        }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "draft_n_max",
+        "draft_artifact_id",
+        "draft_device_id",
+        "draft_gpu_layers",
+        "readiness",
+        "reasons",
+        "executable"
+      ],
+      "properties": {
+        "mode": {
+          "$ref": "#/$defs/mode"
+        },
+        "draft_n_max": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 64
+        },
+        "draft_artifact_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "draft_device_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "draft_gpu_layers": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 4096
+        },
+        "readiness": {
+          "enum": [
+            "baseline_only",
+            "blocked_missing_evidence",
+            "requires_pairing_and_load_test",
+            "requires_runtime_mode_and_load_test"
+          ]
+        },
+        "reasons": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "executable": {
+          "const": false
+        }
+      }
+    },
+    "preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "kind",
+        "engine_binary_sha256",
+        "source_model_filename",
+        "candidates",
+        "limitations"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "0.1.0"
+        },
+        "kind": {
+          "const": "speculative_search_preview"
+        },
+        "engine_binary_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        },
+        "source_model_filename": {
+          "type": "string",
+          "minLength": 1
+        },
+        "candidates": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/candidate"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "requested_draft_n_max",
+        "effective_draft_n_max",
+        "draft_artifact_id",
+        "load_verification",
+        "measurement_status",
+        "drafted_tokens",
+        "accepted_tokens",
+        "acceptance_rate",
+        "decode_tokens_per_second",
+        "time_to_first_token_ms",
+        "peak_host_mib",
+        "peak_device_mib"
+      ],
+      "properties": {
+        "mode": {
+          "$ref": "#/$defs/mode"
+        },
+        "requested_draft_n_max": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 64
+        },
+        "effective_draft_n_max": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 64
+        },
+        "draft_artifact_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "load_verification": {
+          "enum": [
+            "not_tested",
+            "passed",
+            "failed",
+            "unknown"
+          ]
+        },
+        "measurement_status": {
+          "enum": [
+            "not_started",
+            "completed",
+            "failed",
+            "timeout",
+            "unknown"
+          ]
+        },
+        "drafted_tokens": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "accepted_tokens": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "acceptance_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "decode_tokens_per_second": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "time_to_first_token_ms": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "peak_host_mib": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "peak_device_mib": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

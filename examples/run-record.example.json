@@ -27,5 +27,21 @@
     "kind": "integrated",
     "command": "bench"
   },
-  "identity_cache_key": null
+  "identity_cache_key": null,
+  "speculative_observation": {
+    "mode": "off",
+    "requested_draft_n_max": null,
+    "effective_draft_n_max": null,
+    "draft_artifact_id": null,
+    "load_verification": "not_tested",
+    "measurement_status": "not_started",
+    "drafted_tokens": null,
+    "accepted_tokens": null,
+    "acceptance_rate": null,
+    "decode_tokens_per_second": null,
+    "time_to_first_token_ms": null,
+    "peak_host_mib": null,
+    "peak_device_mib": null,
+    "notes": "Synthetic sample; not a measured speculative workload"
+  }
 }

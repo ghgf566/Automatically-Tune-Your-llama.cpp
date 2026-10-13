@@ -230,6 +230,9 @@
         "null"
       ],
       "pattern": "^[0-9a-fA-F]{64}$"
+    },
+    "speculative_observation": {
+      "$ref": "https://github.com/ghgf566/Automatically-Tune-Your-llama.cpp/blob/main/schemas/speculative-search.schema.json#/$defs/observation"
     }
   },
   "$defs": {

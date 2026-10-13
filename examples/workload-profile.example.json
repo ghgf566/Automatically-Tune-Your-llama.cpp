@@ -50,5 +50,21 @@
     "minimum_context_tokens": 4096,
     "required_concurrency": 1
   },
-  "registry_upstream_commit": "77c4540ce4667f4577753fe034a3a8042f510b8f"
+  "registry_upstream_commit": "77c4540ce4667f4577753fe034a3a8042f510b8f",
+  "speculative_search": {
+    "schema_version": "0.1.0",
+    "modes": [
+      "off",
+      "embedded_mtp"
+    ],
+    "draft_n_max_candidates": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "max_candidates": 16,
+    "external_artifacts": [],
+    "draft_placements": []
+  }
 }
