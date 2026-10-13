@@ -53,6 +53,10 @@ Benchmark Adapter（llama-bench 與未來 server workload）
 - Registry 保持邏輯名稱 `llama-server`／`llama-bench`，但由指令分派器轉為 `llama serve`／`llama bench`；Fit Help 由 `llama fit-params --help` 觀察，暫無固定 Fit 旗標 Registry。
 - 安裝器、GPU Backend 探測及自我更新交由官方和使用者；ATYL 只讀取並驗證其實際能力。工具變更後依版本／雜湊清除快取。
 
+## GGUF 模型可行性資料階段
+
+新增 `tools/inspect_gguf.py` 作為獨立模型中繼資料入口：只讀取 GGUF 標頭、KV 與張量描述，保留檔案局部性與分檔狀態；不讀權重、不啟動推論引擎。解析出來的模型資訊不能直接與 GGML 裝置剩餘記憶體比較，因為模型載入、KV Cache、Context 和 Backend Buffer 的需求仍未知。下一階段再研究 Fit 預備流程與實測成功條件。
+
 ## 裝置探測的狀態界線
 
 目前可選擇性以 `--list-devices` 查詢 GGML 列出的**非 CPU** 裝置及其記憶體，並保留成功、沒有列出與未知三種狀態。這只屬於引擎環境觀察，尚未驗證 CPU／NPU 的可運算能力、後端算子支援或特定模型能否載入。真正的可行性閘門不能只靠該輸出。

@@ -48,6 +48,14 @@ python tools/probe_runtime.py --command fit-params --output fit-capability.json
 - `tools/device_inventory.py`：可選擇性列舉 GGML 回報的非 CPU 裝置及可用記憶體；尚未驗證實際 Backend／模型能力。
 - [Windows 手動 Smoke Test](docs/research/windows-smoke-test.md)：操作官方已安裝的 llama.exe，不需要啟動推理服務。
 
+## GGUF 模型資訊檢查（不啟動 llama）
+
+```powershell
+python tools/inspect_gguf.py --model "D:\AIModels\Author\Repository\model.gguf" --output model-metadata.json
+```
+
+可以只掃描 GGUF 標頭、特定架構欄位及張量描述（不讀權重），為下一階段的安全 Fitting 做資料準備。**不會在此推估模型可用 VRAM，或宣稱特定 Backend 相容。** 詳見 [GGUF Metadata Inspector v0.1](docs/research/gguf-metadata-inspection.md)。
+
 ## Windows 實機回歸證據
 
 根據使用者提供的官方 llama.app build 11574 三份唯讀探測輸出，已核對 Serve／Bench／Fit 子命令與裝置列舉、整理去識別化回歸測試。差異診斷會將上游條件式 `--rpc` 與文件版本缺口分開，而非直接認定不支援。更多細節見 [Windows Build 11574 回歸與 Fit 參數基準](docs/research/windows-build11574-fit-reference.md)。

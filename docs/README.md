@@ -11,6 +11,7 @@
 
 ## 研究
 
+- [GGUF Metadata Inspector v0.1](research/gguf-metadata-inspection.md)：唯讀解析模型架構、量化格式代號、張量描述與分檔提示。
 - [Windows Build 11574 回歸資料與 Fit 參數研究](research/windows-build11574-fit-reference.md)：三份實機查詢證據、差異分類與 13 項精選 Fit 旗標。
 - [Windows 真實安裝版 Smoke Test](research/windows-smoke-test.md)：無模型、唯讀確認 Backend／裝置資訊與 CLI 路由。
 - [量測與實驗方法](research/benchmark-methodology.md)：工作負載、重複量測與公平比較。

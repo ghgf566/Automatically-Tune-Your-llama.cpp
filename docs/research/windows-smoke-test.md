@@ -54,3 +54,7 @@ Available devices:
 - 不需要執行 `llama update`；ATYL 不會安裝、修改或重啟 llama.cpp。
 
 已有一組官方 llama.app Windows build 11574 的真實探測結果供 ATYL 回歸研究（見 [實機回歸證據](windows-build11574-fit-reference.md)），但仍應在每次更新引擎後重新執行；這份手動 Smoke Test 尚未取代後續的模型載入相容性測試。
+
+## 模型資料唯讀檢查（獨立於 Runtime 探測）
+
+GGUF Metadata Inspector 不會使用 llama.exe 或列舉 GPU。請參閱 [GGUF 檢查文件](gguf-metadata-inspection.md)，先選一個實際存在的 `.gguf` 檔案執行 `python tools/inspect_gguf.py --model "完整路徑" --output model-metadata.json`。此步驟不等於完成模型載入或實際 Fitting。
