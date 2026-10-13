@@ -1,0 +1,56 @@
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+
+# IDE / OS
+.idea/
+.vs/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Model weights and large model artifacts
+*.gguf
+*.safetensors
+*.ggml
+*.onnx
+*.pt
+*.pth
+*.ckpt
+
+# ATYL local runtime observations
+*-capability.json
+*-capability-v*.json
+model-metadata*.json
+fit-plan*.json
+fit-daily*.json
+fit-reduced*.json
+fit-estimate-result*.json
+fit-environment-comparison*.json
+
+# Local experiment outputs
+results/
+artifacts/
+local-data/
+tmp/
+temp/
+*.log
+*.tmp
+
+# Local secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
