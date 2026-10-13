@@ -22,6 +22,7 @@ from fit_memory_parser import parse_memory_estimate
 from safe_output import write_text
 from runtime_snapshot import SnapshotValidationError, check_snapshot
 from process_runner import run_bounded
+from model_identity import fingerprint, matches_existing
 
 REQUIRED_FIT_FLAGS = frozenset({
     "--model", "--fit-print", "--fit", "--ctx-size", "--n-gpu-layers",
@@ -88,7 +89,8 @@ def _validate_device_snapshot(doc, sha, device_id):
 
 
 def build_plan(model, fit_snapshot, *, device="none", devices_snapshot=None,
-               context=4096, gpu_layers=0, binary=None, scenario="daily", background_note=None):
+               context=4096, gpu_layers=0, binary=None, scenario="daily", background_note=None,
+               full_model_sha256=False):
     """Fail closed on stale engine snapshots; preview a single fixed configuration."""
     if scenario not in ("daily", "reduced_background"):
         raise FitPlanError("scenario must be daily or reduced_background")
@@ -107,6 +109,8 @@ def build_plan(model, fit_snapshot, *, device="none", devices_snapshot=None,
     model_path = Path(model).expanduser().resolve()
     # Fresh read prevents accepting metadata from an unrelated or stale JSON.
     model_info = inspect(model_path)
+    model_fingerprint = fingerprint(model_path, model_info["metadata_bytes_scanned"],
+                                    full_sha256=full_model_sha256)
     if model_info["split"]["multiple_parts_reported"]:
         raise FitPlanError("multi-part GGUF requires a shard-completeness validator first")
     path = discover_binary(binary)
@@ -136,6 +140,7 @@ def build_plan(model, fit_snapshot, *, device="none", devices_snapshot=None,
             "file_size_bytes": model_info["source"]["file_size_bytes"],
             "architecture": model_info["general"]["architecture"],
             "gguf_version": model_info["gguf_version"],
+            "fingerprint": model_fingerprint,
         },
         "candidate": {
             "device_id": device, "context_tokens": context, "gpu_layers": gpu_layers,
@@ -178,6 +183,9 @@ def execute_plan(plan, *, timeout_seconds=600):
         raise FitPlanError("engine changed since preview; create a new fit plan")
     if Path(argv[4]).stat().st_size != plan["model"]["file_size_bytes"]:
         raise FitPlanError("model file size changed since preview; create a new fit plan")
+    saved_fingerprint = plan["model"].get("fingerprint")
+    if saved_fingerprint is not None and not matches_existing(argv[4], saved_fingerprint):
+        raise FitPlanError("model fingerprint changed since preview; create a new fit plan")
     result = run_bounded(
         argv, timeout_seconds, capture_bytes=MAX_STDIO_BYTES,
         disk_limit_bytes=8 * 1024 * 1024, env=clean_llama_env(),
@@ -209,6 +217,8 @@ def main():
     parser.add_argument("--context", type=int, default=4096)
     parser.add_argument("--gpu-layers", type=int, default=0)
     parser.add_argument("--binary", type=Path)
+    parser.add_argument("--full-model-sha256", action="store_true",
+                        help="Opt in to hashing the entire GGUF (extra large-file disk I/O)")
     parser.add_argument("--scenario", choices=("daily", "reduced_background"), default="daily")
     parser.add_argument("--background-note", help="Optional manual note (e.g. Wallpaper Engine running)")
     parser.add_argument("--execute", action="store_true",
@@ -221,7 +231,8 @@ def main():
         plan = build_plan(args.model, args.fit_snapshot, device=args.device,
                           devices_snapshot=args.device_snapshot, context=args.context,
                           gpu_layers=args.gpu_layers, binary=args.binary,
-                          scenario=args.scenario, background_note=args.background_note)
+                          scenario=args.scenario, background_note=args.background_note,
+                          full_model_sha256=args.full_model_sha256)
         # Fail before launching expensive work, even if --execute was requested.
         protected = [args.model, args.fit_snapshot, plan["argv"][0], args.device_snapshot]
         if args.output:

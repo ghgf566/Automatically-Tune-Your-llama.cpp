@@ -60,6 +60,54 @@
             2,
             3
           ]
+        },
+        "fingerprint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "metadata_span_bytes",
+            "metadata_sha256",
+            "file_size_bytes",
+            "modified_ns",
+            "full_file_sha256",
+            "full_file_hashed",
+            "weight_integrity_verified"
+          ],
+          "properties": {
+            "method": {
+              "const": "metadata_prefix_and_stat_v1"
+            },
+            "metadata_span_bytes": {
+              "type": "integer",
+              "minimum": 24
+            },
+            "metadata_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "file_size_bytes": {
+              "type": "integer",
+              "minimum": 24
+            },
+            "modified_ns": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "full_file_sha256": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "full_file_hashed": {
+              "type": "boolean"
+            },
+            "weight_integrity_verified": {
+              "const": false
+            }
+          }
         }
       }
     },
