@@ -193,8 +193,14 @@ def execute_plan(plan, *, timeout_seconds=600):
             stdout = out.read(MAX_STDIO_BYTES).decode("utf-8", "replace")
             stderr = err.read(MAX_STDIO_BYTES).decode("utf-8", "replace")
     except OSError as exc:
-        return {"status": "process_error", "returncode": None,
-                "stdout_excerpt": "", "stderr_excerpt": type(exc).__name__}
+        return {
+            "status": "process_error", "returncode": None,
+            "stdout_excerpt": "", "stderr_excerpt": type(exc).__name__,
+            "output_truncated_or_unknown": True,
+            "estimate_unit": "MiB (as reported by upstream, if recognizable)",
+            "parsed_numeric_memory": None,
+            "model_load_tested": False, "inference_tested": False,
+        }
     return {
         "status": status, "returncode": rc,
         "stdout_excerpt": stdout, "stderr_excerpt": stderr,
