@@ -1,0 +1,5793 @@
+{
+  "schema_version": "1.0.0",
+  "upstream": {
+    "repository": "ggml-org/llama.cpp",
+    "commit": "77c4540ce4667f4577753fe034a3a8042f510b8f",
+    "source_paths": [
+      "tools/server/README.md",
+      "tools/llama-bench/README.md"
+    ]
+  },
+  "limits": "Documented flag inventory, not per-build capability. Null means undocumented/unknown. Type hints have not been verified.",
+  "entries": [
+    {
+      "id": "llama-server:--help",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--help",
+      "aliases": [
+        "-h",
+        "--usage"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "print usage and exit",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 34
+      }
+    },
+    {
+      "id": "llama-server:--version",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--version",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "show version and build info",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 35
+      }
+    },
+    {
+      "id": "llama-server:--cache-list",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--cache-list",
+      "aliases": [
+        "-cl"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "show list of models in cache",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 36
+      }
+    },
+    {
+      "id": "llama-server:--completion-bash",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--completion-bash",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "print source-able bash completion script for llama.cpp",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 37
+      }
+    },
+    {
+      "id": "llama-server:--threads",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--threads",
+      "aliases": [
+        "-t"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "-1",
+      "environment_variable": "LLAMA_ARG_THREADS",
+      "status": "documented",
+      "description": "number of CPU threads to use during generation (default: -1)\n(env: LLAMA_ARG_THREADS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 38
+      }
+    },
+    {
+      "id": "llama-server:--threads-batch",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--threads-batch",
+      "aliases": [
+        "-tb"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "same as --threads",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "number of threads to use during batch and prompt processing (default: same as --threads)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 39
+      }
+    },
+    {
+      "id": "llama-server:--cpu-mask",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--cpu-mask",
+      "aliases": [
+        "-C"
+      ],
+      "value_syntax": "M",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "\"\"",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "CPU affinity mask: arbitrarily long hex. Complements cpu-range (default: \"\")",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 40
+      }
+    },
+    {
+      "id": "llama-server:--cpu-range",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--cpu-range",
+      "aliases": [
+        "-Cr"
+      ],
+      "value_syntax": "lo-hi",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "range of CPUs for affinity. Complements --cpu-mask",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 41
+      }
+    },
+    {
+      "id": "llama-server:--cpu-strict",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--cpu-strict",
+      "aliases": [],
+      "value_syntax": "<0\\|1>",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use strict CPU placement (default: 0)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 42
+      }
+    },
+    {
+      "id": "llama-server:--prio",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--prio",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "set process/thread priority : low(-1), normal(0), medium(1), high(2), realtime(3) (default: 0)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 43
+      }
+    },
+    {
+      "id": "llama-server:--poll",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--poll",
+      "aliases": [],
+      "value_syntax": "<0...100>",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use polling level to wait for work (0 - no polling, default: 50)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 44
+      }
+    },
+    {
+      "id": "llama-server:--cpu-mask-batch",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--cpu-mask-batch",
+      "aliases": [
+        "-Cb"
+      ],
+      "value_syntax": "M",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "same as --cpu-mask",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "CPU affinity mask: arbitrarily long hex. Complements cpu-range-batch (default: same as --cpu-mask)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 45
+      }
+    },
+    {
+      "id": "llama-server:--cpu-range-batch",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--cpu-range-batch",
+      "aliases": [
+        "-Crb"
+      ],
+      "value_syntax": "lo-hi",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "ranges of CPUs for affinity. Complements --cpu-mask-batch",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 46
+      }
+    },
+    {
+      "id": "llama-server:--cpu-strict-batch",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--cpu-strict-batch",
+      "aliases": [],
+      "value_syntax": "<0\\|1>",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "same as --cpu-strict",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use strict CPU placement (default: same as --cpu-strict)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 47
+      }
+    },
+    {
+      "id": "llama-server:--prio-batch",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--prio-batch",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "set process/thread priority : 0-normal, 1-medium, 2-high, 3-realtime (default: 0)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 48
+      }
+    },
+    {
+      "id": "llama-server:--poll-batch",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--poll-batch",
+      "aliases": [],
+      "value_syntax": "<0\\|1>",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "same as --poll",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use polling to wait for work (default: same as --poll)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 49
+      }
+    },
+    {
+      "id": "llama-server:--ctx-size",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--ctx-size",
+      "aliases": [
+        "-c"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0, 0 = loaded from model",
+      "environment_variable": "LLAMA_ARG_CTX_SIZE",
+      "status": "documented",
+      "description": "size of the prompt context (default: 0, 0 = loaded from model)\n(env: LLAMA_ARG_CTX_SIZE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 50
+      }
+    },
+    {
+      "id": "llama-server:--predict",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--predict",
+      "aliases": [
+        "-n",
+        "--n-predict"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "-1, -1 = infinity",
+      "environment_variable": "LLAMA_ARG_N_PREDICT",
+      "status": "documented",
+      "description": "number of tokens to predict (default: -1, -1 = infinity)\n(env: LLAMA_ARG_N_PREDICT)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 51
+      }
+    },
+    {
+      "id": "llama-server:--batch-size",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--batch-size",
+      "aliases": [
+        "-b"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "2048",
+      "environment_variable": "LLAMA_ARG_BATCH",
+      "status": "documented",
+      "description": "logical maximum batch size (default: 2048)\n(env: LLAMA_ARG_BATCH)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 52
+      }
+    },
+    {
+      "id": "llama-server:--ubatch-size",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--ubatch-size",
+      "aliases": [
+        "-ub"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "512",
+      "environment_variable": "LLAMA_ARG_UBATCH",
+      "status": "documented",
+      "description": "physical maximum batch size (default: 512)\n(env: LLAMA_ARG_UBATCH)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 53
+      }
+    },
+    {
+      "id": "llama-server:--keep",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--keep",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0, -1 = all",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "number of tokens to keep from the initial prompt (default: 0, -1 = all)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 54
+      }
+    },
+    {
+      "id": "llama-server:--swa-full",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--swa-full",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "false",
+      "environment_variable": "LLAMA_ARG_SWA_FULL",
+      "status": "documented",
+      "description": "use full-size SWA cache (default: false)\n[(more info)](https://github.com/ggml-org/llama.cpp/pull/13194#issuecomment-2868343055)\n(env: LLAMA_ARG_SWA_FULL)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 55
+      }
+    },
+    {
+      "id": "llama-server:--flash-attn",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--flash-attn",
+      "aliases": [
+        "-fa"
+      ],
+      "value_syntax": "[on\\|off\\|auto]",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_FLASH_ATTN",
+      "status": "documented",
+      "description": "set Flash Attention use ('on', 'off', or 'auto', default: 'auto')\n(env: LLAMA_ARG_FLASH_ATTN)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 56
+      }
+    },
+    {
+      "id": "llama-server:--perf",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--perf",
+      "aliases": [
+        "--no-perf"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "false",
+      "environment_variable": "LLAMA_ARG_PERF",
+      "status": "documented",
+      "description": "whether to enable internal libllama performance timings (default: false)\n(env: LLAMA_ARG_PERF)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 57
+      }
+    },
+    {
+      "id": "llama-server:--escape",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--escape",
+      "aliases": [
+        "-e",
+        "--no-escape"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "true",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "whether to process escapes sequences (\\n, \\r, \\t, \\', \\\", \\\\) (default: true)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 58
+      }
+    },
+    {
+      "id": "llama-server:--rope-scaling",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--rope-scaling",
+      "aliases": [],
+      "value_syntax": "{none,linear,yarn}",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_ROPE_SCALING_TYPE",
+      "status": "documented",
+      "description": "RoPE frequency scaling method, defaults to linear unless specified by the model\n(env: LLAMA_ARG_ROPE_SCALING_TYPE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 59
+      }
+    },
+    {
+      "id": "llama-server:--rope-scale",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--rope-scale",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_ROPE_SCALE",
+      "status": "documented",
+      "description": "RoPE context scaling factor, expands context by a factor of N\n(env: LLAMA_ARG_ROPE_SCALE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 60
+      }
+    },
+    {
+      "id": "llama-server:--rope-freq-base",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--rope-freq-base",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "loaded from model",
+      "environment_variable": "LLAMA_ARG_ROPE_FREQ_BASE",
+      "status": "documented",
+      "description": "RoPE base frequency, used by NTK-aware scaling (default: loaded from model)\n(env: LLAMA_ARG_ROPE_FREQ_BASE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 61
+      }
+    },
+    {
+      "id": "llama-server:--rope-freq-scale",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--rope-freq-scale",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_ROPE_FREQ_SCALE",
+      "status": "documented",
+      "description": "RoPE frequency scaling factor, expands context by a factor of 1/N\n(env: LLAMA_ARG_ROPE_FREQ_SCALE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 62
+      }
+    },
+    {
+      "id": "llama-server:--yarn-orig-ctx",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--yarn-orig-ctx",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0 = model training context size",
+      "environment_variable": "LLAMA_ARG_YARN_ORIG_CTX",
+      "status": "documented",
+      "description": "YaRN: original context size of model (default: 0 = model training context size)\n(env: LLAMA_ARG_YARN_ORIG_CTX)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 63
+      }
+    },
+    {
+      "id": "llama-server:--yarn-ext-factor",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--yarn-ext-factor",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "-1.00, 0.0 = full interpolation",
+      "environment_variable": "LLAMA_ARG_YARN_EXT_FACTOR",
+      "status": "documented",
+      "description": "YaRN: extrapolation mix factor (default: -1.00, 0.0 = full interpolation)\n(env: LLAMA_ARG_YARN_EXT_FACTOR)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 64
+      }
+    },
+    {
+      "id": "llama-server:--yarn-attn-factor",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--yarn-attn-factor",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "-1.00",
+      "environment_variable": "LLAMA_ARG_YARN_ATTN_FACTOR",
+      "status": "documented",
+      "description": "YaRN: scale sqrt(t) or attention magnitude (default: -1.00)\n(env: LLAMA_ARG_YARN_ATTN_FACTOR)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 65
+      }
+    },
+    {
+      "id": "llama-server:--yarn-beta-slow",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--yarn-beta-slow",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "-1.00",
+      "environment_variable": "LLAMA_ARG_YARN_BETA_SLOW",
+      "status": "documented",
+      "description": "YaRN: high correction dim or alpha (default: -1.00)\n(env: LLAMA_ARG_YARN_BETA_SLOW)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 66
+      }
+    },
+    {
+      "id": "llama-server:--yarn-beta-fast",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--yarn-beta-fast",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "-1.00",
+      "environment_variable": "LLAMA_ARG_YARN_BETA_FAST",
+      "status": "documented",
+      "description": "YaRN: low correction dim or beta (default: -1.00)\n(env: LLAMA_ARG_YARN_BETA_FAST)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 67
+      }
+    },
+    {
+      "id": "llama-server:--kv-offload",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--kv-offload",
+      "aliases": [
+        "-kvo",
+        "-nkvo",
+        "--no-kv-offload"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "enabled",
+      "environment_variable": "LLAMA_ARG_KV_OFFLOAD",
+      "status": "documented",
+      "description": "whether to enable KV cache offloading (default: enabled)\n(env: LLAMA_ARG_KV_OFFLOAD)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 68
+      }
+    },
+    {
+      "id": "llama-server:--repack",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--repack",
+      "aliases": [
+        "-nr",
+        "--no-repack"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "enabled",
+      "environment_variable": "LLAMA_ARG_REPACK",
+      "status": "documented",
+      "description": "whether to enable weight repacking (default: enabled)\n(env: LLAMA_ARG_REPACK)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 69
+      }
+    },
+    {
+      "id": "llama-server:--no-host",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--no-host",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_NO_HOST",
+      "status": "documented",
+      "description": "bypass host buffer allowing extra buffers to be used\n(env: LLAMA_ARG_NO_HOST)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 70
+      }
+    },
+    {
+      "id": "llama-server:--cache-type-k",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--cache-type-k",
+      "aliases": [
+        "-ctk"
+      ],
+      "value_syntax": "TYPE",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "f16",
+      "environment_variable": "LLAMA_ARG_CACHE_TYPE_K",
+      "status": "documented",
+      "description": "KV cache data type for K\nallowed values: f32, f16, bf16, q8_0, q4_0, q4_1, iq4_nl, q5_0, q5_1\n(default: f16)\n(env: LLAMA_ARG_CACHE_TYPE_K)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 71
+      }
+    },
+    {
+      "id": "llama-server:--cache-type-v",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--cache-type-v",
+      "aliases": [
+        "-ctv"
+      ],
+      "value_syntax": "TYPE",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "f16",
+      "environment_variable": "LLAMA_ARG_CACHE_TYPE_V",
+      "status": "documented",
+      "description": "KV cache data type for V\nallowed values: f32, f16, bf16, q8_0, q4_0, q4_1, iq4_nl, q5_0, q5_1\n(default: f16)\n(env: LLAMA_ARG_CACHE_TYPE_V)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 72
+      }
+    },
+    {
+      "id": "llama-server:--defrag-thold",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--defrag-thold",
+      "aliases": [
+        "-dt"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_DEFRAG_THOLD",
+      "status": "deprecated",
+      "description": "KV cache defragmentation threshold (DEPRECATED)\n(env: LLAMA_ARG_DEFRAG_THOLD)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 73
+      }
+    },
+    {
+      "id": "llama-server:--rpc",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--rpc",
+      "aliases": [],
+      "value_syntax": "SERVERS",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_RPC",
+      "status": "documented",
+      "description": "comma-separated list of RPC servers (host:port)\n(env: LLAMA_ARG_RPC)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 74
+      }
+    },
+    {
+      "id": "llama-server:--load-mode",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--load-mode",
+      "aliases": [
+        "-lm"
+      ],
+      "value_syntax": "MODE",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "auto",
+      "environment_variable": "LLAMA_ARG_LOAD_MODE",
+      "status": "documented",
+      "description": "model loading mode (default: auto)\n- auto: mmap, unless a device does not support it\n- none: no special loading mode\n- mmap: memory-map model (if mmap disabled, slower load but may reduce pageouts if not using mlock)\n- mlock: force system to keep model in RAM rather than swapping or compressing\n- mmap+mlock: mmap + force system to keep model in RAM rather than swapping or compressing\n- dio: use DirectIO if available\n\n(env: LLAMA_ARG_LOAD_MODE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 75
+      }
+    },
+    {
+      "id": "llama-server:--lazy-mode",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--lazy-mode",
+      "aliases": [
+        "-lzm"
+      ],
+      "value_syntax": "MODE",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "auto",
+      "environment_variable": "LLAMA_ARG_LAZY_MODE",
+      "status": "documented",
+      "description": "on-demand reading of certain tensors, for example per-layer embeddings (default: auto)\n- on: read the rows of such tensors from disk on demand instead of keeping them resident (requires mmap)\n- auto: on, but only for tensors larger than 4 GiB\n- off: always keep them resident\n(env: LLAMA_ARG_LAZY_MODE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 76
+      }
+    },
+    {
+      "id": "llama-server:--numa",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--numa",
+      "aliases": [],
+      "value_syntax": "TYPE",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_NUMA",
+      "status": "documented",
+      "description": "attempt optimizations that help on some NUMA systems\n- distribute: spread execution evenly over all nodes\n- isolate: only spawn threads on CPUs on the node that execution started on\n- numactl: use the CPU map provided by numactl\nif run without this previously, it is recommended to drop the system page cache before using this\nsee https://github.com/ggml-org/llama.cpp/issues/1437\n(env: LLAMA_ARG_NUMA)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 77
+      }
+    },
+    {
+      "id": "llama-server:--device",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--device",
+      "aliases": [
+        "-dev"
+      ],
+      "value_syntax": "<dev1,dev2,..>",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_DEVICE",
+      "status": "documented",
+      "description": "comma-separated list of devices to use for offloading (none = don't offload)\nuse --list-devices to see a list of available devices\n(env: LLAMA_ARG_DEVICE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 78
+      }
+    },
+    {
+      "id": "llama-server:--list-devices",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--list-devices",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "print list of available devices and exit",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 79
+      }
+    },
+    {
+      "id": "llama-server:--override-tensor",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--override-tensor",
+      "aliases": [
+        "-ot"
+      ],
+      "value_syntax": "<tensor name pattern>=<buffer type>,...",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_OVERRIDE_TENSOR",
+      "status": "documented",
+      "description": "override tensor buffer type\n(env: LLAMA_ARG_OVERRIDE_TENSOR)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 80
+      }
+    },
+    {
+      "id": "llama-server:--cpu-moe",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--cpu-moe",
+      "aliases": [
+        "-cmoe"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_CPU_MOE",
+      "status": "documented",
+      "description": "keep all Mixture of Experts (MoE) weights in the CPU\n(env: LLAMA_ARG_CPU_MOE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 81
+      }
+    },
+    {
+      "id": "llama-server:--n-cpu-moe",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--n-cpu-moe",
+      "aliases": [
+        "-ncmoe"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_N_CPU_MOE",
+      "status": "documented",
+      "description": "keep the Mixture of Experts (MoE) weights of the first N layers in the CPU\n(env: LLAMA_ARG_N_CPU_MOE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 82
+      }
+    },
+    {
+      "id": "llama-server:--moe-cache-mib",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--moe-cache-mib",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0, disabled",
+      "environment_variable": "LLAMA_ARG_MOE_CACHE_MIB",
+      "status": "documented",
+      "description": "GPU cache size in MiB for the MoE experts kept in the CPU. with multiple GPUs, it is split among them like the layers (--tensor-split) (default: 0, disabled)\n(env: LLAMA_ARG_MOE_CACHE_MIB)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 83
+      }
+    },
+    {
+      "id": "llama-server:--n-cpu-ffn",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--n-cpu-ffn",
+      "aliases": [
+        "-ncffn"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_N_CPU_FFN",
+      "status": "documented",
+      "description": "keep the dense FFN weights of the first N layers in the CPU\n(dense models; for MoE expert weights use --n-cpu-moe)\n(env: LLAMA_ARG_N_CPU_FFN)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 84
+      }
+    },
+    {
+      "id": "llama-server:--gpu-layers",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--gpu-layers",
+      "aliases": [
+        "-ngl",
+        "--n-gpu-layers"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "auto",
+      "environment_variable": "LLAMA_ARG_N_GPU_LAYERS",
+      "status": "documented",
+      "description": "max. number of layers to store in VRAM, either an exact number, 'auto', or 'all' (default: auto)\n(env: LLAMA_ARG_N_GPU_LAYERS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 85
+      }
+    },
+    {
+      "id": "llama-server:--split-mode",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--split-mode",
+      "aliases": [
+        "-sm"
+      ],
+      "value_syntax": "{none,layer,row,tensor}",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_SPLIT_MODE",
+      "status": "documented",
+      "description": "how to split the model across multiple GPUs, one of:\n- none: use one GPU only\n- layer (default): split layers and KV across GPUs (pipelined)\n- row: split weight across GPUs by rows (parallelized)\n- tensor: split weights and KV across GPUs (parallelized, EXPERIMENTAL)\n(env: LLAMA_ARG_SPLIT_MODE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 86
+      }
+    },
+    {
+      "id": "llama-server:--tensor-split",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--tensor-split",
+      "aliases": [
+        "-ts"
+      ],
+      "value_syntax": "N0,N1,N2,...",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_TENSOR_SPLIT",
+      "status": "documented",
+      "description": "fraction of the model to offload to each GPU, comma-separated list of proportions, e.g. 3,1\n(env: LLAMA_ARG_TENSOR_SPLIT)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 87
+      }
+    },
+    {
+      "id": "llama-server:--main-gpu",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--main-gpu",
+      "aliases": [
+        "-mg"
+      ],
+      "value_syntax": "INDEX",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": "LLAMA_ARG_MAIN_GPU",
+      "status": "documented",
+      "description": "the GPU to use for the model (with split-mode = none), or for intermediate results and KV (with split-mode = row) (default: 0)\n(env: LLAMA_ARG_MAIN_GPU)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 88
+      }
+    },
+    {
+      "id": "llama-server:--fit",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--fit",
+      "aliases": [
+        "-fit"
+      ],
+      "value_syntax": "[on\\|off]",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_FIT",
+      "status": "documented",
+      "description": "whether to adjust unset arguments to fit in device memory ('on' or 'off', default: 'on')\n(env: LLAMA_ARG_FIT)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 89
+      }
+    },
+    {
+      "id": "llama-server:--fit-target",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--fit-target",
+      "aliases": [
+        "-fitt"
+      ],
+      "value_syntax": "MiB0,MiB1,MiB2,...",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_FIT_TARGET",
+      "status": "documented",
+      "description": "target margin per device for --fit, comma-separated list of values, single value is broadcast across all devices, default: 1024\n(env: LLAMA_ARG_FIT_TARGET)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 90
+      }
+    },
+    {
+      "id": "llama-server:--fit-ctx",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--fit-ctx",
+      "aliases": [
+        "-fitc"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_FIT_CTX",
+      "status": "documented",
+      "description": "minimum ctx size that can be set by --fit option, default: 4096\n(env: LLAMA_ARG_FIT_CTX)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 91
+      }
+    },
+    {
+      "id": "llama-server:--check-tensors",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--check-tensors",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "false",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "check model tensor data for invalid values (default: false)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 92
+      }
+    },
+    {
+      "id": "llama-server:--override-kv",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--override-kv",
+      "aliases": [],
+      "value_syntax": "KEY=TYPE:VALUE,...",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "advanced option to override model metadata by key. to specify multiple overrides, either use comma-separated values.\ntypes: int, float, bool, str. example: --override-kv tokenizer.ggml.add_bos_token=bool:false,tokenizer.ggml.add_eos_token=bool:false",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 93
+      }
+    },
+    {
+      "id": "llama-server:--op-offload",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--op-offload",
+      "aliases": [
+        "--no-op-offload"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "true",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "whether to offload host tensor operations to device (default: true)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 94
+      }
+    },
+    {
+      "id": "llama-server:--lora",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--lora",
+      "aliases": [],
+      "value_syntax": "FNAME",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "path to LoRA adapter (use comma-separated values to load multiple adapters)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 95
+      }
+    },
+    {
+      "id": "llama-server:--lora-scaled",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--lora-scaled",
+      "aliases": [],
+      "value_syntax": "FNAME:SCALE,...",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "path to LoRA adapter with user defined scaling (format: FNAME:SCALE,...)\nnote: use comma-separated values",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 96
+      }
+    },
+    {
+      "id": "llama-server:--control-vector",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--control-vector",
+      "aliases": [],
+      "value_syntax": "FNAME",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "add a control vector\nnote: use comma-separated values to add multiple control vectors",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 97
+      }
+    },
+    {
+      "id": "llama-server:--control-vector-scaled",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--control-vector-scaled",
+      "aliases": [],
+      "value_syntax": "FNAME:SCALE,...",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "add a control vector with user defined scaling SCALE\nnote: use comma-separated values (format: FNAME:SCALE,...)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 98
+      }
+    },
+    {
+      "id": "llama-server:--control-vector-layer-range",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--control-vector-layer-range",
+      "aliases": [],
+      "value_syntax": "START END",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "layer range to apply the control vector(s) to, start and end inclusive",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 99
+      }
+    },
+    {
+      "id": "llama-server:--model",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--model",
+      "aliases": [
+        "-m"
+      ],
+      "value_syntax": "FNAME",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_MODEL",
+      "status": "documented",
+      "description": "model path to load\n(env: LLAMA_ARG_MODEL)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 100
+      }
+    },
+    {
+      "id": "llama-server:--model-url",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--model-url",
+      "aliases": [
+        "-mu"
+      ],
+      "value_syntax": "MODEL_URL",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "unused",
+      "environment_variable": "LLAMA_ARG_MODEL_URL",
+      "status": "documented",
+      "description": "model download url (default: unused)\n(env: LLAMA_ARG_MODEL_URL)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 101
+      }
+    },
+    {
+      "id": "llama-server:--docker-repo",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--docker-repo",
+      "aliases": [
+        "-dr"
+      ],
+      "value_syntax": "[<repo>/]<model>[:quant]",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "unused",
+      "environment_variable": "LLAMA_ARG_DOCKER_REPO",
+      "status": "documented",
+      "description": "Docker Hub model repository. repo is optional, default to ai/. quant is optional, default to :latest.\nexample: gemma3\n(default: unused)\n(env: LLAMA_ARG_DOCKER_REPO)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 102
+      }
+    },
+    {
+      "id": "llama-server:--hf-repo",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--hf-repo",
+      "aliases": [
+        "-hf",
+        "-hfr"
+      ],
+      "value_syntax": "<user>/<model>[:quant]",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "unused",
+      "environment_variable": "LLAMA_ARG_HF_REPO",
+      "status": "documented",
+      "description": "Hugging Face model repository; quant is optional, case-insensitive, default to Q4_K_M, or falls back to the first file in the repo if Q4_K_M doesn't exist.\nmmproj is also downloaded automatically if available. to disable, add --no-mmproj\nexample: ggml-org/GLM-4.7-Flash-GGUF:Q4_K_M\n(default: unused)\n(env: LLAMA_ARG_HF_REPO)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 103
+      }
+    },
+    {
+      "id": "llama-server:--hf-file",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--hf-file",
+      "aliases": [
+        "-hff"
+      ],
+      "value_syntax": "FILE",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "unused",
+      "environment_variable": "LLAMA_ARG_HF_FILE",
+      "status": "documented",
+      "description": "Hugging Face model file. If specified, it will override the quant in --hf-repo (default: unused)\n(env: LLAMA_ARG_HF_FILE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 104
+      }
+    },
+    {
+      "id": "llama-server:--hf-token",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--hf-token",
+      "aliases": [
+        "-hft"
+      ],
+      "value_syntax": "TOKEN",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "value from HF_TOKEN environment variable",
+      "environment_variable": "HF_TOKEN",
+      "status": "documented",
+      "description": "Hugging Face access token (default: value from HF_TOKEN environment variable)\n(env: HF_TOKEN)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 105
+      }
+    },
+    {
+      "id": "llama-server:--log-disable",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--log-disable",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "Log disable",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 106
+      }
+    },
+    {
+      "id": "llama-server:--log-file",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--log-file",
+      "aliases": [],
+      "value_syntax": "FNAME",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_LOG_FILE",
+      "status": "documented",
+      "description": "Log to file\n(env: LLAMA_ARG_LOG_FILE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 107
+      }
+    },
+    {
+      "id": "llama-server:--log-jsonl",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--log-jsonl",
+      "aliases": [
+        "--no-log-jsonl"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": "LLAMA_ARG_LOG_JSONL",
+      "status": "documented",
+      "description": "Log as JSONL (one JSON object per line) to stdout, this also disables colored logging (default: disabled)\n(env: LLAMA_ARG_LOG_JSONL)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 108
+      }
+    },
+    {
+      "id": "llama-server:--log-colors",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--log-colors",
+      "aliases": [],
+      "value_syntax": "[on\\|off\\|auto]",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_LOG_COLORS",
+      "status": "documented",
+      "description": "Set colored logging ('on', 'off', or 'auto', default: 'auto')\n'auto' enables colors when output is to a terminal\n(env: LLAMA_ARG_LOG_COLORS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 109
+      }
+    },
+    {
+      "id": "llama-server:--verbose",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--verbose",
+      "aliases": [
+        "-v",
+        "--log-verbose"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "Set verbosity level to infinity (i.e. log all messages, useful for debugging)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 110
+      }
+    },
+    {
+      "id": "llama-server:--offline",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--offline",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_OFFLINE",
+      "status": "documented",
+      "description": "Offline mode: forces use of cache, prevents network access\n(env: LLAMA_ARG_OFFLINE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 111
+      }
+    },
+    {
+      "id": "llama-server:--verbosity",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--verbosity",
+      "aliases": [
+        "-lv",
+        "--log-verbosity"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "3",
+      "environment_variable": "LLAMA_ARG_LOG_VERBOSITY",
+      "status": "documented",
+      "description": "Set the verbosity threshold. Messages with a higher verbosity will be ignored. Values:\n - 0: generic output\n - 1: error\n - 2: warning\n - 3: info\n - 4: trace (more info)\n - 5: debug\n(default: 3)\n\n(env: LLAMA_ARG_LOG_VERBOSITY)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 112
+      }
+    },
+    {
+      "id": "llama-server:--log-prefix",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--log-prefix",
+      "aliases": [
+        "--no-log-prefix"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_LOG_PREFIX",
+      "status": "documented",
+      "description": "Enable prefix in log messages\n(env: LLAMA_ARG_LOG_PREFIX)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 113
+      }
+    },
+    {
+      "id": "llama-server:--log-timestamps",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--log-timestamps",
+      "aliases": [
+        "--no-log-timestamps"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_LOG_TIMESTAMPS",
+      "status": "documented",
+      "description": "Enable timestamps in log messages\n(env: LLAMA_ARG_LOG_TIMESTAMPS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 114
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-type-k",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--spec-draft-type-k",
+      "aliases": [
+        "-ctkd",
+        "--cache-type-k-draft"
+      ],
+      "value_syntax": "TYPE",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "f16",
+      "environment_variable": "LLAMA_ARG_SPEC_DRAFT_CACHE_TYPE_K",
+      "status": "documented",
+      "description": "KV cache data type for K for the draft model\nallowed values: f32, f16, bf16, q8_0, q4_0, q4_1, iq4_nl, q5_0, q5_1\n(default: f16)\n(env: LLAMA_ARG_SPEC_DRAFT_CACHE_TYPE_K)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 115
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-type-v",
+      "program": "llama-server",
+      "group": "common",
+      "name": "--spec-draft-type-v",
+      "aliases": [
+        "-ctvd",
+        "--cache-type-v-draft"
+      ],
+      "value_syntax": "TYPE",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "f16",
+      "environment_variable": "LLAMA_ARG_SPEC_DRAFT_CACHE_TYPE_V",
+      "status": "documented",
+      "description": "KV cache data type for V for the draft model\nallowed values: f32, f16, bf16, q8_0, q4_0, q4_1, iq4_nl, q5_0, q5_1\n(default: f16)\n(env: LLAMA_ARG_SPEC_DRAFT_CACHE_TYPE_V)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 116
+      }
+    },
+    {
+      "id": "llama-server:--samplers",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--samplers",
+      "aliases": [],
+      "value_syntax": "SAMPLERS",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "penalties;dry;top_n_sigma;top_k;typ_p;top_p;min_p;xtc;temperature",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "samplers that will be used for generation in the order, separated by ';'\n(default: penalties;dry;top_n_sigma;top_k;typ_p;top_p;min_p;xtc;temperature)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 123
+      }
+    },
+    {
+      "id": "llama-server:--seed",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--seed",
+      "aliases": [
+        "-s"
+      ],
+      "value_syntax": "SEED",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "-1, use random seed for -1",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "RNG seed (default: -1, use random seed for -1)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 124
+      }
+    },
+    {
+      "id": "llama-server:--sampler-seq",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--sampler-seq",
+      "aliases": [
+        "--sampling-seq"
+      ],
+      "value_syntax": "SEQUENCE",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "edskypmxt",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "simplified sequence for samplers that will be used (default: edskypmxt)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 125
+      }
+    },
+    {
+      "id": "llama-server:--ignore-eos",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--ignore-eos",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "ignore end of stream token and continue generating (implies --logit-bias EOS-inf)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 126
+      }
+    },
+    {
+      "id": "llama-server:--temp",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--temp",
+      "aliases": [
+        "--temperature"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0.80",
+      "environment_variable": "LLAMA_ARG_TEMPERATURE",
+      "status": "documented",
+      "description": "temperature (default: 0.80)\n(env: LLAMA_ARG_TEMPERATURE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 127
+      }
+    },
+    {
+      "id": "llama-server:--top-k",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--top-k",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "40, 0 = disabled",
+      "environment_variable": "LLAMA_ARG_TOP_K",
+      "status": "documented",
+      "description": "top-k sampling (default: 40, 0 = disabled)\n(env: LLAMA_ARG_TOP_K)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 128
+      }
+    },
+    {
+      "id": "llama-server:--top-p",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--top-p",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0.95, 1.0 = disabled",
+      "environment_variable": "LLAMA_ARG_TOP_P",
+      "status": "documented",
+      "description": "top-p sampling (default: 0.95, 1.0 = disabled)\n(env: LLAMA_ARG_TOP_P)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 129
+      }
+    },
+    {
+      "id": "llama-server:--min-p",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--min-p",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0.05, 0.0 = disabled",
+      "environment_variable": "LLAMA_ARG_MIN_P",
+      "status": "documented",
+      "description": "min-p sampling (default: 0.05, 0.0 = disabled)\n(env: LLAMA_ARG_MIN_P)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 130
+      }
+    },
+    {
+      "id": "llama-server:--top-nsigma",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--top-nsigma",
+      "aliases": [
+        "--top-n-sigma"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "-1.00, -1.0 = disabled",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "top-n-sigma sampling (default: -1.00, -1.0 = disabled)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 131
+      }
+    },
+    {
+      "id": "llama-server:--xtc-probability",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--xtc-probability",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0.00, 0.0 = disabled",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "xtc probability (default: 0.00, 0.0 = disabled)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 132
+      }
+    },
+    {
+      "id": "llama-server:--xtc-threshold",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--xtc-threshold",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0.10, 1.0 = disabled",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "xtc threshold (default: 0.10, 1.0 = disabled)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 133
+      }
+    },
+    {
+      "id": "llama-server:--typical",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--typical",
+      "aliases": [
+        "--typical-p"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "1.00, 1.0 = disabled",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "locally typical sampling, parameter p (default: 1.00, 1.0 = disabled)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 134
+      }
+    },
+    {
+      "id": "llama-server:--repeat-last-n",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--repeat-last-n",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "64, 0 = disabled",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "last n tokens to consider for penalize (default: 64, 0 = disabled)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 135
+      }
+    },
+    {
+      "id": "llama-server:--repeat-penalty",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--repeat-penalty",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "1.00, 1.0 = disabled",
+      "environment_variable": "LLAMA_ARG_REPEAT_PENALTY",
+      "status": "documented",
+      "description": "penalize repeat sequence of tokens (default: 1.00, 1.0 = disabled)\n(env: LLAMA_ARG_REPEAT_PENALTY)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 136
+      }
+    },
+    {
+      "id": "llama-server:--presence-penalty",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--presence-penalty",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0.00, 0.0 = disabled",
+      "environment_variable": "LLAMA_ARG_PRESENCE_PENALTY",
+      "status": "documented",
+      "description": "repeat alpha presence penalty (default: 0.00, 0.0 = disabled)\n(env: LLAMA_ARG_PRESENCE_PENALTY)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 137
+      }
+    },
+    {
+      "id": "llama-server:--frequency-penalty",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--frequency-penalty",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0.00, 0.0 = disabled",
+      "environment_variable": "LLAMA_ARG_FREQUENCY_PENALTY",
+      "status": "documented",
+      "description": "repeat alpha frequency penalty (default: 0.00, 0.0 = disabled)\n(env: LLAMA_ARG_FREQUENCY_PENALTY)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 138
+      }
+    },
+    {
+      "id": "llama-server:--dry-multiplier",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--dry-multiplier",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0.00, 0.0 = disabled",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "set DRY sampling multiplier (default: 0.00, 0.0 = disabled)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 139
+      }
+    },
+    {
+      "id": "llama-server:--dry-base",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--dry-base",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "1.75",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "set DRY sampling base value (default: 1.75)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 140
+      }
+    },
+    {
+      "id": "llama-server:--dry-allowed-length",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--dry-allowed-length",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "2",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "set allowed length for DRY sampling (default: 2)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 141
+      }
+    },
+    {
+      "id": "llama-server:--dry-penalty-last-n",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--dry-penalty-last-n",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "64, 0 = disable",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "set DRY penalty for the last n tokens (default: 64, 0 = disable)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 142
+      }
+    },
+    {
+      "id": "llama-server:--dry-sequence-breaker",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--dry-sequence-breaker",
+      "aliases": [],
+      "value_syntax": "STRING",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "add sequence breaker for DRY sampling, clearing out default breakers ('\\n', ':', '\"', '*') in the process; use \"none\" to not use any sequence breakers",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 143
+      }
+    },
+    {
+      "id": "llama-server:--adaptive-target",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--adaptive-target",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "-1.00",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "adaptive-p: select tokens near this probability (valid range 0.0 to 1.0; negative = disabled) (default: -1.00)\n[(more info)](https://github.com/ggml-org/llama.cpp/pull/17927)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 144
+      }
+    },
+    {
+      "id": "llama-server:--adaptive-decay",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--adaptive-decay",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0.90",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "adaptive-p: decay rate for target adaptation over time. lower values are more reactive, higher values are more stable.\n(valid range 0.0 to 0.99) (default: 0.90)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 145
+      }
+    },
+    {
+      "id": "llama-server:--dynatemp-range",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--dynatemp-range",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0.00, 0.0 = disabled",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "dynamic temperature range (default: 0.00, 0.0 = disabled)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 146
+      }
+    },
+    {
+      "id": "llama-server:--dynatemp-exp",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--dynatemp-exp",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "1.00",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "dynamic temperature exponent (default: 1.00)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 147
+      }
+    },
+    {
+      "id": "llama-server:--mirostat",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--mirostat",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0, 0 = disabled, 1 = Mirostat, 2 = Mirostat 2.0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use Mirostat sampling.\nTop K, Nucleus and Locally Typical samplers are ignored if used.\n(default: 0, 0 = disabled, 1 = Mirostat, 2 = Mirostat 2.0)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 148
+      }
+    },
+    {
+      "id": "llama-server:--mirostat-lr",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--mirostat-lr",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0.10",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "Mirostat learning rate, parameter eta (default: 0.10)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 149
+      }
+    },
+    {
+      "id": "llama-server:--mirostat-ent",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--mirostat-ent",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "5.00",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "Mirostat target entropy, parameter tau (default: 5.00)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 150
+      }
+    },
+    {
+      "id": "llama-server:--logit-bias",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--logit-bias",
+      "aliases": [
+        "-l"
+      ],
+      "value_syntax": "TOKEN_ID(+/-)BIAS",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "modifies the likelihood of token appearing in the completion,\ni.e. `--logit-bias 15043+1` to increase likelihood of token ' Hello',\nor `--logit-bias 15043-1` to decrease likelihood of token ' Hello'",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 151
+      }
+    },
+    {
+      "id": "llama-server:--grammar",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--grammar",
+      "aliases": [],
+      "value_syntax": "GRAMMAR",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "BNF-like grammar to constrain generations (see samples in grammars/ dir)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 152
+      }
+    },
+    {
+      "id": "llama-server:--grammar-file",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--grammar-file",
+      "aliases": [],
+      "value_syntax": "FNAME",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "file to read grammar from",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 153
+      }
+    },
+    {
+      "id": "llama-server:--json-schema",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--json-schema",
+      "aliases": [
+        "-j"
+      ],
+      "value_syntax": "SCHEMA",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "JSON schema to constrain generations (https://json-schema.org/), e.g. `{\"type\": \"object\"}` for any JSON object",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 154
+      }
+    },
+    {
+      "id": "llama-server:--json-schema-file",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--json-schema-file",
+      "aliases": [
+        "-jf"
+      ],
+      "value_syntax": "FILE",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "File containing a JSON schema to constrain generations (https://json-schema.org/), e.g. `{\"type\": \"object\"}` for any JSON object",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 155
+      }
+    },
+    {
+      "id": "llama-server:--backend-sampling",
+      "program": "llama-server",
+      "group": "sampling",
+      "name": "--backend-sampling",
+      "aliases": [
+        "-bs"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": "LLAMA_ARG_BACKEND_SAMPLING",
+      "status": "documented",
+      "description": "enable backend sampling (experimental) (default: disabled)\n(env: LLAMA_ARG_BACKEND_SAMPLING)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 156
+      }
+    },
+    {
+      "id": "llama-server:--lookup-cache-static",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--lookup-cache-static",
+      "aliases": [
+        "-lcs"
+      ],
+      "value_syntax": "FNAME",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "path to static lookup cache to use for lookup decoding (not updated by generation)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 163
+      }
+    },
+    {
+      "id": "llama-server:--lookup-cache-dynamic",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--lookup-cache-dynamic",
+      "aliases": [
+        "-lcd"
+      ],
+      "value_syntax": "FNAME",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "path to dynamic lookup cache to use for lookup decoding (updated by generation)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 164
+      }
+    },
+    {
+      "id": "llama-server:--kv-unified-per-slot",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--kv-unified-per-slot",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "unset, behavior unchanged",
+      "environment_variable": "LLAMA_ARG_KV_UNIFIED_PER_SLOT",
+      "status": "documented",
+      "description": "context limit per parallel slot (default: unset, behavior unchanged).\nwhen set without -c/--ctx-size, the shared KV pool is sized to n_parallel*N\n(env: LLAMA_ARG_KV_UNIFIED_PER_SLOT)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 165
+      }
+    },
+    {
+      "id": "llama-server:--ctx-checkpoints",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--ctx-checkpoints",
+      "aliases": [
+        "-ctxcp",
+        "--swa-checkpoints"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "32",
+      "environment_variable": "LLAMA_ARG_CTX_CHECKPOINTS",
+      "status": "documented",
+      "description": "max number of context checkpoints to create per slot (default: 32)[(more info)](https://github.com/ggml-org/llama.cpp/pull/15293)\n(env: LLAMA_ARG_CTX_CHECKPOINTS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 166
+      }
+    },
+    {
+      "id": "llama-server:--checkpoint-min-step",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--checkpoint-min-step",
+      "aliases": [
+        "-cms"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "8192, 0 = no minimum",
+      "environment_variable": "LLAMA_ARG_CHECKPOINT_MIN_SPACING_NT",
+      "status": "documented",
+      "description": "minimum spacing between context checkpoints in tokens (default: 8192, 0 = no minimum)\n(env: LLAMA_ARG_CHECKPOINT_MIN_SPACING_NT)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 167
+      }
+    },
+    {
+      "id": "llama-server:--cache-ram",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--cache-ram",
+      "aliases": [
+        "-cram"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "8192, -1 - no limit, 0 - disable",
+      "environment_variable": "LLAMA_ARG_CACHE_RAM",
+      "status": "documented",
+      "description": "set the maximum cache size in MiB (default: 8192, -1 - no limit, 0 - disable)[(more info)](https://github.com/ggml-org/llama.cpp/pull/16391)\n(env: LLAMA_ARG_CACHE_RAM)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 168
+      }
+    },
+    {
+      "id": "llama-server:--kv-unified",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--kv-unified",
+      "aliases": [
+        "-kvu",
+        "-no-kvu",
+        "--no-kv-unified"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "enabled if number of slots is auto",
+      "environment_variable": "LLAMA_ARG_KV_UNIFIED",
+      "status": "documented",
+      "description": "use single unified KV buffer shared across all sequences (default: enabled if number of slots is auto)\n(env: LLAMA_ARG_KV_UNIFIED)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 169
+      }
+    },
+    {
+      "id": "llama-server:--cache-idle-slots",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--cache-idle-slots",
+      "aliases": [
+        "--no-cache-idle-slots"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "enabled, requires cache-ram",
+      "environment_variable": "LLAMA_ARG_CACHE_IDLE_SLOTS",
+      "status": "documented",
+      "description": "save idle slots to the prompt cache on new task, and clear them when using unified KV (default: enabled, requires cache-ram)\n(env: LLAMA_ARG_CACHE_IDLE_SLOTS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 170
+      }
+    },
+    {
+      "id": "llama-server:--context-shift",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--context-shift",
+      "aliases": [
+        "--no-context-shift"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": "LLAMA_ARG_CONTEXT_SHIFT",
+      "status": "documented",
+      "description": "whether to use context shift on infinite text generation (default: disabled)\n(env: LLAMA_ARG_CONTEXT_SHIFT)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 171
+      }
+    },
+    {
+      "id": "llama-server:--reverse-prompt",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--reverse-prompt",
+      "aliases": [
+        "-r"
+      ],
+      "value_syntax": "PROMPT",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "halt generation at PROMPT, return control in interactive mode",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 172
+      }
+    },
+    {
+      "id": "llama-server:--special",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--special",
+      "aliases": [
+        "-sp"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "false",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "special tokens output enabled (default: false)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 173
+      }
+    },
+    {
+      "id": "llama-server:--warmup",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--warmup",
+      "aliases": [
+        "--no-warmup"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "enabled",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "whether to perform warmup with an empty run (default: enabled)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 174
+      }
+    },
+    {
+      "id": "llama-server:--spm-infill",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spm-infill",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use Suffix/Prefix/Middle pattern for infill (instead of Prefix/Suffix/Middle) as some models prefer this. (default: disabled)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 175
+      }
+    },
+    {
+      "id": "llama-server:--pooling",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--pooling",
+      "aliases": [],
+      "value_syntax": "{none,mean,cls,last,rank}",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_POOLING",
+      "status": "documented",
+      "description": "pooling type for embeddings, use model default if unspecified\n(env: LLAMA_ARG_POOLING)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 176
+      }
+    },
+    {
+      "id": "llama-server:--parallel",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--parallel",
+      "aliases": [
+        "-np"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "-1, -1 = auto",
+      "environment_variable": "LLAMA_ARG_N_PARALLEL",
+      "status": "documented",
+      "description": "number of server slots (default: -1, -1 = auto)\n(env: LLAMA_ARG_N_PARALLEL)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 177
+      }
+    },
+    {
+      "id": "llama-server:--cont-batching",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--cont-batching",
+      "aliases": [
+        "-cb",
+        "-nocb",
+        "--no-cont-batching"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "enabled",
+      "environment_variable": "LLAMA_ARG_CONT_BATCHING",
+      "status": "documented",
+      "description": "whether to enable continuous batching (a.k.a dynamic batching) (default: enabled)\n(env: LLAMA_ARG_CONT_BATCHING)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 178
+      }
+    },
+    {
+      "id": "llama-server:--mmproj",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--mmproj",
+      "aliases": [
+        "-mm"
+      ],
+      "value_syntax": "FILE",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_MMPROJ",
+      "status": "documented",
+      "description": "path to a multimodal projector file. see tools/mtmd/README.md\nnote: if -hf is used, this argument can be omitted\n(env: LLAMA_ARG_MMPROJ)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 179
+      }
+    },
+    {
+      "id": "llama-server:--mmproj-url",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--mmproj-url",
+      "aliases": [
+        "-mmu"
+      ],
+      "value_syntax": "URL",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_MMPROJ_URL",
+      "status": "documented",
+      "description": "URL to a multimodal projector file. see tools/mtmd/README.md\n(env: LLAMA_ARG_MMPROJ_URL)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 180
+      }
+    },
+    {
+      "id": "llama-server:--mmproj-auto",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--mmproj-auto",
+      "aliases": [
+        "--no-mmproj",
+        "--no-mmproj-auto"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "enabled",
+      "environment_variable": "LLAMA_ARG_MMPROJ_AUTO",
+      "status": "documented",
+      "description": "whether to use multimodal projector file (if available), useful when using -hf (default: enabled)\n(env: LLAMA_ARG_MMPROJ_AUTO)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 181
+      }
+    },
+    {
+      "id": "llama-server:--mmproj-offload",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--mmproj-offload",
+      "aliases": [
+        "--no-mmproj-offload"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "enabled",
+      "environment_variable": "LLAMA_ARG_MMPROJ_OFFLOAD",
+      "status": "documented",
+      "description": "whether to enable GPU offloading for multimodal projector (default: enabled)\n(env: LLAMA_ARG_MMPROJ_OFFLOAD)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 182
+      }
+    },
+    {
+      "id": "llama-server:--mmproj-device",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--mmproj-device",
+      "aliases": [
+        "-mmdev"
+      ],
+      "value_syntax": "DEVICE",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "MTMD_BACKEND_DEVICE",
+      "status": "documented",
+      "description": "device to use for multimodal projector (none = don't offload, default: follows --device)\nuse --list-devices to see a list of available devices\n(env: MTMD_BACKEND_DEVICE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 183
+      }
+    },
+    {
+      "id": "llama-server:--image-min-tokens",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--image-min-tokens",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "read from model",
+      "environment_variable": "LLAMA_ARG_IMAGE_MIN_TOKENS",
+      "status": "documented",
+      "description": "minimum number of tokens each image can take, only used by vision models with dynamic resolution (default: read from model)\n(env: LLAMA_ARG_IMAGE_MIN_TOKENS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 184
+      }
+    },
+    {
+      "id": "llama-server:--image-max-tokens",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--image-max-tokens",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "read from model",
+      "environment_variable": "LLAMA_ARG_IMAGE_MAX_TOKENS",
+      "status": "documented",
+      "description": "maximum number of tokens each image can take, only used by vision models with dynamic resolution (default: read from model)\n(env: LLAMA_ARG_IMAGE_MAX_TOKENS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 185
+      }
+    },
+    {
+      "id": "llama-server:--mtmd-batch-max-tokens",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--mtmd-batch-max-tokens",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "1024",
+      "environment_variable": "LLAMA_ARG_MTMD_BATCH_MAX_TOKENS",
+      "status": "documented",
+      "description": "maximum number of image tokens per batch when encoding images (default: 1024)\n(env: LLAMA_ARG_MTMD_BATCH_MAX_TOKENS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 186
+      }
+    },
+    {
+      "id": "llama-server:--video-fps",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--video-fps",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "4.0",
+      "environment_variable": "LLAMA_ARG_VIDEO_FPS",
+      "status": "documented",
+      "description": "target video frame rate (default: 4.0)\n(env: LLAMA_ARG_VIDEO_FPS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 187
+      }
+    },
+    {
+      "id": "llama-server:--video-timestamp-interval",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--video-timestamp-interval",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "5000",
+      "environment_variable": "LLAMA_ARG_VIDEO_TIMESTAMP_INTERVAL",
+      "status": "documented",
+      "description": "interval in milliseconds between text timestamps (default: 5000)\n(env: LLAMA_ARG_VIDEO_TIMESTAMP_INTERVAL)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 188
+      }
+    },
+    {
+      "id": "llama-server:--video-ffmpeg-dir",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--video-ffmpeg-dir",
+      "aliases": [],
+      "value_syntax": "DIR",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "search in PATH",
+      "environment_variable": "LLAMA_ARG_VIDEO_FFMPEG_DIR",
+      "status": "documented",
+      "description": "path to the directory containing ffmpeg and ffprobe (default: search in PATH)\n(env: LLAMA_ARG_VIDEO_FFMPEG_DIR)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 189
+      }
+    },
+    {
+      "id": "llama-server:--alias",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--alias",
+      "aliases": [
+        "-a"
+      ],
+      "value_syntax": "STRING",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_ALIAS",
+      "status": "documented",
+      "description": "set model name aliases, comma-separated (to be used by API)\n(env: LLAMA_ARG_ALIAS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 190
+      }
+    },
+    {
+      "id": "llama-server:--tags",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--tags",
+      "aliases": [],
+      "value_syntax": "STRING",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_TAGS",
+      "status": "documented",
+      "description": "set model tags, comma-separated (informational, not used for routing)\n(env: LLAMA_ARG_TAGS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 191
+      }
+    },
+    {
+      "id": "llama-server:--embd-normalize",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--embd-normalize",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "2",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "normalisation for embeddings (default: 2) (-1=none, 0=max absolute int16, 1=taxicab, 2=euclidean, >2=p-norm)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 192
+      }
+    },
+    {
+      "id": "llama-server:--host",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--host",
+      "aliases": [],
+      "value_syntax": "HOST",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "127.0.0.1",
+      "environment_variable": "LLAMA_ARG_HOST",
+      "status": "documented",
+      "description": "IP addresses to listen on, comma-separated, or UNIX socket paths ending in .sock; with multiple TCP addresses, :: binds IPv6 only; overlapping addresses result in undefined behavior (default: 127.0.0.1)\n(env: LLAMA_ARG_HOST)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 193
+      }
+    },
+    {
+      "id": "llama-server:--port",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--port",
+      "aliases": [],
+      "value_syntax": "PORT",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "9931",
+      "environment_variable": "LLAMA_ARG_PORT",
+      "status": "documented",
+      "description": "port to listen (default: 9931)\n(env: LLAMA_ARG_PORT)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 194
+      }
+    },
+    {
+      "id": "llama-server:--reuse-port",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--reuse-port",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": "LLAMA_ARG_REUSE_PORT",
+      "status": "documented",
+      "description": "allow multiple sockets to bind to the same port (default: disabled)\n(env: LLAMA_ARG_REUSE_PORT)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 195
+      }
+    },
+    {
+      "id": "llama-server:--path",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--path",
+      "aliases": [],
+      "value_syntax": "PATH",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "",
+      "environment_variable": "LLAMA_ARG_STATIC_PATH",
+      "status": "documented",
+      "description": "path to serve static files from (default: )\n(env: LLAMA_ARG_STATIC_PATH)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 196
+      }
+    },
+    {
+      "id": "llama-server:--cors-origins",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--cors-origins",
+      "aliases": [],
+      "value_syntax": "ORIGINS",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "*",
+      "environment_variable": "LLAMA_ARG_CORS_ORIGINS",
+      "status": "documented",
+      "description": "comma-separated list of allowed origins for CORS (default: *)\nif set to special value 'localhost', reflect the Origin header only if it is localhost\n(env: LLAMA_ARG_CORS_ORIGINS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 197
+      }
+    },
+    {
+      "id": "llama-server:--cors-methods",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--cors-methods",
+      "aliases": [],
+      "value_syntax": "METHODS",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "GET, POST, DELETE, OPTIONS",
+      "environment_variable": "LLAMA_ARG_CORS_METHODS",
+      "status": "documented",
+      "description": "comma-separated list of allowed methods for CORS (default: GET, POST, DELETE, OPTIONS)\n(env: LLAMA_ARG_CORS_METHODS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 198
+      }
+    },
+    {
+      "id": "llama-server:--cors-headers",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--cors-headers",
+      "aliases": [],
+      "value_syntax": "HEADERS",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "*",
+      "environment_variable": "LLAMA_ARG_CORS_HEADERS",
+      "status": "documented",
+      "description": "comma-separated list of allowed headers for CORS (default: *)\n(env: LLAMA_ARG_CORS_HEADERS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 199
+      }
+    },
+    {
+      "id": "llama-server:--cors-credentials",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--cors-credentials",
+      "aliases": [
+        "--no-cors-credentials"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "enabled",
+      "environment_variable": "LLAMA_ARG_CORS_CREDENTIALS",
+      "status": "documented",
+      "description": "whether to allow credentials for CORS (default: enabled)\nnote: if this is enabled and --cors-origins is set to * (default), the Origin header will be echoed back, and credentials will always be allowed\n(env: LLAMA_ARG_CORS_CREDENTIALS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 200
+      }
+    },
+    {
+      "id": "llama-server:--api-prefix",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--api-prefix",
+      "aliases": [],
+      "value_syntax": "PREFIX",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "",
+      "environment_variable": "LLAMA_ARG_API_PREFIX",
+      "status": "documented",
+      "description": "prefix path the server serves from, without the trailing slash (default: )\n(env: LLAMA_ARG_API_PREFIX)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 201
+      }
+    },
+    {
+      "id": "llama-server:--ui-config",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--ui-config",
+      "aliases": [
+        "--webui-config"
+      ],
+      "value_syntax": "JSON",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_UI_CONFIG",
+      "status": "documented",
+      "description": "JSON that provides default UI settings (overrides UI defaults)\n(env: LLAMA_ARG_UI_CONFIG)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 202
+      }
+    },
+    {
+      "id": "llama-server:--ui-config-file",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--ui-config-file",
+      "aliases": [
+        "--webui-config-file"
+      ],
+      "value_syntax": "PATH",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_UI_CONFIG_FILE",
+      "status": "documented",
+      "description": "JSON file that provides default UI settings (overrides UI defaults)\n(env: LLAMA_ARG_UI_CONFIG_FILE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 203
+      }
+    },
+    {
+      "id": "llama-server:--ui-mcp-proxy",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--ui-mcp-proxy",
+      "aliases": [
+        "--webui-mcp-proxy",
+        "--no-ui-mcp-proxy",
+        "--no-webui-mcp-proxy"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": "LLAMA_ARG_UI_MCP_PROXY",
+      "status": "documented",
+      "description": "experimental: whether to enable MCP CORS proxy - do not enable in untrusted environments (default: disabled)\n(env: LLAMA_ARG_UI_MCP_PROXY)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 204
+      }
+    },
+    {
+      "id": "llama-server:--tools",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--tools",
+      "aliases": [],
+      "value_syntax": "TOOL1,TOOL2,...",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "no tools",
+      "environment_variable": "LLAMA_ARG_TOOLS",
+      "status": "documented",
+      "description": "experimental: whether to enable built-in tools for AI agents - do not enable in untrusted environments (default: no tools)\nspecify \"all\" to enable all tools\navailable tools: read_file, file_glob_search, grep_search, exec_shell_command, write_file, edit_file, get_info\nnote: for security reasons, this will limit --cors-origins to localhost by default\n(env: LLAMA_ARG_TOOLS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 205
+      }
+    },
+    {
+      "id": "llama-server:--tools-runtime",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--tools-runtime",
+      "aliases": [],
+      "value_syntax": "OPTION",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "none, use host environment",
+      "environment_variable": "LLAMA_ARG_TOOLS_RUNTIME",
+      "status": "documented",
+      "description": "experimental: run tools in a separate runtime environment (default: none, use host environment)\navailable options:\n  'docker:<image>', 'podman:<image>': spin up a new container and reuse it for all invocations, clean up on server exit\n  'docker-container:<id>', 'podman-container:<id>': use an existing container by ID, won't stop on server exit\n  'ssh:<target>': run tools on a remote POSIX host over SSH, key-based auth and a trusted host key are required\n\n(env: LLAMA_ARG_TOOLS_RUNTIME)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 206
+      }
+    },
+    {
+      "id": "llama-server:--mcp-servers-config",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--mcp-servers-config",
+      "aliases": [],
+      "value_syntax": "PATH",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "none",
+      "environment_variable": "LLAMA_ARG_MCP_SERVERS_CONFIG",
+      "status": "documented",
+      "description": "experimental: path to JSON file with MCP server definitions (Cursor-compatible format) - do not enable in untrusted environments (default: none)\nnote: for security reasons, this will limit --cors-origins to localhost by default\n(env: LLAMA_ARG_MCP_SERVERS_CONFIG)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 207
+      }
+    },
+    {
+      "id": "llama-server:--mcp-servers-json",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--mcp-servers-json",
+      "aliases": [],
+      "value_syntax": "JSON",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "none",
+      "environment_variable": "LLAMA_ARG_MCP_SERVERS_JSON",
+      "status": "documented",
+      "description": "experimental: inline JSON with MCP server definitions (Cursor-compatible format) - do not enable in untrusted environments (default: none)\nnote: for security reasons, this will limit --cors-origins to localhost by default\n(env: LLAMA_ARG_MCP_SERVERS_JSON)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 208
+      }
+    },
+    {
+      "id": "llama-server:--agent",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--agent",
+      "aliases": [
+        "-ag",
+        "-no-ag",
+        "--no-agent"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": "LLAMA_ARG_AGENT",
+      "status": "documented",
+      "description": "whether to enable CORS proxy and all built-in tools - do not enable in untrusted environments (default: disabled)\nnote: for security reasons, this will limit --cors-origins to localhost by default\n(env: LLAMA_ARG_AGENT)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 209
+      }
+    },
+    {
+      "id": "llama-server:--ui",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--ui",
+      "aliases": [
+        "--webui",
+        "--no-ui",
+        "--no-webui"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "enabled",
+      "environment_variable": "LLAMA_ARG_UI",
+      "status": "documented",
+      "description": "whether to enable the Web UI (default: enabled)\n(env: LLAMA_ARG_UI)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 210
+      }
+    },
+    {
+      "id": "llama-server:--embedding",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--embedding",
+      "aliases": [
+        "--embeddings"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": "LLAMA_ARG_EMBEDDINGS",
+      "status": "documented",
+      "description": "restrict to only support embedding use case; use only with dedicated embedding models (default: disabled)\n(env: LLAMA_ARG_EMBEDDINGS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 211
+      }
+    },
+    {
+      "id": "llama-server:--rerank",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--rerank",
+      "aliases": [
+        "--reranking"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": "LLAMA_ARG_RERANKING",
+      "status": "documented",
+      "description": "enable reranking endpoint on server (default: disabled)\n(env: LLAMA_ARG_RERANKING)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 212
+      }
+    },
+    {
+      "id": "llama-server:--api-key",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--api-key",
+      "aliases": [],
+      "value_syntax": "KEY",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "none",
+      "environment_variable": "LLAMA_API_KEY",
+      "status": "documented",
+      "description": "API key to use for authentication, multiple keys can be provided as a comma-separated list (default: none)\n(env: LLAMA_API_KEY)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 213
+      }
+    },
+    {
+      "id": "llama-server:--api-key-file",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--api-key-file",
+      "aliases": [],
+      "value_syntax": "FNAME",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "none",
+      "environment_variable": "LLAMA_ARG_API_KEY_FILE",
+      "status": "documented",
+      "description": "path to file containing API keys, one per line; lines starting with a hash are treated as comments (default: none)\n(env: LLAMA_ARG_API_KEY_FILE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 214
+      }
+    },
+    {
+      "id": "llama-server:--ssl-key-file",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--ssl-key-file",
+      "aliases": [],
+      "value_syntax": "FNAME",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_SSL_KEY_FILE",
+      "status": "documented",
+      "description": "path to file a PEM-encoded SSL private key\n(env: LLAMA_ARG_SSL_KEY_FILE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 215
+      }
+    },
+    {
+      "id": "llama-server:--ssl-cert-file",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--ssl-cert-file",
+      "aliases": [],
+      "value_syntax": "FNAME",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_SSL_CERT_FILE",
+      "status": "documented",
+      "description": "path to file a PEM-encoded SSL certificate\n(env: LLAMA_ARG_SSL_CERT_FILE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 216
+      }
+    },
+    {
+      "id": "llama-server:--chat-template-kwargs",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--chat-template-kwargs",
+      "aliases": [],
+      "value_syntax": "STRING",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_CHAT_TEMPLATE_KWARGS",
+      "status": "documented",
+      "description": "sets additional params for the json template parser, must be a valid json object string, e.g. '{\"key1\":\"value1\",\"key2\":\"value2\"}'\n(env: LLAMA_ARG_CHAT_TEMPLATE_KWARGS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 217
+      }
+    },
+    {
+      "id": "llama-server:--timeout",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--timeout",
+      "aliases": [
+        "-to"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "3600",
+      "environment_variable": "LLAMA_ARG_TIMEOUT",
+      "status": "documented",
+      "description": "server read/write timeout in seconds (default: 3600)\n(env: LLAMA_ARG_TIMEOUT)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 218
+      }
+    },
+    {
+      "id": "llama-server:--sse-ping-interval",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--sse-ping-interval",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_SSE_PING_INTERVAL",
+      "status": "documented",
+      "description": "server SSE ping interval in seconds (-1 = disabled, default: 30)\n(env: LLAMA_ARG_SSE_PING_INTERVAL)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 219
+      }
+    },
+    {
+      "id": "llama-server:--threads-http",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--threads-http",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "-1",
+      "environment_variable": "LLAMA_ARG_THREADS_HTTP",
+      "status": "documented",
+      "description": "number of threads used to process HTTP requests (default: -1)\n(env: LLAMA_ARG_THREADS_HTTP)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 220
+      }
+    },
+    {
+      "id": "llama-server:--cache-prompt",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--cache-prompt",
+      "aliases": [
+        "--no-cache-prompt"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "enabled",
+      "environment_variable": "LLAMA_ARG_CACHE_PROMPT",
+      "status": "documented",
+      "description": "whether to enable prompt caching (default: enabled)\n(env: LLAMA_ARG_CACHE_PROMPT)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 221
+      }
+    },
+    {
+      "id": "llama-server:--cache-reuse",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--cache-reuse",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": "LLAMA_ARG_CACHE_REUSE",
+      "status": "documented",
+      "description": "min chunk size to attempt reusing from the cache via KV shifting, requires prompt caching to be enabled (default: 0)\n[(card)](https://ggml.ai/f0.png)\n(env: LLAMA_ARG_CACHE_REUSE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 222
+      }
+    },
+    {
+      "id": "llama-server:--metrics",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--metrics",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": "LLAMA_ARG_ENDPOINT_METRICS",
+      "status": "documented",
+      "description": "enable prometheus compatible metrics endpoint (default: disabled)\n(env: LLAMA_ARG_ENDPOINT_METRICS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 223
+      }
+    },
+    {
+      "id": "llama-server:--props",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--props",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": "LLAMA_ARG_ENDPOINT_PROPS",
+      "status": "documented",
+      "description": "enable changing global properties via POST /props (default: disabled)\n(env: LLAMA_ARG_ENDPOINT_PROPS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 224
+      }
+    },
+    {
+      "id": "llama-server:--slots",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--slots",
+      "aliases": [
+        "--no-slots"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "enabled",
+      "environment_variable": "LLAMA_ARG_ENDPOINT_SLOTS",
+      "status": "documented",
+      "description": "expose slots monitoring endpoint (default: enabled)\n(env: LLAMA_ARG_ENDPOINT_SLOTS)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 225
+      }
+    },
+    {
+      "id": "llama-server:--slot-save-path",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--slot-save-path",
+      "aliases": [],
+      "value_syntax": "PATH",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": "LLAMA_ARG_SLOT_SAVE_PATH",
+      "status": "documented",
+      "description": "path to save slot kv cache (default: disabled)\n(env: LLAMA_ARG_SLOT_SAVE_PATH)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 226
+      }
+    },
+    {
+      "id": "llama-server:--media-path",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--media-path",
+      "aliases": [],
+      "value_syntax": "PATH",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "directory for loading local media files; files can be accessed via file:// URLs using relative paths (default: disabled)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 227
+      }
+    },
+    {
+      "id": "llama-server:--models-dir",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--models-dir",
+      "aliases": [],
+      "value_syntax": "PATH",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": "LLAMA_ARG_MODELS_DIR",
+      "status": "documented",
+      "description": "directory containing models for the router server (default: disabled)\n(env: LLAMA_ARG_MODELS_DIR)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 228
+      }
+    },
+    {
+      "id": "llama-server:--models-preset",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--models-preset",
+      "aliases": [],
+      "value_syntax": "PATH",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": "LLAMA_ARG_MODELS_PRESET",
+      "status": "documented",
+      "description": "path to INI file containing model presets for the router server (default: disabled)\n(env: LLAMA_ARG_MODELS_PRESET)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 229
+      }
+    },
+    {
+      "id": "llama-server:--models-max",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--models-max",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "4, 0 = unlimited",
+      "environment_variable": "LLAMA_ARG_MODELS_MAX",
+      "status": "documented",
+      "description": "for router server, maximum number of models to load simultaneously (default: 4, 0 = unlimited)\n(env: LLAMA_ARG_MODELS_MAX)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 230
+      }
+    },
+    {
+      "id": "llama-server:--models-autoload",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--models-autoload",
+      "aliases": [
+        "--no-models-autoload"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "enabled",
+      "environment_variable": "LLAMA_ARG_MODELS_AUTOLOAD",
+      "status": "documented",
+      "description": "for router server, whether to automatically load models (default: enabled)\n(env: LLAMA_ARG_MODELS_AUTOLOAD)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 231
+      }
+    },
+    {
+      "id": "llama-server:--jinja",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--jinja",
+      "aliases": [
+        "--no-jinja"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "enabled",
+      "environment_variable": "LLAMA_ARG_JINJA",
+      "status": "documented",
+      "description": "whether to use jinja template engine for chat (default: enabled)\n(env: LLAMA_ARG_JINJA)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 232
+      }
+    },
+    {
+      "id": "llama-server:--reasoning-format",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--reasoning-format",
+      "aliases": [],
+      "value_syntax": "FORMAT",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "auto",
+      "environment_variable": "LLAMA_ARG_THINK",
+      "status": "documented",
+      "description": "controls whether thought tags are allowed and/or extracted from the response, and in which format they're returned; one of:\n- none: leaves thoughts unparsed in `message.content`\n- deepseek: puts thoughts in `message.reasoning_content`\n- deepseek-legacy: keeps `<think>` tags in `message.content` while also populating `message.reasoning_content`\n(default: auto)\n(env: LLAMA_ARG_THINK)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 233
+      }
+    },
+    {
+      "id": "llama-server:--reasoning",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--reasoning",
+      "aliases": [
+        "-rea"
+      ],
+      "value_syntax": "[on\\|off\\|auto]",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_REASONING",
+      "status": "documented",
+      "description": "Use reasoning/thinking in the chat ('on', 'off', or 'auto', default: 'auto' (detect from template))\n(env: LLAMA_ARG_REASONING)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 234
+      }
+    },
+    {
+      "id": "llama-server:--reasoning-effort",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--reasoning-effort",
+      "aliases": [],
+      "value_syntax": "LEVEL",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "default",
+      "environment_variable": "LLAMA_ARG_REASONING_EFFORT",
+      "status": "documented",
+      "description": "reasoning effort level given to the chat template: 'default' to keep the template default,\nor a level such as 'minimal', 'low', 'medium', 'high', 'xhigh' or 'max' (default: default)\n(env: LLAMA_ARG_REASONING_EFFORT)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 235
+      }
+    },
+    {
+      "id": "llama-server:--reasoning-budget",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--reasoning-budget",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "-1",
+      "environment_variable": "LLAMA_ARG_THINK_BUDGET",
+      "status": "documented",
+      "description": "token budget for thinking: -1 for unrestricted, 0 for immediate end, N>0 for token budget (default: -1)\n(env: LLAMA_ARG_THINK_BUDGET)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 236
+      }
+    },
+    {
+      "id": "llama-server:--reasoning-budget-message",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--reasoning-budget-message",
+      "aliases": [],
+      "value_syntax": "MESSAGE",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "none",
+      "environment_variable": "LLAMA_ARG_THINK_BUDGET_MESSAGE",
+      "status": "documented",
+      "description": "message injected before the end-of-thinking tag when reasoning budget is exhausted (default: none)\n(env: LLAMA_ARG_THINK_BUDGET_MESSAGE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 237
+      }
+    },
+    {
+      "id": "llama-server:--reasoning-preserve",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--reasoning-preserve",
+      "aliases": [
+        "--no-reasoning-preserve"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "enabled",
+      "environment_variable": "LLAMA_ARG_REASONING_PRESERVE",
+      "status": "documented",
+      "description": "preserve reasoning trace in the full history, not just the last assistant message (default: enabled)\ncompatible with certain templates having 'supports_preserve_reasoning' capability\nexample: https://docs.z.ai/guides/capabilities/thinking-mode#preserved-thinking\n(env: LLAMA_ARG_REASONING_PRESERVE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 238
+      }
+    },
+    {
+      "id": "llama-server:--chat-template",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--chat-template",
+      "aliases": [],
+      "value_syntax": "JINJA_TEMPLATE",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "template taken from model's metadata",
+      "environment_variable": "LLAMA_ARG_CHAT_TEMPLATE",
+      "status": "documented",
+      "description": "set custom jinja chat template (default: template taken from model's metadata)\nif suffix/prefix are specified, template will be disabled\nonly commonly used templates are accepted (unless --jinja is set before this flag):\nlist of built-in templates:\nbailing, bailing-think, bailing2, chatglm3, chatglm4, chatml, command-r, deepseek, deepseek-ocr, deepseek2, deepseek3, exaone-moe, exaone3, exaone4, falcon3, gemma, gigachat, glmedge, gpt-oss, granite, granite-4.0, granite-4.1, grok-2, hunyuan-dense, hunyuan-moe, hunyuan-vl, kimi-k2, llama2, llama2-sys, llama2-sys-bos, llama2-sys-strip, llama3, llama4, megrez, minicpm, mistral-v1, mistral-v3, mistral-v3-tekken, mistral-v7, mistral-v7-tekken, monarch, openchat, orion, pangu-embedded, phi3, phi4, rwkv-world, seed_oss, smolvlm, solar-open, vicuna, vicuna-orca, yandex, zephyr\n(env: LLAMA_ARG_CHAT_TEMPLATE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 239
+      }
+    },
+    {
+      "id": "llama-server:--chat-template-file",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--chat-template-file",
+      "aliases": [],
+      "value_syntax": "JINJA_TEMPLATE_FILE",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "template taken from model's metadata",
+      "environment_variable": "LLAMA_ARG_CHAT_TEMPLATE_FILE",
+      "status": "documented",
+      "description": "set custom jinja chat template file (default: template taken from model's metadata)\nif suffix/prefix are specified, template will be disabled\nonly commonly used templates are accepted (unless --jinja is set before this flag):\nlist of built-in templates:\nbailing, bailing-think, bailing2, chatglm3, chatglm4, chatml, command-r, deepseek, deepseek-ocr, deepseek2, deepseek3, exaone-moe, exaone3, exaone4, falcon3, gemma, gigachat, glmedge, gpt-oss, granite, granite-4.0, granite-4.1, grok-2, hunyuan-dense, hunyuan-moe, hunyuan-vl, kimi-k2, llama2, llama2-sys, llama2-sys-bos, llama2-sys-strip, llama3, llama4, megrez, minicpm, mistral-v1, mistral-v3, mistral-v3-tekken, mistral-v7, mistral-v7-tekken, monarch, openchat, orion, pangu-embedded, phi3, phi4, rwkv-world, seed_oss, smolvlm, solar-open, vicuna, vicuna-orca, yandex, zephyr\n(env: LLAMA_ARG_CHAT_TEMPLATE_FILE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 240
+      }
+    },
+    {
+      "id": "llama-server:--skip-chat-parsing",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--skip-chat-parsing",
+      "aliases": [
+        "--no-skip-chat-parsing"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": "LLAMA_ARG_SKIP_CHAT_PARSING",
+      "status": "documented",
+      "description": "force a pure content parser, even if a Jinja template is specified; model will output everything in the content section, including any reasoning and/or tool calls (default: disabled)\n(env: LLAMA_ARG_SKIP_CHAT_PARSING)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 241
+      }
+    },
+    {
+      "id": "llama-server:--prefill-assistant",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--prefill-assistant",
+      "aliases": [
+        "--no-prefill-assistant"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "prefill enabled",
+      "environment_variable": "LLAMA_ARG_PREFILL_ASSISTANT",
+      "status": "documented",
+      "description": "whether to prefill the assistant's response if the last message is an assistant message (default: prefill enabled)\nwhen this flag is set, if the last message is an assistant message then it will be treated as a full message and not prefilled\n\n(env: LLAMA_ARG_PREFILL_ASSISTANT)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 242
+      }
+    },
+    {
+      "id": "llama-server:--slot-prompt-similarity",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--slot-prompt-similarity",
+      "aliases": [
+        "-sps"
+      ],
+      "value_syntax": "SIMILARITY",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0.10, 0.0 = disabled",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "how much the prompt of a request must match the prompt of a slot in order to use that slot (default: 0.10, 0.0 = disabled)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 243
+      }
+    },
+    {
+      "id": "llama-server:--lora-init-without-apply",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--lora-init-without-apply",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "load LoRA adapters without applying them (apply later via POST /lora-adapters) (default: disabled)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 244
+      }
+    },
+    {
+      "id": "llama-server:--sleep-idle-seconds",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--sleep-idle-seconds",
+      "aliases": [],
+      "value_syntax": "SECONDS",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "-1; -1 = disabled",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "number of seconds of idleness after which the server will sleep (default: -1; -1 = disabled)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 245
+      }
+    },
+    {
+      "id": "llama-server:--log-prompts-dir",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--log-prompts-dir",
+      "aliases": [],
+      "value_syntax": "PATH",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "Log prompts to directory (auto-created if not present; only used for debugging, default: disabled)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 246
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-hf",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-hf",
+      "aliases": [
+        "-hfd",
+        "-hfrd",
+        "--hf-repo-draft"
+      ],
+      "value_syntax": "<user>/<model>[:quant]",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "unused",
+      "environment_variable": "LLAMA_ARG_SPEC_DRAFT_HF_REPO",
+      "status": "documented",
+      "description": "Same as --hf-repo, but for the draft model (default: unused)\n(env: LLAMA_ARG_SPEC_DRAFT_HF_REPO)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 247
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-threads",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-threads",
+      "aliases": [
+        "-td",
+        "--threads-draft"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "same as --threads",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "number of threads to use during generation (default: same as --threads)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 248
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-threads-batch",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-threads-batch",
+      "aliases": [
+        "-tbd",
+        "--threads-batch-draft"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "same as --threads-draft",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "number of threads to use during batch and prompt processing (default: same as --threads-draft)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 249
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-cpu-mask",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-cpu-mask",
+      "aliases": [
+        "-Cd",
+        "--cpu-mask-draft"
+      ],
+      "value_syntax": "M",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "same as --cpu-mask",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "Draft model CPU affinity mask. Complements cpu-range-draft (default: same as --cpu-mask)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 250
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-cpu-range",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-cpu-range",
+      "aliases": [
+        "-Crd",
+        "--cpu-range-draft"
+      ],
+      "value_syntax": "lo-hi",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "Ranges of CPUs for affinity. Complements --cpu-mask-draft",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 251
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-cpu-strict",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-cpu-strict",
+      "aliases": [
+        "--cpu-strict-draft"
+      ],
+      "value_syntax": "<0\\|1>",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "same as --cpu-strict",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "Use strict CPU placement for draft model (default: same as --cpu-strict)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 252
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-prio",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-prio",
+      "aliases": [
+        "--prio-draft"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "set draft process/thread priority : 0-normal, 1-medium, 2-high, 3-realtime (default: 0)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 253
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-poll",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-poll",
+      "aliases": [
+        "--poll-draft"
+      ],
+      "value_syntax": "<0\\|1>",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "same as --poll",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "Use polling to wait for draft model work (default: same as --poll)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 254
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-cpu-mask-batch",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-cpu-mask-batch",
+      "aliases": [
+        "-Cbd",
+        "--cpu-mask-batch-draft"
+      ],
+      "value_syntax": "M",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "same as --cpu-mask",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "Draft model CPU affinity mask. Complements cpu-range-draft (default: same as --cpu-mask)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 255
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-cpu-strict-batch",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-cpu-strict-batch",
+      "aliases": [
+        "--cpu-strict-batch-draft"
+      ],
+      "value_syntax": "<0\\|1>",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "--cpu-strict-draft",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "Use strict CPU placement for draft model (default: --cpu-strict-draft)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 256
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-prio-batch",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-prio-batch",
+      "aliases": [
+        "--prio-batch-draft"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "set draft process/thread priority : 0-normal, 1-medium, 2-high, 3-realtime (default: 0)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 257
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-poll-batch",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-poll-batch",
+      "aliases": [
+        "--poll-batch-draft"
+      ],
+      "value_syntax": "<0\\|1>",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "--poll-draft",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "Use polling to wait for draft model work (default: --poll-draft)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 258
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-override-tensor",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-override-tensor",
+      "aliases": [
+        "-otd",
+        "--override-tensor-draft"
+      ],
+      "value_syntax": "<tensor name pattern>=<buffer type>,...",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "override tensor buffer type for draft model",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 259
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-cpu-moe",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-cpu-moe",
+      "aliases": [
+        "-cmoed",
+        "--cpu-moe-draft"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_SPEC_DRAFT_CPU_MOE",
+      "status": "documented",
+      "description": "keep all Mixture of Experts (MoE) weights in the CPU for the draft model\n(env: LLAMA_ARG_SPEC_DRAFT_CPU_MOE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 260
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-n-cpu-moe",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-n-cpu-moe",
+      "aliases": [
+        "--spec-draft-ncmoe",
+        "-ncmoed",
+        "--n-cpu-moe-draft"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_SPEC_DRAFT_N_CPU_MOE",
+      "status": "documented",
+      "description": "keep the Mixture of Experts (MoE) weights of the first N layers in the CPU for the draft model\n(env: LLAMA_ARG_SPEC_DRAFT_N_CPU_MOE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 261
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-n-max",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-n-max",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "3",
+      "environment_variable": "LLAMA_ARG_SPEC_DRAFT_N_MAX",
+      "status": "documented",
+      "description": "number of tokens to draft for speculative decoding (default: 3)\n(env: LLAMA_ARG_SPEC_DRAFT_N_MAX)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 262
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-n-min",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-n-min",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": "LLAMA_ARG_SPEC_DRAFT_N_MIN",
+      "status": "documented",
+      "description": "minimum number of draft tokens to use for speculative decoding (default: 0)\n(env: LLAMA_ARG_SPEC_DRAFT_N_MIN)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 263
+      }
+    },
+    {
+      "id": "llama-server:--spec-synth-len",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-synth-len",
+      "aliases": [],
+      "value_syntax": "L",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_SPEC_SYNTH_LEN",
+      "status": "documented",
+      "description": "target mean synthetic acceptance length, including the target token (benchmarking only)\n(env: LLAMA_ARG_SPEC_SYNTH_LEN)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 264
+      }
+    },
+    {
+      "id": "llama-server:--spec-synth-rates",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-synth-rates",
+      "aliases": [],
+      "value_syntax": "P0,P1,...",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_SPEC_SYNTH_RATES",
+      "status": "documented",
+      "description": "comma-separated unconditional per-position synthetic acceptance probabilities (benchmarking only)\n(env: LLAMA_ARG_SPEC_SYNTH_RATES)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 265
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-p-split",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-p-split",
+      "aliases": [
+        "--draft-p-split"
+      ],
+      "value_syntax": "P",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0.10",
+      "environment_variable": "LLAMA_ARG_SPEC_DRAFT_P_SPLIT",
+      "status": "documented",
+      "description": "speculative decoding split probability (default: 0.10)\n(env: LLAMA_ARG_SPEC_DRAFT_P_SPLIT)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 266
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-p-min",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-p-min",
+      "aliases": [
+        "--draft-p-min"
+      ],
+      "value_syntax": "P",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0.00",
+      "environment_variable": "LLAMA_ARG_SPEC_DRAFT_P_MIN",
+      "status": "documented",
+      "description": "minimum speculative decoding probability (greedy) (default: 0.00)\n(env: LLAMA_ARG_SPEC_DRAFT_P_MIN)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 267
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-backend-sampling",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-backend-sampling",
+      "aliases": [
+        "--no-spec-draft-backend-sampling"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": "enabled",
+      "environment_variable": "LLAMA_ARG_SPEC_DRAFT_BACKEND_SAMPLING",
+      "status": "documented",
+      "description": "offload draft sampling to the backend (default: enabled)\n(env: LLAMA_ARG_SPEC_DRAFT_BACKEND_SAMPLING)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 268
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-sampling",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-sampling",
+      "aliases": [],
+      "value_syntax": "{greedy,probabilistic}",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "greedy",
+      "environment_variable": "LLAMA_ARG_SPEC_DRAFT_SAMPLING",
+      "status": "documented",
+      "description": "how the draft is sampled: greedy takes its argmax, probabilistic samples it and has the target verify by rejection sampling (default: greedy)\n(env: LLAMA_ARG_SPEC_DRAFT_SAMPLING)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 269
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-device",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-device",
+      "aliases": [
+        "-devd",
+        "--device-draft"
+      ],
+      "value_syntax": "<dev1,dev2,..>",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "comma-separated list of devices to use for offloading the draft model (none = don't offload, default: follows --device)\nuse --list-devices to see a list of available devices",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 270
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-ngl",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-ngl",
+      "aliases": [
+        "-ngld",
+        "--gpu-layers-draft",
+        "--n-gpu-layers-draft"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "auto",
+      "environment_variable": "LLAMA_ARG_N_GPU_LAYERS_DRAFT",
+      "status": "documented",
+      "description": "max. number of draft model layers to store in VRAM, either an exact number, 'auto', or 'all' (default: auto)\n(env: LLAMA_ARG_N_GPU_LAYERS_DRAFT)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 271
+      }
+    },
+    {
+      "id": "llama-server:--spec-draft-model",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-draft-model",
+      "aliases": [
+        "-md",
+        "--model-draft"
+      ],
+      "value_syntax": "FNAME",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "unused",
+      "environment_variable": "LLAMA_ARG_SPEC_DRAFT_MODEL",
+      "status": "documented",
+      "description": "draft model for speculative decoding (default: unused)\n(env: LLAMA_ARG_SPEC_DRAFT_MODEL)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 272
+      }
+    },
+    {
+      "id": "llama-server:--spec-type",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-type",
+      "aliases": [],
+      "value_syntax": "none,draft-simple,draft-eagle3,draft-mtp,draft-dflash,draft-dspark,ngram-simple,ngram-map-k,ngram-map-k4v,ngram-mod,ngram-cache",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "none",
+      "environment_variable": "LLAMA_ARG_SPEC_TYPE",
+      "status": "documented",
+      "description": "comma-separated list of types of speculative decoding to use (default: none)\n\n(env: LLAMA_ARG_SPEC_TYPE)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 273
+      }
+    },
+    {
+      "id": "llama-server:--spec-ngram-mod-n-min",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-ngram-mod-n-min",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "48",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "minimum number of ngram tokens to use for ngram-based speculative decoding (default: 48)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 274
+      }
+    },
+    {
+      "id": "llama-server:--spec-ngram-mod-n-max",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-ngram-mod-n-max",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "64",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "maximum number of ngram tokens to use for ngram-based speculative decoding (default: 64)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 275
+      }
+    },
+    {
+      "id": "llama-server:--spec-ngram-mod-n-match",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-ngram-mod-n-match",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "24",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "ngram-mod lookup length (default: 24)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 276
+      }
+    },
+    {
+      "id": "llama-server:--spec-ngram-simple-size-n",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-ngram-simple-size-n",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "12",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "ngram size N for ngram-simple speculative decoding, length of lookup n-gram (default: 12)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 277
+      }
+    },
+    {
+      "id": "llama-server:--spec-ngram-simple-size-m",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-ngram-simple-size-m",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "48",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "ngram size M for ngram-simple speculative decoding, length of draft m-gram (default: 48)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 278
+      }
+    },
+    {
+      "id": "llama-server:--spec-ngram-simple-min-hits",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-ngram-simple-min-hits",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "1",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "minimum hits for ngram-simple speculative decoding (default: 1)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 279
+      }
+    },
+    {
+      "id": "llama-server:--spec-ngram-map-k-size-n",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-ngram-map-k-size-n",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "12",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "ngram size N for ngram-map-k speculative decoding, length of lookup n-gram (default: 12)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 280
+      }
+    },
+    {
+      "id": "llama-server:--spec-ngram-map-k-size-m",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-ngram-map-k-size-m",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "48",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "ngram size M for ngram-map-k speculative decoding, length of draft m-gram (default: 48)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 281
+      }
+    },
+    {
+      "id": "llama-server:--spec-ngram-map-k-min-hits",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-ngram-map-k-min-hits",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "1",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "minimum hits for ngram-map-k speculative decoding (default: 1)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 282
+      }
+    },
+    {
+      "id": "llama-server:--spec-ngram-map-k4v-size-n",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-ngram-map-k4v-size-n",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "12",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "ngram size N for ngram-map-k4v speculative decoding, length of lookup n-gram (default: 12)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 283
+      }
+    },
+    {
+      "id": "llama-server:--spec-ngram-map-k4v-size-m",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-ngram-map-k4v-size-m",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "48",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "ngram size M for ngram-map-k4v speculative decoding, length of draft m-gram (default: 48)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 284
+      }
+    },
+    {
+      "id": "llama-server:--spec-ngram-map-k4v-min-hits",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-ngram-map-k4v-min-hits",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "1",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "minimum hits for ngram-map-k4v speculative decoding (default: 1)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 285
+      }
+    },
+    {
+      "id": "llama-server:--draft",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--draft",
+      "aliases": [
+        "--draft-n",
+        "--draft-max"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_DRAFT_MAX",
+      "status": "removed",
+      "description": "the argument has been removed. use --spec-draft-n-max or --spec-ngram-mod-n-max\n(env: LLAMA_ARG_DRAFT_MAX)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 286
+      }
+    },
+    {
+      "id": "llama-server:--draft-min",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--draft-min",
+      "aliases": [
+        "--draft-n-min"
+      ],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": "LLAMA_ARG_DRAFT_MIN",
+      "status": "removed",
+      "description": "the argument has been removed. use --spec-draft-n-min or --spec-ngram-mod-n-min\n(env: LLAMA_ARG_DRAFT_MIN)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 287
+      }
+    },
+    {
+      "id": "llama-server:--spec-ngram-size-n",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-ngram-size-n",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "removed",
+      "description": "the argument has been removed. use the respective --spec-ngram-*-size-n or --spec-ngram-mod-n-match",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 288
+      }
+    },
+    {
+      "id": "llama-server:--spec-ngram-size-m",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-ngram-size-m",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "removed",
+      "description": "the argument has been removed. use the respective --spec-ngram-*-size-m",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 289
+      }
+    },
+    {
+      "id": "llama-server:--spec-ngram-min-hits",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-ngram-min-hits",
+      "aliases": [],
+      "value_syntax": "N",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "removed",
+      "description": "the argument has been removed. use the respective --spec-ngram-*-min-hits",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 290
+      }
+    },
+    {
+      "id": "llama-server:--embd-gemma-default",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--embd-gemma-default",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use default EmbeddingGemma model (note: can download weights from the internet)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 291
+      }
+    },
+    {
+      "id": "llama-server:--fim-qwen-1",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--fim-qwen-1",
+      "aliases": [],
+      "value_syntax": ".5b-default",
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use default Qwen 2.5 Coder 1.5B (note: can download weights from the internet)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 292
+      }
+    },
+    {
+      "id": "llama-server:--fim-qwen-3b-default",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--fim-qwen-3b-default",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use default Qwen 2.5 Coder 3B (note: can download weights from the internet)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 293
+      }
+    },
+    {
+      "id": "llama-server:--fim-qwen-7b-default",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--fim-qwen-7b-default",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use default Qwen 2.5 Coder 7B (note: can download weights from the internet)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 294
+      }
+    },
+    {
+      "id": "llama-server:--fim-qwen-7b-spec",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--fim-qwen-7b-spec",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use Qwen 2.5 Coder 7B + 0.5B draft for speculative decoding (note: can download weights from the internet)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 295
+      }
+    },
+    {
+      "id": "llama-server:--fim-qwen-14b-spec",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--fim-qwen-14b-spec",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use Qwen 2.5 Coder 14B + 0.5B draft for speculative decoding (note: can download weights from the internet)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 296
+      }
+    },
+    {
+      "id": "llama-server:--fim-qwen-30b-default",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--fim-qwen-30b-default",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use default Qwen 3 Coder 30B A3B Instruct (note: can download weights from the internet)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 297
+      }
+    },
+    {
+      "id": "llama-server:--gpt-oss-20b-default",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--gpt-oss-20b-default",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use gpt-oss-20b (note: can download weights from the internet)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 298
+      }
+    },
+    {
+      "id": "llama-server:--gpt-oss-120b-default",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--gpt-oss-120b-default",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use gpt-oss-120b (note: can download weights from the internet)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 299
+      }
+    },
+    {
+      "id": "llama-server:--vision-gemma-4b-default",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--vision-gemma-4b-default",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use Gemma 3 4B QAT (note: can download weights from the internet)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 300
+      }
+    },
+    {
+      "id": "llama-server:--vision-gemma-12b-default",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--vision-gemma-12b-default",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "use Gemma 3 12B QAT (note: can download weights from the internet)",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 301
+      }
+    },
+    {
+      "id": "llama-server:--spec-default",
+      "program": "llama-server",
+      "group": "server",
+      "name": "--spec-default",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "enable default speculative decoding config",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 302
+      }
+    },
+    {
+      "id": "llama-bench:--help",
+      "program": "llama-bench",
+      "group": "options",
+      "name": "--help",
+      "aliases": [
+        "-h"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 26
+      }
+    },
+    {
+      "id": "llama-bench:--numa",
+      "program": "llama-bench",
+      "group": "options",
+      "name": "--numa",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<distribute|isolate|numactl>       numa mode (default: disabled)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 27
+      }
+    },
+    {
+      "id": "llama-bench:--repetitions",
+      "program": "llama-bench",
+      "group": "options",
+      "name": "--repetitions",
+      "aliases": [
+        "-r"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "5",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<n>                     number of times to repeat each test (default: 5)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 28
+      }
+    },
+    {
+      "id": "llama-bench:--prio",
+      "program": "llama-bench",
+      "group": "options",
+      "name": "--prio",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<-1|0|1|2|3>                       process/thread priority (default: 0)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 29
+      }
+    },
+    {
+      "id": "llama-bench:--delay",
+      "program": "llama-bench",
+      "group": "options",
+      "name": "--delay",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<0...N> (seconds)                 delay between each test (default: 0)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 30
+      }
+    },
+    {
+      "id": "llama-bench:--output",
+      "program": "llama-bench",
+      "group": "options",
+      "name": "--output",
+      "aliases": [
+        "-o"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "md",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<csv|json|jsonl|md|sql>      output format printed to stdout (default: md)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 31
+      }
+    },
+    {
+      "id": "llama-bench:--output-err",
+      "program": "llama-bench",
+      "group": "options",
+      "name": "--output-err",
+      "aliases": [
+        "-oe"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "none",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<csv|json|jsonl|md|sql> output format printed to stderr (default: none)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 32
+      }
+    },
+    {
+      "id": "llama-bench:--list-devices",
+      "program": "llama-bench",
+      "group": "options",
+      "name": "--list-devices",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "list available devices and exit",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 33
+      }
+    },
+    {
+      "id": "llama-bench:--verbose",
+      "program": "llama-bench",
+      "group": "options",
+      "name": "--verbose",
+      "aliases": [
+        "-v"
+      ],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "verbose output",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 34
+      }
+    },
+    {
+      "id": "llama-bench:--progress",
+      "program": "llama-bench",
+      "group": "options",
+      "name": "--progress",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "print test progress indicators",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 35
+      }
+    },
+    {
+      "id": "llama-bench:--no-warmup",
+      "program": "llama-bench",
+      "group": "options",
+      "name": "--no-warmup",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "switch",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "skip warmup runs before benchmarking",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 36
+      }
+    },
+    {
+      "id": "llama-bench:--fit-target",
+      "program": "llama-bench",
+      "group": "options",
+      "name": "--fit-target",
+      "aliases": [
+        "-fitt"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "off",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<MiB>                 fit model to device memory with this margin per device in MiB (default: off)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 37
+      }
+    },
+    {
+      "id": "llama-bench:--fit-ctx",
+      "program": "llama-bench",
+      "group": "options",
+      "name": "--fit-ctx",
+      "aliases": [
+        "-fitc"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<n>                      minimum ctx size for --fit-target (default: 0)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 38
+      }
+    },
+    {
+      "id": "llama-bench:--rpc",
+      "program": "llama-bench",
+      "group": "options",
+      "name": "--rpc",
+      "aliases": [
+        "-rpc"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": null,
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<rpc_servers>                 register RPC devices (comma separated)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 39
+      }
+    },
+    {
+      "id": "llama-bench:--model",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--model",
+      "aliases": [
+        "-m"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "models/7B/ggml-model-q4_0.gguf",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<filename>                    (default: models/7B/ggml-model-q4_0.gguf)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 42
+      }
+    },
+    {
+      "id": "llama-bench:--hf-repo",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--hf-repo",
+      "aliases": [
+        "-hf",
+        "-hfr"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "unused",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<user>/<model>[:quant] Hugging Face model repository; quant is optional, case-insensitive\ndefault to Q4_K_M, or falls back to the first file in the repo if Q4_K_M doesn't exist.\nexample: ggml-org/GLM-4.7-Flash-GGUF:Q4_K_M\n(default: unused)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 43
+      }
+    },
+    {
+      "id": "llama-bench:--hf-file",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--hf-file",
+      "aliases": [
+        "-hff"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "unused",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<file>                    Hugging Face model file. If specified, it will override the quant in --hf-repo\n(default: unused)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 47
+      }
+    },
+    {
+      "id": "llama-bench:--hf-token",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--hf-token",
+      "aliases": [
+        "-hft"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "value from HF_TOKEN environment variable",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<token>                  Hugging Face access token\n(default: value from HF_TOKEN environment variable)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 49
+      }
+    },
+    {
+      "id": "llama-bench:--n-prompt",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--n-prompt",
+      "aliases": [
+        "-p"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "512",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<n>                        (default: 512)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 51
+      }
+    },
+    {
+      "id": "llama-bench:--n-gen",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--n-gen",
+      "aliases": [
+        "-n"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "128",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<n>                           (default: 128)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 52
+      }
+    },
+    {
+      "id": "llama-bench:-pg",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "-pg",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<pp,tg>                               (default: )",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 53
+      }
+    },
+    {
+      "id": "llama-bench:--n-depth",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--n-depth",
+      "aliases": [
+        "-d"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<n>                         (default: 0)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 54
+      }
+    },
+    {
+      "id": "llama-bench:--batch-size",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--batch-size",
+      "aliases": [
+        "-b"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "2048",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<n>                      (default: 2048)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 55
+      }
+    },
+    {
+      "id": "llama-bench:--ubatch-size",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--ubatch-size",
+      "aliases": [
+        "-ub"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "512",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<n>                    (default: 512)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 56
+      }
+    },
+    {
+      "id": "llama-bench:--cache-type-k",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--cache-type-k",
+      "aliases": [
+        "-ctk"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "f16",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<t>                  (default: f16)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 57
+      }
+    },
+    {
+      "id": "llama-bench:--cache-type-v",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--cache-type-v",
+      "aliases": [
+        "-ctv"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "f16",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<t>                  (default: f16)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 58
+      }
+    },
+    {
+      "id": "llama-bench:--threads",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--threads",
+      "aliases": [
+        "-t"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "system dependent",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<n>                         (default: system dependent)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 59
+      }
+    },
+    {
+      "id": "llama-bench:--cpu-mask",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--cpu-mask",
+      "aliases": [
+        "-C"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0x0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<hex,hex>                  (default: 0x0)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 60
+      }
+    },
+    {
+      "id": "llama-bench:--cpu-strict",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--cpu-strict",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<0|1>                        (default: 0)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 61
+      }
+    },
+    {
+      "id": "llama-bench:--poll",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--poll",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "50",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<0...100>                          (default: 50)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 62
+      }
+    },
+    {
+      "id": "llama-bench:--n-gpu-layers",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--n-gpu-layers",
+      "aliases": [
+        "-ngl"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "-1",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<n>                  (default: -1)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 63
+      }
+    },
+    {
+      "id": "llama-bench:--n-cpu-moe",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--n-cpu-moe",
+      "aliases": [
+        "-ncmoe"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<n>                   (default: 0)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 64
+      }
+    },
+    {
+      "id": "llama-bench:--split-mode",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--split-mode",
+      "aliases": [
+        "-sm"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "layer",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<none|layer|row|tensor> (default: layer)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 65
+      }
+    },
+    {
+      "id": "llama-bench:--main-gpu",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--main-gpu",
+      "aliases": [
+        "-mg"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<i>                       (default: 0)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 66
+      }
+    },
+    {
+      "id": "llama-bench:--no-kv-offload",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--no-kv-offload",
+      "aliases": [
+        "-nkvo"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<0|1>              (default: 0)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 67
+      }
+    },
+    {
+      "id": "llama-bench:--flash-attn",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--flash-attn",
+      "aliases": [
+        "-fa"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "auto",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<on|off|auto>           (default: auto)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 68
+      }
+    },
+    {
+      "id": "llama-bench:--device",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--device",
+      "aliases": [
+        "-dev"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "auto",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<dev0/dev1/...>            (default: auto)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 69
+      }
+    },
+    {
+      "id": "llama-bench:--load-mode",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--load-mode",
+      "aliases": [
+        "-lm"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "auto",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<auto|none|mmap|mlock|mmap+mlock|dio>\n(default: auto)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 70
+      }
+    },
+    {
+      "id": "llama-bench:--lazy-mode",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--lazy-mode",
+      "aliases": [
+        "-lzm"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "auto",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<on|auto|off>           (default: auto)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 72
+      }
+    },
+    {
+      "id": "llama-bench:--embeddings",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--embeddings",
+      "aliases": [
+        "-embd"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<0|1>                 (default: 0)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 73
+      }
+    },
+    {
+      "id": "llama-bench:--tensor-split",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--tensor-split",
+      "aliases": [
+        "-ts"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<ts0/ts1/..>          (default: 0)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 74
+      }
+    },
+    {
+      "id": "llama-bench:--override-tensor",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--override-tensor",
+      "aliases": [
+        "-ot"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "disabled",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<tensor name pattern>=<buffer type>;...\n(default: disabled)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 75
+      }
+    },
+    {
+      "id": "llama-bench:--no-op-offload",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--no-op-offload",
+      "aliases": [
+        "-nopo"
+      ],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<0|1>              (default: 0)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 77
+      }
+    },
+    {
+      "id": "llama-bench:--no-host",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--no-host",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "0",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<0|1>                           (default: 0)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 78
+      }
+    },
+    {
+      "id": "llama-bench:--repack",
+      "program": "llama-bench",
+      "group": "test_parameters",
+      "name": "--repack",
+      "aliases": [],
+      "value_syntax": null,
+      "arity": "value_or_optional_value",
+      "value_type": "not_verified",
+      "documented_default": "1",
+      "environment_variable": null,
+      "status": "documented",
+      "description": "<0|1>                            (default: 1)",
+      "source": {
+        "path": "tools/llama-bench/README.md",
+        "line": 79
+      }
+    }
+  ]
+}

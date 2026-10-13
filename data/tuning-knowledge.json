@@ -1,0 +1,580 @@
+{
+  "schema_version": "1.0.0",
+  "upstream_commit": "77c4540ce4667f4577753fe034a3a8042f510b8f",
+  "note": "Curated research hypotheses, not universal optimization rules.",
+  "entries": [
+    {
+      "flag": "--threads",
+      "canonical": "--threads",
+      "program": "llama-server",
+      "domain": "cpu",
+      "strategy": "benchmark",
+      "interacts_with": [],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 38
+      }
+    },
+    {
+      "flag": "--threads-batch",
+      "canonical": "--threads-batch",
+      "program": "llama-server",
+      "domain": "cpu",
+      "strategy": "benchmark",
+      "interacts_with": [],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 39
+      }
+    },
+    {
+      "flag": "--n-gpu-layers",
+      "canonical": "--gpu-layers",
+      "program": "llama-server",
+      "domain": "placement",
+      "strategy": "heuristic_then_validate",
+      "interacts_with": [
+        "--fit",
+        "--cache-type-k"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 85
+      }
+    },
+    {
+      "flag": "--override-tensor",
+      "canonical": "--override-tensor",
+      "program": "llama-server",
+      "domain": "placement",
+      "strategy": "conditional",
+      "interacts_with": [
+        "--n-gpu-layers"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 80
+      }
+    },
+    {
+      "flag": "--n-cpu-ffn",
+      "canonical": "--n-cpu-ffn",
+      "program": "llama-server",
+      "domain": "placement",
+      "strategy": "conditional",
+      "interacts_with": [
+        "--n-gpu-layers"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 84
+      }
+    },
+    {
+      "flag": "--cpu-moe",
+      "canonical": "--cpu-moe",
+      "program": "llama-server",
+      "domain": "moe",
+      "strategy": "conditional",
+      "interacts_with": [
+        "--moe-cache-mib"
+      ],
+      "preconditions": [
+        "MoE model; compatible backend"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 81
+      }
+    },
+    {
+      "flag": "--n-cpu-moe",
+      "canonical": "--n-cpu-moe",
+      "program": "llama-server",
+      "domain": "moe",
+      "strategy": "conditional",
+      "interacts_with": [
+        "--moe-cache-mib"
+      ],
+      "preconditions": [
+        "MoE model; compatible backend"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 82
+      }
+    },
+    {
+      "flag": "--moe-cache-mib",
+      "canonical": "--moe-cache-mib",
+      "program": "llama-server",
+      "domain": "moe",
+      "strategy": "conditional",
+      "interacts_with": [
+        "--n-cpu-moe"
+      ],
+      "preconditions": [
+        "MoE model; compatible backend"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 83
+      }
+    },
+    {
+      "flag": "--ctx-size",
+      "canonical": "--ctx-size",
+      "program": "llama-server",
+      "domain": "context",
+      "strategy": "fixed",
+      "interacts_with": [
+        "--fit"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 50
+      }
+    },
+    {
+      "flag": "--cache-type-k",
+      "canonical": "--cache-type-k",
+      "program": "llama-server",
+      "domain": "kv",
+      "strategy": "quality_guarded",
+      "interacts_with": [
+        "--flash-attn"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 71
+      }
+    },
+    {
+      "flag": "--cache-type-v",
+      "canonical": "--cache-type-v",
+      "program": "llama-server",
+      "domain": "kv",
+      "strategy": "quality_guarded",
+      "interacts_with": [
+        "--flash-attn"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 72
+      }
+    },
+    {
+      "flag": "--flash-attn",
+      "canonical": "--flash-attn",
+      "program": "llama-server",
+      "domain": "attention",
+      "strategy": "benchmark",
+      "interacts_with": [
+        "--cache-type-k",
+        "--cache-type-v"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 56
+      }
+    },
+    {
+      "flag": "--kv-offload",
+      "canonical": "--kv-offload",
+      "program": "llama-server",
+      "domain": "kv",
+      "strategy": "conditional",
+      "interacts_with": [
+        "--ctx-size"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 68
+      }
+    },
+    {
+      "flag": "--batch-size",
+      "canonical": "--batch-size",
+      "program": "llama-server",
+      "domain": "batch",
+      "strategy": "benchmark",
+      "interacts_with": [
+        "--ubatch-size"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 52
+      }
+    },
+    {
+      "flag": "--ubatch-size",
+      "canonical": "--ubatch-size",
+      "program": "llama-server",
+      "domain": "batch",
+      "strategy": "benchmark",
+      "interacts_with": [
+        "--batch-size"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 53
+      }
+    },
+    {
+      "flag": "--fit",
+      "canonical": "--fit",
+      "program": "llama-server",
+      "domain": "memory",
+      "strategy": "feasibility",
+      "interacts_with": [
+        "--fit-target",
+        "--fit-ctx"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 89
+      }
+    },
+    {
+      "flag": "--fit-target",
+      "canonical": "--fit-target",
+      "program": "llama-server",
+      "domain": "memory",
+      "strategy": "feasibility",
+      "interacts_with": [
+        "--fit"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 90
+      }
+    },
+    {
+      "flag": "--fit-ctx",
+      "canonical": "--fit-ctx",
+      "program": "llama-server",
+      "domain": "memory",
+      "strategy": "fixed",
+      "interacts_with": [
+        "--ctx-size"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 91
+      }
+    },
+    {
+      "flag": "--device",
+      "canonical": "--device",
+      "program": "llama-server",
+      "domain": "device",
+      "strategy": "fixed",
+      "interacts_with": [
+        "--split-mode"
+      ],
+      "preconditions": [
+        "available device topology"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 78
+      }
+    },
+    {
+      "flag": "--split-mode",
+      "canonical": "--split-mode",
+      "program": "llama-server",
+      "domain": "device",
+      "strategy": "conditional",
+      "interacts_with": [
+        "--tensor-split"
+      ],
+      "preconditions": [
+        "available device topology"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 86
+      }
+    },
+    {
+      "flag": "--tensor-split",
+      "canonical": "--tensor-split",
+      "program": "llama-server",
+      "domain": "device",
+      "strategy": "conditional",
+      "interacts_with": [
+        "--split-mode"
+      ],
+      "preconditions": [
+        "available device topology"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 87
+      }
+    },
+    {
+      "flag": "--main-gpu",
+      "canonical": "--main-gpu",
+      "program": "llama-server",
+      "domain": "device",
+      "strategy": "conditional",
+      "interacts_with": [
+        "--split-mode"
+      ],
+      "preconditions": [
+        "available device topology"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 88
+      }
+    },
+    {
+      "flag": "--parallel",
+      "canonical": "--parallel",
+      "program": "llama-server",
+      "domain": "server",
+      "strategy": "fixed",
+      "interacts_with": [
+        "--ctx-size"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 177
+      }
+    },
+    {
+      "flag": "--cont-batching",
+      "canonical": "--cont-batching",
+      "program": "llama-server",
+      "domain": "server",
+      "strategy": "conditional",
+      "interacts_with": [
+        "--parallel"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 178
+      }
+    },
+    {
+      "flag": "--cache-prompt",
+      "canonical": "--cache-prompt",
+      "program": "llama-server",
+      "domain": "server",
+      "strategy": "fixed",
+      "interacts_with": [
+        "--cache-reuse"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 221
+      }
+    },
+    {
+      "flag": "--cache-reuse",
+      "canonical": "--cache-reuse",
+      "program": "llama-server",
+      "domain": "server",
+      "strategy": "conditional",
+      "interacts_with": [
+        "--cache-prompt"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 222
+      }
+    },
+    {
+      "flag": "--spec-type",
+      "canonical": "--spec-type",
+      "program": "llama-server",
+      "domain": "speculative",
+      "strategy": "conditional",
+      "interacts_with": [
+        "--spec-draft-model"
+      ],
+      "preconditions": [
+        "supported speculative decoding method"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 273
+      }
+    },
+    {
+      "flag": "--spec-draft-model",
+      "canonical": "--spec-draft-model",
+      "program": "llama-server",
+      "domain": "speculative",
+      "strategy": "conditional",
+      "interacts_with": [
+        "--spec-type"
+      ],
+      "preconditions": [
+        "supported speculative decoding method"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 272
+      }
+    },
+    {
+      "flag": "--spec-draft-n-max",
+      "canonical": "--spec-draft-n-max",
+      "program": "llama-server",
+      "domain": "speculative",
+      "strategy": "benchmark",
+      "interacts_with": [
+        "--spec-type"
+      ],
+      "preconditions": [
+        "supported speculative decoding method"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 262
+      }
+    },
+    {
+      "flag": "--load-mode",
+      "canonical": "--load-mode",
+      "program": "llama-server",
+      "domain": "memory",
+      "strategy": "conditional",
+      "interacts_with": [
+        "--lazy-mode"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 75
+      }
+    },
+    {
+      "flag": "--repack",
+      "canonical": "--repack",
+      "program": "llama-server",
+      "domain": "kernel",
+      "strategy": "conditional",
+      "interacts_with": [],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 69
+      }
+    },
+    {
+      "flag": "--op-offload",
+      "canonical": "--op-offload",
+      "program": "llama-server",
+      "domain": "kernel",
+      "strategy": "conditional",
+      "interacts_with": [
+        "--device"
+      ],
+      "preconditions": [
+        "verify model/backend/build compatibility"
+      ],
+      "impact_note": "Research hypothesis; benchmark at fixed workload with feasibility and quality guards.",
+      "source": {
+        "path": "tools/server/README.md",
+        "line": 94
+      }
+    }
+  ]
+}
