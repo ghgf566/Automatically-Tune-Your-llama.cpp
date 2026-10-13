@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""Read-only llama.cpp CLI capability probe. Explicitly runs a trusted local binary."""
+"""Read-only llama.cpp CLI probe; official installed 'llama' is the primary entry point.
+
+No model load, server start, benchmark or installation occurs. --list-devices is opt-in.
+"""
 import argparse
 import hashlib
 import json
 import re
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -11,16 +15,64 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "data" / "cli-inventory.json"
-PROGRAMS = {"llama-server", "llama-bench"}
+
+# Names below are confirmed in llama.cpp's pinned app/llama.cpp command router.
+ROUTES = {"serve": "llama-server", "bench": "llama-bench"}
+LEGACY = {"llama-server": "serve", "llama-bench": "bench"}
 ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
-START_FLAGS = re.compile(
-    r"^-{1,2}[A-Za-z][\w-]*(?:(?:,\s*|\s+)-{1,2}[A-Za-z][\w-]*)*"
-)
+START_FLAGS = re.compile(r"^-{1,2}[A-Za-z][\w-]*(?:(?:,\s*|\s+)-{1,2}[A-Za-z][\w-]*)*")
 FLAG = re.compile(r"-{1,2}[A-Za-z][\w-]*")
 
 
+def discover_binary(binary=None):
+    """Prefer the official llama executable on PATH. Never install or update it."""
+    if binary is None:
+        found = shutil.which("llama") or shutil.which("llama.exe")
+        if not found:
+            raise ValueError("Official 'llama' not found in PATH; install from https://llama.app")
+        path = Path(found).resolve()
+    else:
+        supplied = Path(binary).expanduser()
+        if supplied.is_file():
+            path = supplied.resolve()
+        elif supplied.name.lower() in {"llama", "llama.exe"}:
+            found = shutil.which(str(supplied))
+            if not found:
+                raise ValueError("Unable to find 'llama' in PATH")
+            path = Path(found).resolve()
+        else:
+            raise ValueError("Binary path is not a file: " + str(supplied))
+    if not path.is_file():
+        raise ValueError("Executable path is not a file: " + str(path))
+    return path
+
+
+def determine_route(path, command="serve"):
+    """Return (kind, subcommand, registry_program); legacy is explicit compatibility."""
+    name = path.name.lower().removesuffix(".exe")
+    if command not in ROUTES:
+        raise ValueError("Supported capability commands are serve and bench")
+    if name == "llama":
+        return "integrated", command, ROUTES[command]
+    if name in LEGACY:
+        expected = LEGACY[name]
+        if command != expected:
+            raise ValueError("The legacy binary " + name + " requires command " + expected)
+        return "legacy", expected, name
+    raise ValueError("Expected official llama[.exe] or a supported legacy llama-* binary")
+
+
+def argv_for(kind, binary, command, action):
+    executable = str(binary)
+    if kind == "integrated":
+        if action == "version":
+            return [executable, "version"]
+        return [executable, command, action]
+    return [executable, action]
+
+
 def flags_from_help(output):
-    """Conservatively detect flags *listed at the beginning* of help lines."""
+    """Find option *headings*, not flags merely mentioned in prose."""
     found = set()
     for line in ANSI.sub("", output).splitlines():
         match = START_FLAGS.match(line.lstrip())
@@ -32,135 +84,118 @@ def flags_from_help(output):
 def sha256_file(path):
     checksum = hashlib.sha256()
     with path.open("rb") as stream:
-        while True:
-            chunk = stream.read(1024 * 1024)
-            if not chunk:
-                break
-            checksum.update(chunk)
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            checksum.update(block)
     return checksum.hexdigest()
 
 
-def run_cli(binary, flag, timeout_seconds):
-    """Never use a shell, stdin, model loading, network calls or server start."""
+def run_cli(argv, timeout_seconds):
+    """Executes only vetted read-only flags, without a shell or stdin."""
     try:
         done = subprocess.run(
-            [str(binary), flag], stdin=subprocess.DEVNULL,
-            capture_output=True, text=True, errors="replace",
-            timeout=timeout_seconds, check=False,
+            argv, stdin=subprocess.DEVNULL, capture_output=True,
+            text=True, errors="replace", timeout=timeout_seconds, check=False,
         )
     except subprocess.TimeoutExpired:
         return {"status": "timeout", "returncode": None, "stdout": "", "stderr": ""}
     except OSError as error:
         return {"status": "error", "returncode": None, "stdout": "",
                 "stderr": type(error).__name__ + ": " + str(error)[:500]}
-    return {
-        "status": "success" if done.returncode == 0 else "nonzero_exit",
-        "returncode": done.returncode,
-        "stdout": done.stdout,
-        "stderr": done.stderr,
-    }
+    return {"status": "success" if done.returncode == 0 else "nonzero_exit",
+            "returncode": done.returncode,
+            "stdout": done.stdout, "stderr": done.stderr}
 
 
-def compact_result(command_result, limit=4096):
-    """Do not place complete raw CLI output into shareable snapshots."""
-    return {
-        "status": command_result["status"],
-        "returncode": command_result["returncode"],
-        "summary": (command_result["stdout"] or command_result["stderr"])[:limit],
-    }
+def compact_result(result, limit=4096):
+    return {"status": result["status"], "returncode": result["returncode"],
+            "summary": (result["stdout"] or result["stderr"])[:limit]}
 
 
-def probe_binary(binary, registry, *, include_devices=False, timeout_seconds=10):
-    """Observe help/version; optional device enumeration may initialize drivers."""
-    path = Path(binary).expanduser().resolve()
-    if not path.is_file():
-        raise ValueError("Binary path is not a regular file: " + str(path))
-    if timeout_seconds <= 0 or timeout_seconds > 120:
+def probe_binary(binary, registry, *, command="serve", include_devices=False,
+                 timeout_seconds=10):
+    """Probe a trusted installed binary; no implicit update and no model execution."""
+    path = discover_binary(binary)
+    if not 1 <= timeout_seconds <= 120:
         raise ValueError("Timeout must be between 1 and 120 seconds")
-    program = path.name.lower().removesuffix(".exe")
-    if program not in PROGRAMS:
-        raise ValueError("Expected llama-server[.exe] or llama-bench[.exe] (not a wrapper)")
-    relevant = [item for item in registry["entries"] if item["program"] == program]
+    kind, subcommand, program = determine_route(path, command)
+    relevant = [row for row in registry["entries"] if row["program"] == program]
     if not relevant:
         raise ValueError("Registry has no entries for " + program)
-    reported = {}
-    version = run_cli(path, "--version", timeout_seconds)
-    help_result = run_cli(path, "--help", timeout_seconds)
-    reported["version"] = compact_result(version)
-    reported["help"] = {"status": help_result["status"],
-                        "returncode": help_result["returncode"]}
-    known_aliases = {alias: item["name"]
-                     for item in relevant
-                     for alias in [item["name"], *item["aliases"]]}
-    # A matching flag in --help indicates documented presence only; it does
-    # not prove that the installed build/model/backend accepts every value.
-    help_text = help_result["stdout"] + "\n" + help_result["stderr"]
-    listed = flags_from_help(help_text)
-    documented = sorted({known_aliases[flag] for flag in listed
-                         if flag in known_aliases})
-    reported["help"]["documented_flag_presence"] = (
-        "observed_in_help" if help_result["status"] in ("success", "nonzero_exit")
-        else "unavailable"
-    )
-    if help_result["status"] in ("success", "nonzero_exit"):
+
+    version = run_cli(argv_for(kind, path, subcommand, "version"), timeout_seconds)
+    help_result = run_cli(argv_for(kind, path, subcommand, "--help"), timeout_seconds)
+    aliases = {alias: row["name"] for row in relevant
+               for alias in [row["name"], *row["aliases"]]}
+    help_good = help_result["status"] in ("success", "nonzero_exit")
+    # A nonzero exit may emit valid help, but an empty help output is inconclusive.
+    raw = help_result["stdout"] + "\n" + help_result["stderr"]
+    parsed = flags_from_help(raw) if help_good else set()
+    observable = help_good and bool(parsed)
+    if observable:
+        matched = sorted({aliases[f] for f in parsed if f in aliases})
         comparison = {
-            "documented_observed_in_help": documented,
+            "documented_observed_in_help": matched,
             "documented_not_observed_in_help": sorted(
-                {item["name"] for item in relevant} - set(documented)),
-            "unregistered_flags_observed_in_help": sorted(listed - set(known_aliases)),
+                {e["name"] for e in relevant} - set(matched)),
+            "unregistered_flags_observed_in_help": sorted(parsed - aliases.keys()),
         }
     else:
-        # A failed/expired help call produces NO usable capability evidence.
         comparison = {
             "documented_observed_in_help": None,
             "documented_not_observed_in_help": None,
             "unregistered_flags_observed_in_help": None,
         }
+
+    reported = {
+        "version": compact_result(version),
+        "help": {"status": help_result["status"], "returncode": help_result["returncode"],
+                 "documented_flag_presence": "observed_in_help" if observable else "unavailable"},
+        "devices": {"status": "not_requested"},
+    }
     if include_devices:
-        devices = run_cli(path, "--list-devices", timeout_seconds)
-        reported["devices"] = compact_result(devices)
-    else:
-        reported["devices"] = {"status": "not_requested"}
+        reported["devices"] = compact_result(
+            run_cli(argv_for(kind, path, subcommand, "--list-devices"), timeout_seconds))
     return {
-        "schema_version": "1.0.0",
-        "kind": "runtime_help_observation",
+        "schema_version": "1.0.0", "kind": "runtime_help_observation",
         "observed_at_utc": datetime.now(timezone.utc).isoformat(),
-        "program": program,
+        "program": program, "entrypoint": {"kind": kind, "command": subcommand},
         "binary": {"filename": path.name, "sha256": sha256_file(path)},
         "registry_commit": registry["upstream"]["commit"],
-        "command_results": reported,
-        "comparison": comparison,
+        "command_results": reported, "comparison": comparison,
         "limitations": [
-            "Presence in --help does not prove model/backend compatibility.",
+            "Presence in --help does not prove model/backend or value compatibility.",
             "Not observed in --help does not prove a flag is unsupported.",
-            "Only trusted binaries explicitly selected by the user should be probed.",
-            "No model was loaded; device enumeration is opt-in and may initialize drivers.",
+            "Only explicitly selected or PATH-discovered trusted binaries should be probed.",
+            "This does not load a model; opt-in device enumeration can initialize drivers.",
+            "A llama update changes binary identity; cached results must be invalidated.",
         ],
     }
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--binary", required=True, type=Path,
-                        help="Path to a trusted llama-server or llama-bench executable")
-    parser.add_argument("--registry", type=Path, default=REGISTRY,
-                        help="ATYL pinned CLI inventory")
-    parser.add_argument("--output", type=Path, help="Write JSON snapshot instead of stdout")
+    parser.add_argument("--binary", type=Path, default=None,
+                        help="Trusted explicit executable; default official llama on PATH")
+    parser.add_argument("--command", choices=tuple(ROUTES), default="serve",
+                        help="Official integrated CLI subcommand, default serve")
+    parser.add_argument("--registry", type=Path, default=REGISTRY)
+    parser.add_argument("--output", type=Path, help="Write JSON instead of stdout")
     parser.add_argument("--include-devices", action="store_true",
-                        help="Also invoke --list-devices (may initialize GPU drivers)")
+                        help="Opt-in --list-devices; may initialize GPU drivers")
     parser.add_argument("--timeout", type=int, default=10)
     args = parser.parse_args()
     try:
         registry = json.loads(args.registry.read_text(encoding="utf-8"))
-        snapshot = probe_binary(args.binary, registry, include_devices=args.include_devices,
+        snapshot = probe_binary(args.binary, registry, command=args.command,
+                                include_devices=args.include_devices,
                                 timeout_seconds=args.timeout)
-        rendered = json.dumps(snapshot, indent=2, ensure_ascii=False) + "\n"
+        result = json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n"
         if args.output:
             args.output.parent.mkdir(parents=True, exist_ok=True)
-            args.output.write_text(rendered, encoding="utf-8")
+            args.output.write_text(result, encoding="utf-8")
             print("Created capability snapshot:", args.output)
         else:
-            print(rendered, end="")
+            print(result, end="")
     except (OSError, ValueError, KeyError, json.JSONDecodeError) as error:
         print("Probe failed:", error, file=sys.stderr)
         return 1
