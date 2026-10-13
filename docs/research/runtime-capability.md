@@ -32,7 +32,7 @@ python tools/probe_runtime.py --binary "D:\old-llama\llama-bench.exe" --command 
 - 整合式 `fit-params`：`llama version`、`llama help all`、`llama fit-params --help`；**不**執行模型 Fitting。
 - 舊式執行檔：`llama-server --version`、`llama-server --help`（或 `llama-bench` 的對應指令）。
 
-必須傳入 `--include-devices` 才會執行裝置查詢（可能初始化 GPU 驅動）。每個命令都有 timeout。透過 `subprocess` argv 陣列執行，**不使用 shell**，沒有任何自動下載或更新。
+必須傳入 `--include-devices` 才會執行裝置查詢（可能初始化 GPU 驅動）。每個命令都經由共用 `process_runner` 以 argv 陣列執行，具備 timeout、擷取範圍和輸出量的週期性上限控制，**不使用 shell**，沒有任何自動下載或更新。儲存的 Runtime 快照會經 `runtime_snapshot` Schema 檢查。
 
 ## 集中路由與身份識別
 

@@ -55,11 +55,19 @@ Benchmark Adapter（llama-bench 與未來 server workload）
 
 ## GGUF 模型可行性資料階段
 
-新增 `tools/inspect_gguf.py` 作為獨立模型中繼資料入口：只讀取 GGUF 標頭、KV 與張量描述，保留檔案局部性與分檔狀態；不讀權重、不啟動推論引擎。解析出來的模型資訊不能直接與 GGML 裝置剩餘記憶體比較，因為模型載入、KV Cache、Context 和 Backend Buffer 的需求仍未知。已加入單一候選參數的 `tools/fit_estimate.py`：預設預覽，只有明確 `--execute` 才會讓官方引擎讀取模型並列印估算。它驗證 Fit Help 與設備快照的 SHA-256 相符，仍不代表實際載入成功或找到最佳配置。多候選搜尋、完整分檔確認與可靠的估算輸出解析仍待開發。
+新增 `tools/inspect_gguf.py` 作為獨立模型中繼資料入口：只讀取 GGUF 標頭、KV 與張量描述，保留檔案局部性與分檔狀態；不讀權重、不啟動推論引擎。解析出來的模型資訊不能直接與 GGML 裝置剩餘記憶體比較，因為模型載入、KV Cache、Context 和 Backend Buffer 的需求仍未知。已加入單一候選參數的 `tools/fit_estimate.py`：預設預覽，只有明確 `--execute` 才會讓官方引擎讀取模型並列印估算。它驗證 Fit Help 與設備快照的 SHA-256 相符，仍不代表實際載入成功或找到最佳配置。已針對 Windows 實機輸出實作 Model／Context／Compute 的嚴格 MiB 解析，並支援舊 JSON 離線轉換；尚待多候選搜尋、完整分檔確認、實際載入與效能驗證。
 
 ## 測試情境與可用記憶體記錄
 
 現在估算 Runner 可以在 `--execute` 明確授權後，各在開始前和結束後擷取一次系統 RAM 與 GGML 記憶體餘量；用 `daily`／`reduced_background` 保存手動實驗條件。這不是高頻記憶體追蹤或載入成功率，也不能把前後差值歸因於模型或 Wallpaper Engine。跨情境比較器只接受同引擎版本、同記錄模型與同候選設定。
+
+## 穩定性共用模組
+
+- `tools/safe_output.py`：原子 UTF-8 輸出，預設禁止覆寫，另外保護模型、能力快照、執行檔與資料來源路徑。
+- `tools/runtime_snapshot.py`：對產生及消費的 Runtime JSON 做結構驗證，SHA 不一致就拒絕。
+- `tools/process_runner.py`：共用逾時、輸出擷取與磁碟輸出限制，絕不經 shell；目前殺的是直接子程序，完整 Process Tree 管理仍待真正 Runner 階段。
+- `tools/model_identity.py`：預設低 I/O 模型 Metadata Prefix Hash；使用者可指定完整 SHA-256，但它也不等於權重內容正確可推論的證明。
+- GitHub CI 同時在 Windows／Linux、Python 3.11／3.13 跑模擬與平台檢查；仍無真 GPU、模型載入測試。
 
 ## 裝置探測的狀態界線
 

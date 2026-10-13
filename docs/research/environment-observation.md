@@ -57,7 +57,7 @@ python tools/compare_scenarios.py --daily fit-daily.json `
 - `available_memory_change`：估算後可用量減估算前可用量；可為正或負。`peak_gpu_usage_mib`、`peak_ram_usage_mib` 一律為 `null`，因為沒有連續峰值採樣。
 - `estimate.status`：`completed`／`nonzero_exit`／`timeout`／`process_error`，僅表示官方估算子程序結果，**不是模型實際載入測試**。
 
-取樣本身會初始化 GGML 裝置，可能干擾瞬時空閒記憶體。即使 GPU 數字成功，仍不能直接與 Windows Task Manager 專用 VRAM 指標混用。此階段也尚未進行真實 Windows 實機驗證，CI 只有模擬系統資訊及裝置輸出。
+取樣本身會初始化 GGML 裝置，可能干擾瞬時空閒記憶體。即使 GPU 數字成功，仍不能直接與 Windows Task Manager 專用 VRAM 指標混用。此階段已取得一份 Windows Vulkan0 的真實估算與前後環境快照，但 CI 仍以模擬裝置輸出和 Windows 系統 RAM API 單元測試為主，沒有真正 GPU Benchmark。
 
 ## 下一步
 

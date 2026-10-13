@@ -2,7 +2,7 @@
 
 ATYL 研究如何根據使用者的硬體、模型、服務負載與目標，自動找出合適的 llama.cpp 執行參數。
 
-目前階段是**理解與規格化**：整理上游已提供的控制面、量測能力、限制與研究問題。這個 repo 尚未包含 GUI、完整 tuner、安裝器或執行期自動修改器。
+目前是**規格化與受控 CLI 原型**階段：已有 Runtime 探測、GGUF Metadata 檢查、單候選記憶體估算、記憶體輸出解析與環境比較；尚無 GUI、完整 Tuner、Benchmark Runner 或真正的模型載入可行性驗證。
 
 ## 官方 llama.cpp 安裝與執行入口
 
@@ -43,10 +43,16 @@ python tools/probe_runtime.py --command fit-params --output fit-capability.json
 
 - `tools/engine_adapter.py`：官方整合式 CLI 與 Legacy 命令路由的唯一來源。
 - `tools/engine_identity.py`：實際二進位 SHA-256、版本回報與獨立的 Registry 來源 Commit；更新版本時生成不同的能力快取 Key。
-- `schemas/*.json`：已升級為 `1.1.0`，實際引擎 Build 與文件 Registry SHA 不再互相冒充。Build／Backend 尚未證實時以 `null` 保存。
-- `fit-params` 目前僅支援不載入模型的 `--help` 探測，已加入 13 項精選 Fit 旗標作為能力研究基準。
+- `schemas/workload-profile.schema.json`／`run-record.schema.json` 為 1.1.0；記憶體估算契約為 0.3.0，Runtime Probe 為 1.1.0。引擎 Build 與文件 Registry SHA 不互相冒充。
+- `fit-params` 支援唯讀 `--help` 與**明確 `--execute` 授權**的單一候選記憶體估算。13 項精選 Fit 旗標為研究基準，並非完整參數 Registry。
 - `tools/device_inventory.py`：可選擇性列舉 GGML 回報的非 CPU 裝置及可用記憶體；尚未驗證實際 Backend／模型能力。
 - [Windows 手動 Smoke Test](docs/research/windows-smoke-test.md)：操作官方已安裝的 llama.exe，不需要啟動推理服務。
+
+## 穩定性與安全重構
+
+所有 JSON 輸出工具統一使用原子式安全寫入：**預設不覆寫已存在的 JSON**，重跑相同輸出檔名需加 `--overwrite`，且永遠禁止把重要輸入檔當輸出。估算若子程序逾時、失敗或輸出過量，即使保存了診斷 JSON，也會以**退出碼 2**結束（0 代表預覽或估算執行完成；1 代表驗證或檔案寫入失敗）。Runtime 快照有結構 Schema 驗證，所有引擎呼叫共用受輸出／時間限制的子程序執行器。
+
+GGUF 快速 Fingerprint 只雜湊 Metadata 前綴加上檔案大小／修改時間；需要完整模型內容 SHA-256 時，才明確加 `--full-model-sha256`（會對大型 GGUF 進行完整磁碟讀取）。[穩定性重構與操作注意](docs/research/stability-review.md)。
 
 ## GGUF 模型資訊檢查（不啟動 llama）
 
@@ -87,4 +93,4 @@ python tools/inspect_gguf.py --model "D:\AIModels\Author\Repository\model.gguf" 
 
 ## 狀態
 
-研究起始文件。尚未實作或驗證自動調參流程，也沒有宣稱任何參數在所有硬體或模型上最佳。
+核心資料探測與受控估算已形成 CLI 研究原型，使用者先前已在 Windows Vulkan 設備驗證單一記憶體估算；但自動調參、實際模型載入驗證及正式 Benchmark Runner 仍未完成。
