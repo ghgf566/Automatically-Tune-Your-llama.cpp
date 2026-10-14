@@ -34,6 +34,7 @@ The scan reads GGUF header/KV information and walks tensor **descriptors** only.
 | `general.quantization_version` | Format's quantization version, if supplied |
 | `architecture_metadata` | Whitelisted numerical architecture keys such as `block_count`, `embedding_length`, `expert_count`, `expert_used_count`, `attention.head_count`, `attention.head_count_kv`, `attention.key_length`, `attention.value_length`, `rope.dimension_count` |
 | `tensor_type_id_counts` | Count of reported tensor type IDs, *not validated tensor contents* |
+| `metadata_sha256` | SHA-256 of the parsed GGUF header, metadata and tensor-descriptor prefix, excluding actual tensor weight bytes; absent in earlier JSON observations |
 | `split` | Part metadata when declared; **never assumes all companion files were inspected** |
 | `validation` | Explicitly distinguishes parsed metadata from unverified weights and model/backend execution |
 
@@ -43,7 +44,7 @@ Unknown or absent metadata stays `null` or omitted; MoE capability is **not infe
 
 - The parser checks the `GGUF` magic, header version, dimensions, counts, UTF-8 strings, alignment and file boundaries. Unknown types, malformed or oversized entries fail with an error.
 - To avoid unbounded metadata processing, it caps scanning at 256 MiB of header and descriptors, 100k KV pairs, 1 million tensors and 2 million elements in any one array. A legitimate model above the cap must be handled by a future more capable reader; the cap is intentional.
-- No model files are modified. No full GGUF SHA-256 is calculated because hashing all model bytes would violate this stage's low-I/O purpose. File size alone does **not** uniquely identify a model.
+- No model files are modified. The Inspector hashes **only the metadata prefix** using the same file descriptor used for parsing; it never computes a **full-file** GGUF SHA-256, because reading model weights would defeat the low-I/O purpose. File size alone does **not** uniquely identify a model.
 - A successful output proves only the **parsed header and tensor-descriptor structure**. It does not verify tensor payload integrity, complete shards, runtime memory needs, GPU operator support, compatibility with an actual installed `llama.exe`, or inference quality.
 - A multi-file GGUF may distribute tensors across shards; inspect each relevant part in a later aggregation phase. Multimodal `mmproj` can be another GGUF and must not be mistaken for the main language model.
 - The JSON can include a model filename and general model name. Review it before sharing if these are private.
@@ -53,3 +54,9 @@ Unknown or absent metadata stays `null` or omitted; MoE capability is **not infe
 The layout and v2/v3 support are grounded in the upstream [GGUF header](https://github.com/ggml-org/llama.cpp/blob/77c4540ce4667f4577753fe034a3a8042f510b8f/ggml/include/gguf.h) and [GGUF Reader](https://github.com/ggml-org/llama.cpp/blob/77c4540ce4667f4577753fe034a3a8042f510b8f/gguf-py/gguf/gguf_reader.py), pinned to the registry's baseline commit. CI tests construct **synthetic GGUF binaries** and never execute a real model.
 
 Next: `tools/fit_estimate.py` now previews one fixed-configuration memory-estimate command using a current binary-matched Fit snapshot and, for GPU usage, a device snapshot. Real GGUF reads by llama are gated behind `--execute`. See [controlled fit preview](fit-estimate-preview.md). This is not a benchmark or a tested fit, and file size/device free-memory comparisons are not a substitute for it.
+
+## Metadata identity check before MTP planning
+
+As of the pre-Feasibility audit, new Inspector output includes `metadata_sha256`. When the MTP planner is given a previously recorded **full-hash** Fit plan with `--fit-plan`, it compares the GGUF observation's `metadata_sha256` and `metadata_bytes_scanned` with the Fit model fingerprint's `metadata_sha256` and `metadata_span_bytes`, in addition to architecture, filename, file size and engine SHA. This ties both historical records to the same observed metadata prefix and reduces the risk of mixing snapshots with identical filenames/sizes.
+
+Old `model-metadata.json` files remain valid research observations but may lack this new field. **Regenerate the observation** using `tools/inspect_gguf.py --overwrite` before using `--fit-plan` identity binding. This metadata digest neither authenticates model weights nor substitutes for a fresh on-disk full-file identity check at actual load time.

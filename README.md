@@ -39,6 +39,10 @@ python tools/probe_runtime.py --command fit-params --output fit-capability.json
 - [初步系統架構](docs/research/system-architecture.md)
 - [上游來源與版本](docs/sources.md)
 
+## 進入 Feasibility 階段前的整合驗收
+
+已完成從 CLI／GGUF 探測、受控 Fit、完整 Profile、MTP Draft N 候選，到 Candidate ID／Run Record 的跨模組程式碼檢查與合成模型整合測試。GGUF Inspector 現會輸出**標頭前綴 SHA-256**，防止先前 Fit 的記錄與不相干的 Metadata JSON 僅憑同檔名／大小被連結；舊 Metadata JSON 需重新產生才能使用此身分關聯機制。具體驗收結果與未完成的實機功能見 [Feasibility 前最終驗收](docs/research/pre-feasibility-audit.md)。
+
 ## 目前的架構分層
 
 - `tools/engine_adapter.py`：官方整合式 CLI 與 Legacy 命令路由的唯一來源。
