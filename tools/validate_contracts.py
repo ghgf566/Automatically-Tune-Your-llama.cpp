@@ -178,15 +178,17 @@ def validate(schema_path, document_path):
     if Path(schema_path).name == "workload-profile.schema.json":
         check_profile_consistency(document)
     if Path(schema_path).name == "run-record.schema.json":
+        # Verify the core execution identity before checking optional
+        # speculative sub-records, so invalid runs fail on their root cause.
+        if document["status"] == "success":
+            if document["engine_binary_sha256"] is None or not document["configuration"]["launched_argv"]:
+                raise ValueError("successful run must record engine binary hash and launched_argv")
         if "speculative_observation" in document:
             check_speculative_result_consistency(
                 document["speculative_observation"], document["status"])
             if (document["speculative_observation"]["measurement_status"] == "completed"
                     and not document.get("candidate_id")):
                 raise ValueError("completed speculative measurement requires candidate_id")
-        if document["status"] == "success":
-            if document["engine_binary_sha256"] is None or not document["configuration"]["launched_argv"]:
-                raise ValueError("successful run must record engine binary hash and launched_argv")
     return document
 
 
