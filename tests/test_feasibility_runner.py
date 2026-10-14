@@ -6,6 +6,7 @@ import sys
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from jsonschema import Draft202012Validator
 
@@ -131,6 +132,52 @@ class FeasibilityRunnerTests(unittest.TestCase):
                          "observed")
         self.assertGreater(result["memory_observation"]["host_process_memory_sample_count"], 0)
         self.assertGreater(result["memory_observation"]["host_peak_process_mib"], 0)
+        self.assertIsNone(result["memory_observation"]["device_peak_process_mib"])
+        self.assertEqual(result["memory_observation"]["device_memory_observation"]["reason"],
+                         "gpu_offload_not_requested")
+        REPORT_VALIDATOR.validate(result)
+
+    def test_gpu_memory_observation_is_optional_and_schema_valid(self):
+        from run_feasibility import execute_plan
+
+        class FakeMonitor:
+            def start(self):
+                pass
+
+            def stop_and_report(self):
+                return {
+                    "status": "observed", "reason": None, "provider": "nvidia_smi",
+                    "process_attribution": "system_wide", "sample_count": 1,
+                    "sample_interval_ms": 1000,
+                    "devices": [{
+                        "uuid": "GPU-abc-123", "name": "NVIDIA Example",
+                        "total_memory_mib": 8192, "minimum_free_memory_mib": 7000,
+                        "maximum_used_memory_mib": 1000, "sample_count": 1,
+                    }],
+                }
+
+        with TemporaryDirectory() as temp:
+            profile, preview, observation, runtime, target, engine = self._fixture(temp)
+            candidate = next(item for item in preview["candidates"] if item["mode"] == "off")
+            plan = build_plan(profile, preview, observation, runtime,
+                              candidate["candidate_id"], target, binary=engine,
+                              timeout_seconds=10)
+            script = (
+                "from http.server import BaseHTTPRequestHandler,HTTPServer\n"
+                "class H(BaseHTTPRequestHandler):\n"
+                " def do_GET(self):\n"
+                "  self.send_response(200);self.end_headers();self.wfile.write(b'{\"status\":\"ok\"}')\n"
+                " def log_message(self,*args): pass\n"
+                f"HTTPServer(('127.0.0.1',{plan['port']}),H).serve_forever()"
+            )
+            plan["_argv"] = [sys.executable, "-u", "-c", script, "--gpu-layers", "1"]
+            with patch("run_feasibility.DeviceMemoryMonitor", FakeMonitor):
+                result = execute_plan(plan)
+
+        self.assertEqual(result["memory_observation"]["device_memory_observation"]["status"],
+                         "observed")
+        self.assertEqual(result["memory_observation"]["device_memory_observation"]["devices"][0][
+            "minimum_free_memory_mib"], 7000)
         self.assertIsNone(result["memory_observation"]["device_peak_process_mib"])
         REPORT_VALIDATOR.validate(result)
 

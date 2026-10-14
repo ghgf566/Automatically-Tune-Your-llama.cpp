@@ -24,3 +24,10 @@
 - [官方 Windows PowerShell 安裝腳本](https://llama.app/install.ps1)（非固定快照，2026-10-14 核對）：探測 CUDA → ROCm → Vulkan → CPU 並將 `llama.exe` 安裝至 LocalAppData 的 WindowsApps；不能預先假定選中何種 GPU 後端。
 - [固定上游 commit 的整合式指令路由原始碼](https://github.com/ggml-org/llama.cpp/blob/77c4540ce4667f4577753fe034a3a8042f510b8f/app/llama.cpp)：確認 `version`、`serve`、`bench`、`fit-params` 與 `update` 指令。`update` 僅官方 installer build 支援。
 - 本項是 ATYL 的執行檔發現和路由規則，**不改寫**先前五份研究文件所使用的固定 CLI 參數基準。
+
+## Windows GPU 記憶體觀測限制
+
+- [Microsoft：GPU Process Memory 計數器可能回報錯誤值](https://learn.microsoft.com/en-us/troubleshoot/windows-client/performance/gpu-process-memory-counters-report-wrong-value)：受影響的 Windows 版本中，GPU Process Memory 與工作管理員 Details 頁的程序 Dedicated GPU Memory 可能錯誤；不能拿來宣稱程序 VRAM 峰值。
+- [Microsoft：Performance Counters 概述](https://learn.microsoft.com/en-us/windows/win32/perfctrs/about-performance-counters)：系統效能計數器適合診斷資料收集，不適合高頻率資料收集；文件指出不應每秒收集超過一次。
+
+因此 ATYL 此階段只以 NVIDIA `nvidia-smi` 的裝置層級讀數記錄 free／used memory，並清楚保留其他行程造成的干擾與程序歸屬未知。

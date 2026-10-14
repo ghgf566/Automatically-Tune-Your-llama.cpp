@@ -26,6 +26,7 @@ from model_identity import fingerprint
 from plan_speculative_search import PREVIEW_VALIDATOR
 from process_runner import run_until_ready
 from process_memory import MIB, sample_process_tree
+from device_memory import DeviceMemoryMonitor
 from runtime_snapshot import SnapshotValidationError, check_snapshot
 from safe_output import write_text
 from validate_contracts import (
@@ -304,7 +305,8 @@ def build_plan(profile, preview, model_observation, runtime_snapshot, candidate_
             "Plan creation never launches llama; --execute is required for a real model load.",
             "Execution starts a local server, waits for /health readiness, then stops its owned process tree.",
             "No inference request, throughput benchmark, acceptance counter, or model-quality check is performed.",
-            "Host availability is system-wide; the load report separately records a 500 ms sampled process-tree Working Set/RSS maximum, which can miss spikes and double-count shared pages; VRAM peak remains unknown.",
+            "Host availability is system-wide; the load report separately records a 500 ms sampled process-tree Working Set/RSS maximum, which can miss spikes and double-count shared pages.",
+            "NVIDIA device free/used memory is sampled system-wide once per second when GPU offload is requested; it is not process-attributed, not mapped to a llama device ID, and is not a process VRAM peak.",
             "External server features and model bundles outside single-file GGUF inputs are not accepted.",
         ],
         "_argv": argv,
@@ -340,13 +342,27 @@ def execute_plan(plan, *, cancel_event=None):
             samples.append(sample["available_mib"])
         return _health_check(plan["port"])
 
+    gpu_offload_requested = False
+    for flag in ("--gpu-layers", "--spec-draft-ngl"):
+        if flag in plan["_argv"]:
+            gpu_offload_requested |= int(plan["_argv"][plan["_argv"].index(flag) + 1]) > 0
+    device_monitor = DeviceMemoryMonitor() if gpu_offload_requested else None
+    if device_monitor:
+        device_monitor.start()
     started = time.monotonic()
-    result = run_until_ready(
-        plan["_argv"], plan["timeout_seconds"], ready_check,
-        capture_bytes=65536, output_limit_bytes=8 * 1024 * 1024,
-        env=clean_llama_env(), poll_interval=0.5, cancel_event=cancel_event,
-        sample_callback=sample_memory,
-    )
+    try:
+        result = run_until_ready(
+            plan["_argv"], plan["timeout_seconds"], ready_check,
+            capture_bytes=65536, output_limit_bytes=8 * 1024 * 1024,
+            env=clean_llama_env(), poll_interval=0.5, cancel_event=cancel_event,
+            sample_callback=sample_memory,
+        )
+    finally:
+        device_observation = (device_monitor.stop_and_report() if device_monitor else {
+            "status": "unknown", "reason": "gpu_offload_not_requested",
+            "provider": None, "process_attribution": "not_available",
+            "sample_count": 0, "sample_interval_ms": 1000, "devices": [],
+        })
     elapsed = round(time.monotonic() - started, 3)
     after = system_ram()
     status_map = {
@@ -389,6 +405,7 @@ def execute_plan(plan, *, cancel_event=None):
             if process_coverage else "unknown"),
         "device_available_during_startup_mib": None,
         "device_peak_process_mib": None,
+        "device_memory_observation": device_observation,
         "attribution": "owned_process_tree_sampled" if process_samples else "system_wide_host_memory_only",
     }
     plan.pop("_argv", None)

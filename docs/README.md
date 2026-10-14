@@ -27,4 +27,4 @@
 
 ## 目前限制
 
-登錄表來自官方文件，不是執行檔能力驗證。受控載入檢查不執行推論或效能 Benchmark；已能取樣記錄受控程序樹的 Host Working Set／RSS 最高觀測值，但尚無 draft-aware 預估、可靠的 VRAM 峰值記錄、正式 Benchmark Runner 或自動搜尋，也沒有自動修改使用者 llama.cpp 設定的功能。
+登錄表來自官方文件，不是執行檔能力驗證。受控載入檢查不執行推論或效能 Benchmark；已能取樣記錄受控程序樹的 Host Working Set／RSS 最高觀測值，並在 GPU offload 時觀察 NVIDIA 系統層級的可用／已用記憶體，但這不是程序 VRAM 峰值，也不會映射到 llama 裝置 ID。尚無 draft-aware 預估、可歸屬的 VRAM 峰值、正式 Benchmark Runner 或自動搜尋，也沒有自動修改使用者 llama.cpp 設定的功能。
