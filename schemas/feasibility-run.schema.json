@@ -97,7 +97,35 @@
         "host_process_tree_sampling_coverage": {"enum": ["complete", "partial", "unknown"]},
         "device_available_during_startup_mib": {"type": "null"},
         "device_peak_process_mib": {"type": "null"},
+        "device_memory_observation": {"$ref": "#/$defs/device_memory_observation"},
         "attribution": {"enum": ["system_wide_host_memory_only", "owned_process_tree_sampled"]}
+      }
+    },
+    "device_memory_observation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "reason", "provider", "process_attribution", "sample_count", "sample_interval_ms", "devices"],
+      "properties": {
+        "status": {"enum": ["observed", "partial", "unknown"]},
+        "reason": {"type": ["string", "null"]},
+        "provider": {"enum": ["nvidia_smi", null]},
+        "process_attribution": {"enum": ["system_wide", "not_available"]},
+        "sample_count": {"type": "integer", "minimum": 0},
+        "sample_interval_ms": {"const": 1000},
+        "devices": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["uuid", "name", "total_memory_mib", "minimum_free_memory_mib", "maximum_used_memory_mib", "sample_count"],
+            "properties": {
+              "uuid": {"type": "string", "pattern": "^GPU-[A-Za-z0-9-]+$"},
+              "name": {"type": "string", "minLength": 1},
+              "total_memory_mib": {"type": "integer", "minimum": 1},
+              "minimum_free_memory_mib": {"type": "integer", "minimum": 0},
+              "maximum_used_memory_mib": {"type": "integer", "minimum": 0},
+              "sample_count": {"type": "integer", "minimum": 1}
+            }
+          }
+        }
       }
     }
   },
