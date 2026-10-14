@@ -78,7 +78,10 @@ class GGUFInspectionTest(unittest.TestCase):
         self.assertEqual(out["architecture_metadata"]["expert_count"], 128)
         self.assertEqual(out["tensor_type_id_counts"], {"8": 1})
         self.assertEqual(out["tensor_count_in_this_file"], 1)
-        self.assertNotIn("tokenizer", json.dumps(out))
+        self.assertEqual(out["tokenizer_metadata"]["status"], "observed")
+        self.assertEqual(out["tokenizer_metadata"]["metadata_key_count"], 1)
+        self.assertNotIn("private", json.dumps(out))
+        self.assertEqual(len(out["tokenizer_metadata"]["metadata_sha256"]), 64)
         from hashlib import sha256
         self.assertEqual(out["metadata_sha256"],
                          sha256(self.path.read_bytes()[:out["metadata_bytes_scanned"]]).hexdigest())

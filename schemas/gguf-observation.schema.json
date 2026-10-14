@@ -155,6 +155,34 @@
       "type": "integer",
       "minimum": 24
     },
+    "tokenizer_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "metadata_key_count",
+        "metadata_sha256"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "observed",
+            "unknown"
+          ]
+        },
+        "metadata_key_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "metadata_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
     "validation": {
       "type": "object",
       "additionalProperties": false,

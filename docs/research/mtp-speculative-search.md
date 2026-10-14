@@ -65,3 +65,43 @@ Search and observed result shapes are defined centrally in [`speculative-search.
 ## Current implementation status
 
 The read-only `tools/inspect_gguf.py` preserves `{arch}.nextn_predict_layers` when present. `tools/plan_speculative_search.py` now performs **bounded, non-executable candidate enumeration** with `draft_n_max`, mode/evidence gating and explicit baseline. It does **not** infer `mtp_supported=true`, compose runnable MTP argv, authenticate target-draft pairing, do MTP-aware fitting, load actual models or benchmark.
+
+### Target/draft read-only pairing preflight
+
+The first Feasibility-stage slice is `tools/verify_model_pair.py`. Given a full Profile, an artifact ID, and the explicitly selected local target and draft paths, it re-inspects both files and recomputes full-file SHA-256 against the Profile and artifact. It rejects declared multi-part GGUFs, checks architecture equality, and compares a digest over the exact raw `tokenizer.ggml.*` metadata entries. The Inspector exposes only the digest and entry count; it never outputs token strings.
+
+Example for a Profile that declares an external draft artifact:
+
+```powershell
+python tools/verify_model_pair.py `
+  --profile workload-profile.json `
+  --artifact-id draft-a `
+  --target-model "D:\Models\target.gguf" `
+  --draft-model "D:\Models\draft.gguf" `
+  --output draft-pair-preflight.json
+```
+
+A report that passes these checks is still `requires_runtime_load_verification`, has `executable: false`, and cannot establish true tokenizer behavior or engine-specific compatibility. Unknown or unequal tokenizer metadata blocks the pair. This verifier does not prove weight integrity beyond matching the supplied SHA-256, estimate combined draft+target memory, load either model, or measure peak memory.
+
+### Opt-in load feasibility
+
+`tools/run_feasibility.py` creates a non-executable plan, then permits one bounded local load only with an explicit `--execute`. It binds the candidate to the full Profile, current target GGUF observation, matching runtime snapshot and on-disk engine SHA. External draft candidates re-run target/draft file identity and metadata checks immediately before launch. The runner requires observed Help flags, a server/serve workload and bounded timeout; it fixes context/concurrency to the Profile, forces `--fit off`, requires explicit target GPU layer placement (and an explicit device for GPU offload), disables the Web UI, binds to loopback and uses an ephemeral port.
+
+After launch it polls `/health` for readiness and stops the owned server process tree on success, failure or timeout. It sends no inference request and performs no benchmark. The report records load outcome and startup duration, system-wide available Host RAM, and a 500 ms sampled maximum of the owned process tree's Windows Working Set or Linux RSS. The sampled maximum can miss short spikes, process-tree coverage is reported, and summing process Working Sets can double-count shared pages. Device VRAM peaks remain unknown. Readiness is not proof of MTP output correctness, reserve compliance or speed. Automated coverage uses synthetic GGUFs and a fake local HTTP service; development did not load a real model.
+
+The next stage is draft-aware resource estimation and device VRAM peak collection, followed by a real speculative serving benchmark: fixed prompts/sampling, off-versus-candidate comparisons, TTFT/tail latency, drafted/accepted-token counters where exposed, and repeated measurements.
+
+Plan-only example (first generate the model observation, runtime snapshot and candidate preview):
+
+```powershell
+python tools/run_feasibility.py `
+  --profile workload-profile.json `
+  --preview speculative-preview.json `
+  --model-observation model-metadata.json `
+  --runtime-snapshot server-capability.json `
+  --candidate-id CANDIDATE_SHA256 `
+  --target-model "D:\Models\target.gguf" `
+  --output load-check.json
+```
+
+Review the plan before explicitly adding `--execute`. External draft candidates also require `--draft-model PATH`.

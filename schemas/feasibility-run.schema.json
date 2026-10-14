@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ATYL bounded speculative feasibility load check v0.2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "status", "candidate_id", "profile_id",
+    "profile_sha256", "engine_binary_sha256", "mode", "requested_draft_n_max",
+    "artifact_id", "target", "draft", "pair_preflight", "host", "port",
+    "timeout_seconds", "launched_argv_redacted", "load_result",
+    "memory_observation", "limitations"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.2.0"},
+    "kind": {"const": "feasibility_load_check"},
+    "status": {"enum": ["prepared_not_executed", "load_verified", "load_failed", "timeout", "output_limit", "cancelled", "process_error"]},
+    "candidate_id": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "profile_id": {"type": "string", "minLength": 1},
+    "profile_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "engine_binary_sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+    "mode": {"$ref": "https://github.com/ghgf566/Automatically-Tune-Your-llama.cpp/blob/main/schemas/speculative-search.schema.json#/$defs/mode"},
+    "requested_draft_n_max": {"type": ["integer", "null"], "minimum": 1, "maximum": 64},
+    "artifact_id": {"type": ["string", "null"]},
+    "target": {"$ref": "#/$defs/model"},
+    "draft": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/model"}]},
+    "pair_preflight": {"type": ["object", "null"], "additionalProperties": true},
+    "host": {"const": "127.0.0.1"},
+    "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+    "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 1800},
+    "launched_argv_redacted": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "load_result": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/load_result"}]},
+    "memory_observation": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/memory"}]},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+  },
+  "$defs": {
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["filename", "file_size_bytes", "sha256", "architecture", "metadata_sha256", "tokenizer_metadata", "split"],
+      "properties": {
+        "filename": {"type": "string", "minLength": 1},
+        "file_size_bytes": {"type": "integer", "minimum": 24},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "architecture": {"type": ["string", "null"]},
+        "metadata_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "tokenizer_metadata": {
+          "type": "object", "additionalProperties": false,
+          "required": ["status", "metadata_key_count", "metadata_sha256"],
+          "properties": {
+            "status": {"enum": ["observed", "unknown"]},
+            "metadata_key_count": {"type": "integer", "minimum": 0},
+            "metadata_sha256": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "split": {
+          "type": "object", "additionalProperties": false,
+          "required": ["part_index", "part_count", "total_tensor_count_reported", "multiple_parts_reported", "all_parts_inspected"],
+          "properties": {
+            "part_index": {"type": ["integer", "null"]},
+            "part_count": {"type": ["integer", "null"]},
+            "total_tensor_count_reported": {"type": ["integer", "null"]},
+            "multiple_parts_reported": {"type": "boolean"},
+            "all_parts_inspected": {"const": false}
+          }
+        }
+      }
+    },
+    "load_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "failure_classification", "ready_endpoint_verified", "returncode_after_cleanup", "elapsed_seconds", "stdout_excerpt", "stderr_excerpt", "output_truncated_or_unknown", "verified_at_utc"],
+      "properties": {
+        "status": {"enum": ["load_verified", "load_failed", "timeout", "output_limit", "cancelled", "process_error"]},
+        "failure_classification": {"enum": ["likely_out_of_memory", "model_load_or_runtime_error", null]},
+        "ready_endpoint_verified": {"type": "boolean"},
+        "returncode_after_cleanup": {"type": ["integer", "null"]},
+        "elapsed_seconds": {"type": "number", "minimum": 0},
+        "stdout_excerpt": {"type": "string", "maxLength": 65536},
+        "stderr_excerpt": {"type": "string", "maxLength": 65536},
+        "output_truncated_or_unknown": {"type": "boolean"},
+        "verified_at_utc": {"type": "string", "format": "date-time"}
+      }
+    },
+    "memory": {
+      "type": "object", "additionalProperties": false,
+      "required": ["host_available_before_mib", "host_available_min_during_startup_mib", "host_available_after_cleanup_mib", "host_minimum_delta_from_before_mib", "host_peak_process_mib", "host_process_memory_metric", "host_process_memory_sampling_status", "host_process_memory_sample_count", "host_process_memory_sample_interval_ms", "host_process_tree_peak_process_count", "host_process_tree_sampling_coverage", "device_available_during_startup_mib", "device_peak_process_mib", "attribution"],
+      "properties": {
+        "host_available_before_mib": {"type": ["integer", "null"], "minimum": 0},
+        "host_available_min_during_startup_mib": {"type": ["integer", "null"], "minimum": 0},
+        "host_available_after_cleanup_mib": {"type": ["integer", "null"], "minimum": 0},
+        "host_minimum_delta_from_before_mib": {"type": ["integer", "null"]},
+        "host_peak_process_mib": {"type": ["integer", "null"], "minimum": 0},
+        "host_process_memory_metric": {"enum": ["working_set", "rss", null]},
+        "host_process_memory_sampling_status": {"enum": ["observed", "unknown"]},
+        "host_process_memory_sample_count": {"type": "integer", "minimum": 0},
+        "host_process_memory_sample_interval_ms": {"const": 500},
+        "host_process_tree_peak_process_count": {"type": ["integer", "null"], "minimum": 1},
+        "host_process_tree_sampling_coverage": {"enum": ["complete", "partial", "unknown"]},
+        "device_available_during_startup_mib": {"type": "null"},
+        "device_peak_process_mib": {"type": "null"},
+        "attribution": {"enum": ["system_wide_host_memory_only", "owned_process_tree_sampled"]}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "prepared_not_executed"}}},
+      "then": {"properties": {"load_result": {"type": "null"}, "memory_observation": {"type": "null"}}}
+    },
+    {
+      "if": {"properties": {"status": {"enum": ["load_verified", "load_failed", "timeout", "output_limit", "cancelled", "process_error"]}}},
+      "then": {"properties": {"load_result": {"type": "object"}, "memory_observation": {"type": "object"}}}
+    }
+  ]
+}
