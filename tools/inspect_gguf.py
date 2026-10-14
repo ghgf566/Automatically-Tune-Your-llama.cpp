@@ -141,7 +141,8 @@ def inspect(path):
     path = Path(path).expanduser().resolve()
     if not path.is_file():
         raise GGUFMetadataError("GGUF path must be an existing regular file")
-    size = path.stat().st_size
+    original_stat = path.stat()
+    size = original_stat.st_size
     with path.open("rb") as file:
         reader = BoundedReader(file, size)
         if reader.read(4) != MAGIC:
@@ -193,20 +194,21 @@ def inspect(path):
         data_offset = ((metadata_end + alignment - 1) // alignment) * alignment
         if tensor_count and data_offset > size:
             raise GGUFMetadataError("tensor data offset exceeds file length")
-
-    # Digest exactly the prefix that the standalone Fit fingerprint hashes:
-    # GGUF header, metadata and tensor descriptors, not tensor payloads.
-    # The scan is bounded by MAX_HEADER_BYTES and reads only the parsed prefix.
-    with path.open("rb") as stream:
+        # Hash the exact parsed prefix from the SAME open file descriptor.
+        # Neither this read nor the earlier metadata parsing touches weights.
         prefix_hash = hashlib.sha256()
+        file.seek(0)
         remaining = metadata_end
         while remaining:
-            piece = stream.read(min(1024 * 1024, remaining))
+            piece = file.read(min(1024 * 1024, remaining))
             if not piece:
                 raise GGUFMetadataError("GGUF header changed during fingerprint")
             prefix_hash.update(piece)
             remaining -= len(piece)
-    if path.stat().st_size != size:
+
+    final_stat = path.stat()
+    if (final_stat.st_size != original_stat.st_size
+            or final_stat.st_mtime_ns != original_stat.st_mtime_ns):
         raise GGUFMetadataError("GGUF changed during metadata inspection")
     arch = metadata.get("general.architecture")
     arch_details = {key[len(arch) + 1:]: value for key, value in metadata.items()
