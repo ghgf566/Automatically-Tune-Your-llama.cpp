@@ -5,6 +5,7 @@ Source format: llama.cpp ggml/include/gguf.h and gguf-py/gguf/gguf_reader.py,
 pinned at 77c4540ce4667f4577753fe034a3a8042f510b8f.
 """
 import argparse
+import hashlib
 import json
 import math
 import struct
@@ -193,6 +194,20 @@ def inspect(path):
         if tensor_count and data_offset > size:
             raise GGUFMetadataError("tensor data offset exceeds file length")
 
+    # Digest exactly the prefix that the standalone Fit fingerprint hashes:
+    # GGUF header, metadata and tensor descriptors, not tensor payloads.
+    # The scan is bounded by MAX_HEADER_BYTES and reads only the parsed prefix.
+    with path.open("rb") as stream:
+        prefix_hash = hashlib.sha256()
+        remaining = metadata_end
+        while remaining:
+            piece = stream.read(min(1024 * 1024, remaining))
+            if not piece:
+                raise GGUFMetadataError("GGUF header changed during fingerprint")
+            prefix_hash.update(piece)
+            remaining -= len(piece)
+    if path.stat().st_size != size:
+        raise GGUFMetadataError("GGUF changed during metadata inspection")
     arch = metadata.get("general.architecture")
     arch_details = {key[len(arch) + 1:]: value for key, value in metadata.items()
                     if arch and key.startswith(arch + ".")}
@@ -221,6 +236,7 @@ def inspect(path):
             "all_parts_inspected": False,
         },
         "metadata_bytes_scanned": metadata_end,
+        "metadata_sha256": prefix_hash.hexdigest(),
         "validation": {
             "metadata_structure_parsed": True,
             "tensor_descriptors_parsed": True,

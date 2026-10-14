@@ -26,6 +26,7 @@ def model_observation(nextn=2):
     return {
         "schema_version": "0.1.0",
         "kind": "gguf_metadata_observation",
+        "metadata_sha256": "1" * 64,
         "source": {"filename": "example.gguf", "file_size_bytes": 4000},
         "gguf_version": 3,
         "tensor_count_in_this_file": 0,
@@ -247,7 +248,10 @@ class SpeculativePlanningTest(unittest.TestCase):
             "model": {
                 "filename": observed["source"]["filename"],
                 "file_size_bytes": observed["source"]["file_size_bytes"],
+                "architecture": observed["general"]["architecture"],
                 "fingerprint": {
+                    "metadata_span_bytes": observed["metadata_bytes_scanned"],
+                    "metadata_sha256": observed["metadata_sha256"],
                     "full_file_hashed": True,
                     "full_file_sha256": profile["model"]["sha256"],
                 }
@@ -258,6 +262,16 @@ class SpeculativePlanningTest(unittest.TestCase):
         self.assertEqual(p["model_identity_status"], "recorded_full_digest_match")
         self.assertEqual(p["candidates"][1]["readiness"], "requires_runtime_mode_and_load_test")
         self.assertFalse(p["candidates"][1]["executable"])
+        wrong_header = copy.deepcopy(observed)
+        wrong_header["metadata_sha256"] = "2" * 64
+        with self.assertRaisesRegex(SpeculativePlanError, "digest"):
+            make_preview(profile["speculative_search"], wrong_header, serve_runtime(),
+                         profile=profile, fit_plan=evidence)
+        missing_header_hash = copy.deepcopy(observed)
+        del missing_header_hash["metadata_sha256"]
+        with self.assertRaisesRegex(SpeculativePlanError, "metadata prefix digest"):
+            make_preview(profile["speculative_search"], missing_header_hash, serve_runtime(),
+                         profile=profile, fit_plan=evidence)
         evidence["model"]["fingerprint"]["full_file_sha256"] = "f" * 64
         with self.assertRaisesRegex(SpeculativePlanError, "digest"):
             make_preview(profile["speculative_search"], observed, serve_runtime(),

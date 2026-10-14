@@ -193,6 +193,11 @@
       "items": {
         "type": "string"
       }
+    },
+    "metadata_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA256 of exactly metadata_bytes_scanned bytes, no tensor weights. Optional for historical inspector records."
     }
   }
 }

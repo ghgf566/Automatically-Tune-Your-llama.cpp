@@ -103,9 +103,16 @@ def make_preview(search, target_observation, runtime_snapshot, *, profile=None, 
         fp = observed_fit.get("fingerprint")
         if not isinstance(fp, dict):
             raise SpeculativePlanError("fit model fingerprint missing")
+        if (not isinstance(target_observation.get("metadata_sha256"), str)
+                or len(target_observation["metadata_sha256"]) != 64):
+            raise SpeculativePlanError(
+                "GGUF observation lacks a metadata prefix digest; regenerate it before binding fit evidence")
         if (fit_plan.get("engine_sha256") != runtime["binary"]["sha256"]
                 or observed_fit.get("filename") != source["filename"]
                 or observed_fit.get("file_size_bytes") != source.get("file_size_bytes")
+                or observed_fit.get("architecture") != target_observation["general"]["architecture"]
+                or fp.get("metadata_span_bytes") != target_observation["metadata_bytes_scanned"]
+                or fp.get("metadata_sha256") != target_observation["metadata_sha256"]
                 or fp.get("full_file_hashed") is not True
                 or not isinstance(fp.get("full_file_sha256"), str)
                 or fp["full_file_sha256"].lower() != profile["model"]["sha256"].lower()):

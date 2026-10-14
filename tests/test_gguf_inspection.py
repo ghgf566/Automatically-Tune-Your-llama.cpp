@@ -79,6 +79,9 @@ class GGUFInspectionTest(unittest.TestCase):
         self.assertEqual(out["tensor_type_id_counts"], {"8": 1})
         self.assertEqual(out["tensor_count_in_this_file"], 1)
         self.assertNotIn("tokenizer", json.dumps(out))
+        from hashlib import sha256
+        self.assertEqual(out["metadata_sha256"],
+                         sha256(self.path.read_bytes()[:out["metadata_bytes_scanned"]]).hexdigest())
         self.assertFalse(out["validation"]["tensor_data_read"])
         self.assertFalse(out["validation"]["model_load_tested"])
         self.assertNotIn(self.folder.name, json.dumps(out))
