@@ -27,7 +27,7 @@ Registry 版本與真實引擎版本不能相互推論。CI 使用的 Profile／
 
 Prefer `engine.binary: "llama"`, `engine.command: "bench"` or `"serve"`, and `engine.installation_source: "llama.app"`. The registry target is inferred as `llama-bench` or `llama-server` *after resolving the subcommand*. Legacy profiles using `llama-bench` or `llama-server` may omit `engine.command`; conflicting explicit commands are rejected. The workload `mode` must match the effective command. This logic now uses `tools/engine_adapter.py` (the same central routing rules used by the probe).
 
-Do not hard-code WindowsApps into the profile. The eventual process record's `configuration.launched_argv` must include the real executable path **and subcommand**. Updating `llama.exe` changes the binary fingerprint and invalidates old capability measurements.
+PATH discovery remains the default, but a manually installed release can be pinned without changing PATH: set `engine.binary` in the workload profile to the absolute path of its executable, for example `D:\\Tools\\llama.cpp\\b11621-cuda12\\llama-server.exe`, and set `engine.command` to `serve` when using the integrated `llama.exe`. Keep the full CUDA release files together so its runtime DLLs stay beside the executable. Do not hard-code WindowsApps into a profile. The eventual process record's `configuration.launched_argv` must include the real executable path **and subcommand**. Updating the executable changes its binary fingerprint and invalidates old capability measurements.
 
 ## Run record
 

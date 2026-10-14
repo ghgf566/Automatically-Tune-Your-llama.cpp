@@ -58,7 +58,7 @@ python tools/probe_runtime.py --command fit-params --output fit-capability.json
 
 ## 未來調校變數：MTP／Speculative Decoding
 
-已將內建 NextN/MTP Head、外掛 MTP Head 和一般 Draft Model 分為不同候選，GGUF Inspector 現可唯讀擷取 `{arch}.nextn_predict_layers` 與 tokenizer metadata 摘要。`tools/verify_model_pair.py` 可重驗 target/draft 完整 SHA、單檔 GGUF、架構與 tokenizer metadata；**通過仍不代表引擎相容或模型可載入**。後續將以 `off` 基準、draft-aware 容量檢查與實際 Generation/Server Benchmark 比較。詳細規格見 [MTP／Speculative Decoding](docs/research/mtp-speculative-search.md)。
+已將內建 NextN/MTP Head、外掛 MTP Head 和一般 Draft Model 分為不同候選，GGUF Inspector 現可唯讀擷取 `{arch}.nextn_predict_layers` 與 tokenizer metadata 摘要。`tools/verify_model_pair.py` 可重驗 target/draft 完整 SHA、單檔 GGUF、架構與 tokenizer metadata；**通過仍不代表引擎相容或模型可載入**。`tools/run_speculative_benchmark.py` 可使用 server `--fit on` 跑固定 workload 的 `off`／內嵌 MTP 測量、監看 RAM/VRAM reserve，並記錄程序 Working Set 峰值。Windows WDDM 下程序 VRAM 歸因可能未知；若引擎日誌也沒有實際 GPU layer 數，結果會標為不可認證可比。詳細規格與實測限制見 [MTP／Speculative Decoding](docs/research/mtp-speculative-search.md)。
 
 ## 模型載入可行性檢查（預設不執行）
 
