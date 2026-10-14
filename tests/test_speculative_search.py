@@ -301,6 +301,50 @@ class SpeculativePlanningTest(unittest.TestCase):
             make_preview(profile["speculative_search"], observed,
                          serve_runtime(), profile=profile)
 
+    def test_real_metadata_prefix_hash_matches_opt_in_fit_identity(self):
+        """Synthetic GGUF bytes flow through real Inspector/Fingerprint/Planner."""
+        from hashlib import sha256
+        from test_gguf_inspection import synthetic_gguf
+        from inspect_gguf import inspect
+        from model_identity import fingerprint
+        with TemporaryDirectory() as temp:
+            path = Path(temp) / "example.gguf"
+            path.write_bytes(synthetic_gguf([
+                ("general.architecture", 8, "qwen35"),
+                ("qwen35.nextn_predict_layers", 4, 2),
+            ], tensor=False))
+            observed = inspect(path)
+            actual_fingerprint = fingerprint(
+                path, observed["metadata_bytes_scanned"], full_sha256=True)
+            self.assertEqual(actual_fingerprint["metadata_sha256"],
+                             observed["metadata_sha256"])
+            profile = json.loads(
+                (ROOT / "examples/workload-profile.speculative.example.json").read_text("utf-8"))
+            profile["model"]["architecture"] = "qwen35"
+            profile["model"]["sha256"] = sha256(path.read_bytes()).hexdigest()
+            recorded = {
+                "kind": "fit_estimate_plan",
+                "engine_sha256": "a" * 64,
+                "model": {
+                    "filename": observed["source"]["filename"],
+                    "file_size_bytes": observed["source"]["file_size_bytes"],
+                    "architecture": "qwen35",
+                    "fingerprint": actual_fingerprint,
+                },
+            }
+            plan = make_preview(profile["speculative_search"], observed,
+                                serve_runtime(), profile=profile, fit_plan=recorded)
+            self.assertEqual(plan["model_identity_status"], "recorded_full_digest_match")
+            self.assertEqual(plan["candidates"][1]["readiness"],
+                             "requires_runtime_mode_and_load_test")
+            self.assertFalse(plan["candidates"][1]["executable"])
+
+            mutated_observation = copy.deepcopy(observed)
+            mutated_observation["metadata_sha256"] = "b" * 64
+            with self.assertRaisesRegex(SpeculativePlanError, "digest"):
+                make_preview(profile["speculative_search"], mutated_observation,
+                             serve_runtime(), profile=profile, fit_plan=recorded)
+
     def test_measured_result_must_retain_candidate_id(self):
         from validate_contracts import validate
         obj = json.loads((ROOT / "examples/run-record.example.json").read_text("utf-8"))
