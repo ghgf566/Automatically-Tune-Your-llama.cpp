@@ -2,6 +2,7 @@
 import json
 import sys
 import unittest
+from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch, mock_open
 
@@ -38,13 +39,19 @@ class EnvironmentObservationTests(unittest.TestCase):
 
     def test_gpu_headroom_parses_selected_device(self):
         class Proc:
+            def __init__(self, stdout=b"", stderr=b"", returncode=0):
+                self.stdout = BytesIO(stdout)
+                self.stderr = BytesIO(stderr)
+                self.returncode = returncode
+
             def wait(self, timeout):
-                return 0
+                return self.returncode
         def launch(argv, **kwargs):
             self.assertEqual(argv, ["C:/fake/llama.exe", "serve", "--list-devices"])
-            kwargs["stdout"].write(
-                b"Available devices:\n  Vulkan0: Synthetic GPU (8192 MiB, 7300 MiB free)\n")
-            return Proc()
+            self.assertEqual(kwargs["stdout"], env.subprocess.PIPE)
+            self.assertEqual(kwargs["stderr"], env.subprocess.PIPE)
+            return Proc(stdout=(
+                b"Available devices:\n  Vulkan0: Synthetic GPU (8192 MiB, 7300 MiB free)\n"))
         with patch.object(env.subprocess, "Popen", side_effect=launch) as popen:
             gpu = env.ggml_headroom("C:/fake/llama.exe", "Vulkan0")
         self.assertEqual(gpu["status"], "observed")
@@ -55,12 +62,16 @@ class EnvironmentObservationTests(unittest.TestCase):
 
     def test_missing_fresh_device_does_not_infer_no_gpu(self):
         class Proc:
+            def __init__(self, stdout=b"", stderr=b"", returncode=0):
+                self.stdout = BytesIO(stdout)
+                self.stderr = BytesIO(stderr)
+                self.returncode = returncode
+
             def wait(self, timeout):
-                return 0
+                return self.returncode
         def launch(argv, **kwargs):
-            kwargs["stdout"].write(
-                b"Available devices:\n  CUDA0: Synthetic (8192 MiB, 7300 MiB free)\n")
-            return Proc()
+            return Proc(stdout=(
+                b"Available devices:\n  CUDA0: Synthetic (8192 MiB, 7300 MiB free)\n"))
         with patch.object(env.subprocess, "Popen", side_effect=launch):
             got = env.ggml_headroom("llama.exe", "Vulkan0")
         self.assertEqual(got["status"], "unknown")
@@ -68,6 +79,10 @@ class EnvironmentObservationTests(unittest.TestCase):
 
     def test_probe_nonzero_retains_unknown(self):
         class Proc:
+            def __init__(self):
+                self.stdout = BytesIO()
+                self.stderr = BytesIO()
+
             def wait(self, timeout):
                 return 1
         with patch.object(env.subprocess, "Popen", return_value=Proc()):

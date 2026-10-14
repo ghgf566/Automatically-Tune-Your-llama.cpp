@@ -148,7 +148,10 @@ def check_speculative_result_consistency(observation, run_status):
     if drafted is not None and accepted is not None and accepted > drafted:
         raise ValueError("accepted draft tokens cannot exceed drafted tokens")
     rate = observation["acceptance_rate"]
-    if drafted not in (None, 0) and accepted is not None and rate is not None:
+    if rate is not None:
+        if drafted in (None, 0) or accepted is None:
+            raise ValueError(
+                "acceptance rate requires known drafted and accepted counts, with drafted > 0")
         if abs(rate - accepted / drafted) > 0.005:
             raise ValueError("reported speculative acceptance rate inconsistent with counts")
     if observation["measurement_status"] == "not_started" and any(

@@ -1,8 +1,10 @@
 """Controlled fit estimate planning and subprocess mocking; no model inference."""
 import json
 import struct
+import subprocess
 import sys
 import unittest
+from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -142,6 +144,9 @@ class FitEstimateTests(unittest.TestCase):
     def test_explicit_execution_uses_argv_without_shell(self):
         plan = self.make()
         class Dummy:
+            stdout = BytesIO()
+            stderr = BytesIO()
+
             def wait(self, timeout=None):
                 return 0
         with patch("fit_estimate.subprocess.Popen", return_value=Dummy()) as launch:
@@ -154,6 +159,8 @@ class FitEstimateTests(unittest.TestCase):
         launch.assert_called_once()
         self.assertEqual(launch.call_args.args[0], plan["argv"])
         self.assertNotIn("shell", launch.call_args.kwargs)
+        self.assertEqual(launch.call_args.kwargs["stdout"], subprocess.PIPE)
+        self.assertEqual(launch.call_args.kwargs["stderr"], subprocess.PIPE)
         self.assertNotIn("LLAMA_ARG_DEVICE", launch.call_args.kwargs["env"])
 
     def test_fingerprint_is_part_of_new_model_descriptor(self):
@@ -204,13 +211,16 @@ class FitEstimateTests(unittest.TestCase):
         raw = b"Vulkan0 4136 101 525 \r\nHost 9111 304 44 \r\n"
 
         class Dummy:
+            def __init__(self, stdout=b"", stderr=b"", returncode=0):
+                self.stdout = BytesIO(stdout)
+                self.stderr = BytesIO(stderr)
+                self.returncode = returncode
+
             def wait(self, timeout=None):
-                return 0
+                return self.returncode
 
         def launch(argv, **kwargs):
-            kwargs["stdout"].write(raw)
-            kwargs["stderr"].write(b"estimate completed\n")
-            return Dummy()
+            return Dummy(raw, b"estimate completed\n")
 
         with patch("fit_estimate.subprocess.Popen", side_effect=launch):
             outcome = execute_plan(plan, timeout_seconds=10)
@@ -223,12 +233,12 @@ class FitEstimateTests(unittest.TestCase):
     def test_nonzero_output_is_not_treated_as_numeric_memory(self):
         plan = self.make()
         class Dummy:
+            stdout = BytesIO(b"Host 100 20 30\n")
+            stderr = BytesIO()
+
             def wait(self, timeout=None):
                 return 1
-        def launch(argv, **kwargs):
-            kwargs["stdout"].write(b"Host 100 20 30\n")
-            return Dummy()
-        with patch("fit_estimate.subprocess.Popen", side_effect=launch):
+        with patch("fit_estimate.subprocess.Popen", return_value=Dummy()):
             out = execute_plan(plan)
         self.assertEqual(out["status"], "nonzero_exit")
         self.assertIsNone(out["parsed_numeric_memory"])
