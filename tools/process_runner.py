@@ -16,16 +16,16 @@ from process_lifecycle import isolation_options, stop_owned_tree
 
 def _read_available(stream):
     """Read pipe bytes without waiting for a full requested chunk on Windows."""
+    try:
+        file_descriptor = stream.fileno()
+    except (AttributeError, OSError, ValueError, io.UnsupportedOperation):
+        # Tests and adapters may supply in-memory file-like streams.
+        return stream.read(65536)
     if sys.platform == "win32":
         import ctypes
         import msvcrt
         from ctypes import wintypes
 
-        try:
-            file_descriptor = stream.fileno()
-        except (AttributeError, OSError, ValueError, io.UnsupportedOperation):
-            # Unit tests and adapters may supply in-memory file-like streams.
-            return stream.read(65536)
         available = ctypes.c_ulong()
         handle = msvcrt.get_osfhandle(file_descriptor)
         peek_named_pipe = ctypes.windll.kernel32.PeekNamedPipe
@@ -42,7 +42,7 @@ def _read_available(stream):
             time.sleep(0.01)
             return None
         return os.read(file_descriptor, min(available.value, 65536))
-    return os.read(stream.fileno(), 65536)
+    return os.read(file_descriptor, 65536)
 
 
 def _capture_stream(stream, capture_bytes, output_limit_bytes, limit_event):

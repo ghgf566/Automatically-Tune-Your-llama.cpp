@@ -1,16 +1,26 @@
 """Bounded subprocess behavior is tested using Python only, not llama."""
 import sys
+import io
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
-from process_runner import run_bounded
-from process_runner import run_until_ready
+from process_runner import _capture_stream, run_bounded, run_until_ready
 
 
 class ProcessRunnerTests(unittest.TestCase):
+    def test_in_memory_pipe_capture_without_fileno(self):
+        from threading import Event
+        from unittest.mock import patch
+
+        with patch("process_runner.sys.platform", "linux"):
+            captured, total = _capture_stream(io.BytesIO(b"synthetic output"),
+                                             64, 1024, Event())
+        self.assertEqual(captured, b"synthetic output")
+        self.assertEqual(total, len(b"synthetic output"))
+
     def test_command_exit_zero_without_shell(self):
         result = run_bounded([sys.executable, "-c", "print('bounded ok')"],
                              10, capture_bytes=512, disk_limit_bytes=2048)
