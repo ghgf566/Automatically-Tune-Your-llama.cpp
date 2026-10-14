@@ -35,6 +35,9 @@ MTP_FALLBACK = re.compile(
     r"failed to measure the memory of the extra model, fitting without it", re.I
 )
 OFFLOAD_LAYERS = re.compile(r"offloaded\s+(\d+)\s*/\s*(\d+)\s+layers? to GPU", re.I)
+EXTRA_FIT_MEASUREMENT = re.compile(
+    r"getting device memory data for the extra model at a context size of\s+(\d+)", re.I
+)
 PROMPT = (
     "You are comparing two city transportation plans. Give a concise, factual "
     "analysis with headings for capacity, reliability, cost, and risks. "
@@ -94,9 +97,38 @@ def _summary(values):
 class _Capture:
     def __init__(self, stream):
         self.data = bytearray()
-        self.exceeded = threading.Event()
+        self.truncated = False
+        self.pending = bytearray()
+        self.offload_observations = []
+        self.extra_fit_contexts = []
+        self.fallback_detected = False
         self._thread = threading.Thread(target=self._read, args=(stream,), daemon=True)
         self._thread.start()
+
+    def _scan_line(self, raw):
+        line = raw.decode("utf-8", "replace")
+        match = OFFLOAD_LAYERS.search(line)
+        if match:
+            self.offload_observations.append({
+                "offloaded_layers": int(match.group(1)),
+                "total_layers": int(match.group(2)),
+                "line": line.strip()[:500],
+            })
+        match = EXTRA_FIT_MEASUREMENT.search(line)
+        if match:
+            self.extra_fit_contexts.append(int(match.group(1)))
+        if MTP_FALLBACK.search(line):
+            self.fallback_detected = True
+
+    def _scan(self, chunk):
+        lines = self.pending + chunk
+        pieces = lines.split(b"\n")
+        self.pending = bytearray(pieces.pop())
+        if len(self.pending) > MAX_STDIO_BYTES:
+            del self.pending[:-MAX_STDIO_BYTES]
+            self.truncated = True
+        for line in pieces:
+            self._scan_line(line)
 
     def _read(self, stream):
         while True:
@@ -105,12 +137,18 @@ class _Capture:
             # before the benchmark decides whether MTP was jointly measured.
             chunk = stream.read1(8192) if hasattr(stream, "read1") else stream.read(8192)
             if not chunk:
+                if self.pending:
+                    self._scan_line(self.pending)
+                    self.pending.clear()
                 return
-            remaining = MAX_STDIO_BYTES - len(self.data)
-            if remaining > 0:
-                self.data.extend(chunk[:remaining])
-            if len(chunk) > remaining:
-                self.exceeded.set()
+            self._scan(chunk)
+            overflow = len(self.data) + len(chunk) - MAX_STDIO_BYTES
+            if overflow > 0:
+                del self.data[:min(overflow, len(self.data))]
+                self.truncated = True
+                if len(chunk) > MAX_STDIO_BYTES:
+                    chunk = chunk[-MAX_STDIO_BYTES:]
+            self.data.extend(chunk)
 
     def text(self):
         self._thread.join(timeout=3)
@@ -281,7 +319,7 @@ def _request(port, *, n_predict, seed):
 
 def _run_scenario(argv, *, mode, port, timeout_seconds, repetitions,
                   warmup_requests, n_predict, seed, host_reserve_mib,
-                  device_reserve_mib, engine_commit):
+                  device_reserve_mib):
     started_utc = datetime.now(timezone.utc).isoformat()
     before_ram = system_ram()
     before_gpu, before_gpu_error = sample_nvidia_smi()
@@ -311,10 +349,6 @@ def _run_scenario(argv, *, mode, port, timeout_seconds, repetitions,
     ready = False
     status = "load_failed"
     while time.monotonic() < deadline:
-        if stdout.exceeded.is_set() or stderr.exceeded.is_set():
-            status = "output_limit"
-            stop_owned_tree(proc)
-            break
         if monitor.violation.is_set():
             status = "reserve_exceeded"
             break
@@ -331,11 +365,13 @@ def _run_scenario(argv, *, mode, port, timeout_seconds, repetitions,
         stop_owned_tree(proc)
 
     log_text = stdout.text() + "\n" + stderr.text()
-    fallback = bool(MTP_FALLBACK.search(log_text))
-    layers = [int(match.group(1)) for match in OFFLOAD_LAYERS.finditer(log_text)]
+    fallback = (stdout.fallback_detected or stderr.fallback_detected or
+                bool(MTP_FALLBACK.search(log_text)))
+    layers = (stdout.offload_observations + stderr.offload_observations)
+    extra_fit_contexts = stdout.extra_fit_contexts + stderr.extra_fit_contexts
     joint_fit_status = (
         "fallback_target_only" if mode == "embedded_mtp" and fallback else
-        "combined_fit_ready" if mode == "embedded_mtp" and ready and engine_commit.startswith("8bb3cf0d2") else
+        "combined_fit_ready" if mode == "embedded_mtp" and ready and extra_fit_contexts else
         "unknown" if mode == "embedded_mtp" else "target_only_fit"
     )
     requests = []
@@ -356,7 +392,8 @@ def _run_scenario(argv, *, mode, port, timeout_seconds, repetitions,
     memory = monitor.stop_and_report()
     status_code = proc.returncode
     log_text = stdout.text() + "\n" + stderr.text()
-    fallback = fallback or bool(MTP_FALLBACK.search(log_text))
+    fallback = (fallback or stdout.fallback_detected or stderr.fallback_detected or
+                bool(MTP_FALLBACK.search(log_text)))
     if mode == "embedded_mtp" and fallback:
         joint_fit_status = "fallback_target_only"
         status = "combined_fit_rejected"
@@ -370,7 +407,12 @@ def _run_scenario(argv, *, mode, port, timeout_seconds, repetitions,
         "status": status,
         "joint_fit_status": joint_fit_status,
         "extra_model_fallback_detected": fallback,
-        "effective_gpu_layers_observed": layers[-1] if layers else None,
+        "effective_gpu_layers_observed": layers[-1]["offloaded_layers"] if layers else None,
+        "effective_gpu_layers_total_observed": layers[-1]["total_layers"] if layers else None,
+        "effective_gpu_layers_evidence": layers[-1]["line"] if layers else None,
+        "effective_gpu_layers_observation_status": "observed" if layers else "unknown",
+        "joint_fit_extra_model_contexts_observed": extra_fit_contexts,
+        "server_logs_truncated": stdout.truncated or stderr.truncated,
         "started_at_utc": started_utc,
         "server_ready": ready,
         "server_returncode_after_cleanup": status_code,
@@ -443,7 +485,8 @@ def build_plan(*, model_path, binary=None, context=4096, device="Vulkan0",
     help_text = _bounded(command_prefix(entry) + ["--help"], timeout=30)
     required = ("--model", "--ctx-size", "--parallel", "--fit", "--fit-target",
                 "--spec-type", "--spec-draft-n-max", "--gpu-layers", "--device",
-                "--no-ui", "--host", "--port", "--batch-size", "--ubatch-size")
+                "--no-ui", "--host", "--port", "--batch-size", "--ubatch-size",
+                "--verbosity")
     missing = [flag for flag in required if flag not in help_text]
     if missing:
         raise BenchmarkError("serve Help lacks required flags: " + ", ".join(missing))
@@ -460,7 +503,9 @@ def build_plan(*, model_path, binary=None, context=4096, device="Vulkan0",
         "--batch-size", str(batch_size), "--ubatch-size", str(ubatch_size),
         "--fit", "on", "--fit-target", str(fit_target_mib),
         "--no-ui", "--host", "127.0.0.1", "--port", str(port),
-        "--verbosity", "2",
+        # Current llama.cpp prints effective offload counts and joint-fit trace
+        # evidence only at trace/debug verbosity. Capture remains memory-bounded.
+        "--verbosity", "5",
     ]
     variants = []
     for mode, spec, extra in (
@@ -519,8 +564,6 @@ def build_plan(*, model_path, binary=None, context=4096, device="Vulkan0",
         "_seed": seed,
         "_host_reserve_mib": host_reserve_mib,
         "_device_reserve_mib": fit_target_mib,
-        "_engine_commit": re.search(r"commit\s+([0-9a-f]{8,40})", version, re.I).group(1)
-        if re.search(r"commit\s+([0-9a-f]{8,40})", version, re.I) else "",
     }
 
 
@@ -546,7 +589,6 @@ def execute_plan(plan):
             n_predict=plan["_n_predict"], seed=plan["_seed"],
             host_reserve_mib=plan["_host_reserve_mib"],
             device_reserve_mib=plan["_device_reserve_mib"],
-            engine_commit=plan["_engine_commit"],
         )
         run["summary"] = _summarize_scenario(run)
         runs.append(run)
@@ -561,16 +603,24 @@ def execute_plan(plan):
     memory_ok = all(run.get("memory", {}).get("device_reserve_status") == "observed"
                     for run in runs)
     fit_ok = mtp.get("joint_fit_status") == "combined_fit_ready"
+    limitation = None
+    if layer_match is None:
+        limitation = "effective_gpu_layers_unobserved; requested values match but the comparison is not certified fair"
+    elif layer_match is False:
+        limitation = "effective_gpu_layers_differ; the comparison is not certified fair"
+    elif not fit_ok:
+        limitation = "joint_fit_path_unverified_or_fell_back_to_target_only"
+    elif not memory_ok:
+        limitation = "device_memory_reserve_telemetry_incomplete"
+    elif not runs_ok:
+        limitation = "one_or_more_benchmark_runs_did_not_complete"
     plan["summary"] = {
         "comparison_status": "comparable" if runs_ok and fit_ok and equal_layers and memory_ok else "incomplete_or_not_comparable",
         "memory_reserve_telemetry_complete": memory_ok,
         "effective_gpu_layers_match": layer_match,
         "requested_gpu_layers": plan["configuration"]["gpu_layers"],
         "requested_gpu_layers_match": True,
-        "comparison_limitation": (
-            None if layer_match is not None else
-            "effective_gpu_layers_unobserved; requested values match but the comparison is not certified fair"
-        ),
+        "comparison_limitation": limitation,
         "off_decode_tokens_per_second": off["summary"]["decode_tokens_per_second"],
         "mtp_decode_tokens_per_second": mtp["summary"]["decode_tokens_per_second"],
         "decode_speedup": (
