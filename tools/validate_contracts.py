@@ -157,9 +157,15 @@ def check_speculative_result_consistency(observation, run_status):
              "decode_tokens_per_second", "time_to_first_token_ms",
              "peak_host_mib", "peak_device_mib")):
         raise ValueError("not_started speculative experiment must not have measured values")
-    if run_status == "success" and mode != "off" and observation["load_verification"] != "passed":
+    requested = observation["requested_draft_n_max"]
+    effective = observation["effective_draft_n_max"]
+    if requested is not None and effective is not None and effective > requested:
+        raise ValueError("effective draft N cannot exceed requested draft N maximum")
+    if observation["measurement_status"] == "completed" and mode != "off" and requested is None:
+        raise ValueError("completed speculative measurement requires requested draft N")
+    if run_status == "success" and observation["load_verification"] != "passed":
         raise ValueError("successful speculative run requires actual load verification")
-    if run_status == "success" and mode != "off" and observation["measurement_status"] != "completed":
+    if run_status == "success" and observation["measurement_status"] != "completed":
         raise ValueError("successful speculative run requires completed measurement")
 
 

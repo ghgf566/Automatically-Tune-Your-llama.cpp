@@ -345,6 +345,29 @@ class SpeculativePlanningTest(unittest.TestCase):
                 make_preview(profile["speculative_search"], mutated_observation,
                              serve_runtime(), profile=profile, fit_plan=recorded)
 
+    def test_result_rejects_impossible_effective_draft_n(self):
+        from validate_contracts import check_speculative_result_consistency
+        obj = json.loads((ROOT / "examples/run-record.example.json").read_text("utf-8"))
+        ob = obj["speculative_observation"]
+        ob["mode"] = "embedded_mtp"
+        ob["requested_draft_n_max"] = 2
+        ob["effective_draft_n_max"] = 8
+        with self.assertRaisesRegex(ValueError, "cannot exceed"):
+            check_speculative_result_consistency(ob, "not_started")
+
+    def test_successful_off_baseline_requires_actual_completed_measurement(self):
+        from validate_contracts import check_speculative_result_consistency
+        obj = json.loads((ROOT / "examples/run-record.example.json").read_text("utf-8"))
+        ob = obj["speculative_observation"]
+        ob["mode"] = "off"
+        with self.assertRaisesRegex(ValueError, "load verification"):
+            check_speculative_result_consistency(ob, "success")
+        ob["load_verification"] = "passed"
+        with self.assertRaisesRegex(ValueError, "completed measurement"):
+            check_speculative_result_consistency(ob, "success")
+        ob["measurement_status"] = "completed"
+        check_speculative_result_consistency(ob, "success")
+
     def test_measured_result_must_retain_candidate_id(self):
         from validate_contracts import validate
         obj = json.loads((ROOT / "examples/run-record.example.json").read_text("utf-8"))
