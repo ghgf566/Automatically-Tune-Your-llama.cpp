@@ -395,6 +395,14 @@ class SpeculativePlanningTest(unittest.TestCase):
         result.update({"accepted_tokens": 3, "acceptance_rate": .25})
         with self.assertRaisesRegex(ValueError, "inconsistent"):
             check_speculative_result_consistency(result, "not_started")
+        result.update({"drafted_tokens": 0, "accepted_tokens": 0,
+                       "acceptance_rate": 1.0})
+        with self.assertRaisesRegex(ValueError, "drafted > 0"):
+            check_speculative_result_consistency(result, "not_started")
+        result.update({"drafted_tokens": 8, "accepted_tokens": None,
+                       "acceptance_rate": .5})
+        with self.assertRaisesRegex(ValueError, "known drafted and accepted counts"):
+            check_speculative_result_consistency(result, "not_started")
         result.update({"accepted_tokens": None, "drafted_tokens": None,
                        "acceptance_rate": None,
                        "load_verification": "not_tested"})
