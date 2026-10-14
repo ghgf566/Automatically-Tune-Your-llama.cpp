@@ -8,7 +8,8 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
-from device_memory import DeviceMemoryMonitor, parse_nvidia_smi, sample_nvidia_smi
+from device_memory import (DeviceMemoryMonitor, parse_nvidia_process_memory,
+                           parse_nvidia_smi, sample_nvidia_smi)
 
 
 class DeviceMemoryTests(unittest.TestCase):
@@ -35,6 +36,18 @@ class DeviceMemoryTests(unittest.TestCase):
         self.assertEqual(reason, "unrecognized_or_incomplete_output")
         self.assertEqual(run.call_args.args[0][0], "nvidia-smi.exe")
         self.assertEqual(run.call_args.args[0][-1], "--format=csv,noheader,nounits")
+
+    def test_process_query_attributes_memory_to_pid_and_gpu(self):
+        memory, reason = parse_nvidia_process_memory(
+            "1234, GPU-a-1, 512\n5678, GPU-b-2, 256\n1234, GPU-a-1, 64\n",
+            1234)
+        self.assertIsNone(reason)
+        self.assertEqual(memory, {"GPU-a-1": 576})
+
+    def test_process_query_keeps_wddm_n_a_unknown(self):
+        memory, reason = parse_nvidia_process_memory("1234, GPU-a-1, [N/A]\n", 1234)
+        self.assertIsNone(memory)
+        self.assertEqual(reason, "process_memory_unavailable")
 
     def test_monitor_reports_system_wide_minimum_free_and_maximum_used(self):
         observations = [

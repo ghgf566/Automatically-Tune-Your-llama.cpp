@@ -1,8 +1,7 @@
-"""Best-effort, system-wide NVIDIA memory sampling for bounded load checks.
+"""Best-effort NVIDIA memory sampling for bounded load checks and benchmarks.
 
-This intentionally does not claim process attribution: on Windows WDDM,
-``nvidia-smi`` commonly reports per-process memory as N/A. The device-level
-free/used values are useful headroom observations, not model VRAM peaks.
+System-wide device rows provide headroom, not process VRAM. A separate
+per-process query is parsed when supported; Windows WDDM often returns N/A.
 """
 import csv
 import io
@@ -68,6 +67,55 @@ def sample_nvidia_smi(executable=None):
     if devices is None:
         return None, "unrecognized_or_incomplete_output"
     return devices, None
+
+
+def parse_nvidia_process_memory(stdout, process_id):
+    """Return memory for one owned root PID, or unknown if the driver cannot.
+
+    Windows WDDM frequently lists compute PIDs with an N/A memory field. Do
+    not replace that with a system-wide delta or a Windows performance counter.
+    """
+    if isinstance(process_id, bool) or not isinstance(process_id, int) or process_id <= 0:
+        return None, "invalid_process_id"
+    found = []
+    try:
+        rows = csv.reader(io.StringIO(stdout, newline=""), skipinitialspace=True)
+        for row in rows:
+            if len(row) != 3:
+                return None, "unrecognized_process_memory_format"
+            raw_pid, raw_uuid, raw_memory = (value.strip().strip("[]") for value in row)
+            if not raw_pid.isdecimal() or not raw_uuid.startswith("GPU-"):
+                return None, "unrecognized_process_memory_format"
+            if int(raw_pid) != process_id:
+                continue
+            if not raw_memory.isdecimal():
+                return None, "process_memory_unavailable"
+            found.append({"uuid": raw_uuid, "used_mib": int(raw_memory)})
+    except (csv.Error, ValueError):
+        return None, "unrecognized_process_memory_format"
+    if not found:
+        return None, "owned_process_not_reported"
+    per_device = {}
+    for item in found:
+        per_device[item["uuid"]] = per_device.get(item["uuid"], 0) + item["used_mib"]
+    return per_device, None
+
+
+def sample_nvidia_process_memory(process_id, executable=None):
+    """Sample NVIDIA's per-process memory for an owned llama process."""
+    executable = executable or shutil.which("nvidia-smi")
+    if not executable:
+        return None, "provider_unavailable"
+    result = run_bounded(
+        [executable,
+         "--query-compute-apps=pid,gpu_uuid,used_gpu_memory",
+         "--format=csv,noheader,nounits"],
+        SAMPLE_TIMEOUT_SECONDS, capture_bytes=MAX_OUTPUT_BYTES,
+        disk_limit_bytes=MAX_OUTPUT_BYTES,
+    )
+    if result["status"] != "success" or result["truncated"]:
+        return None, "process_query_" + result["status"]
+    return parse_nvidia_process_memory(result["stdout"], process_id)
 
 
 class DeviceMemoryMonitor:
