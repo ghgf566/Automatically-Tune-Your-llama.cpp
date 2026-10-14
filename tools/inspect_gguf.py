@@ -155,13 +155,17 @@ def inspect(path):
             raise GGUFMetadataError("implausible GGUF tensor or key count")
         metadata = {}
         seen_keys = set()
+        tokenizer_ranges = []
         for _ in range(kv_count):
+            entry_start = reader.pos
             key = reader.text(capture=True, length_limit=MAX_KEY_BYTES)
             if not key or key in seen_keys:
                 raise GGUFMetadataError("invalid or duplicate GGUF metadata key")
             seen_keys.add(key)
             kind = reader.unpack("<I")
             data = reader.value(kind, capture=wanted_key(key) and kind != TYPE_ARRAY)
+            if key.startswith("tokenizer.ggml."):
+                tokenizer_ranges.append((key, entry_start, reader.pos))
             # Only retain explicitly whitelisted scalar fields, not paths,
             # free-form tokenizer data, private metadata or huge arrays.
             if wanted_key(key) and kind != TYPE_ARRAY:
@@ -197,6 +201,7 @@ def inspect(path):
         # Hash the exact parsed prefix from the SAME open file descriptor.
         # Neither this read nor the earlier metadata parsing touches weights.
         prefix_hash = hashlib.sha256()
+        tokenizer_hash = hashlib.sha256()
         file.seek(0)
         remaining = metadata_end
         while remaining:
@@ -205,6 +210,17 @@ def inspect(path):
                 raise GGUFMetadataError("GGUF header changed during fingerprint")
             prefix_hash.update(piece)
             remaining -= len(piece)
+        tokenizer_key_count = len(tokenizer_ranges)
+        if tokenizer_key_count:
+            for _, start, end in tokenizer_ranges:
+                file.seek(start)
+                entry_remaining = end - start
+                while entry_remaining:
+                    piece = file.read(min(1024 * 1024, entry_remaining))
+                    if not piece:
+                        raise GGUFMetadataError("tokenizer metadata changed during fingerprint")
+                    tokenizer_hash.update(piece)
+                    entry_remaining -= len(piece)
 
     final_stat = path.stat()
     if (final_stat.st_size != original_stat.st_size
@@ -239,6 +255,11 @@ def inspect(path):
         },
         "metadata_bytes_scanned": metadata_end,
         "metadata_sha256": prefix_hash.hexdigest(),
+        "tokenizer_metadata": {
+            "status": "observed" if "tokenizer.ggml.tokens" in seen_keys else "unknown",
+            "metadata_key_count": tokenizer_key_count,
+            "metadata_sha256": tokenizer_hash.hexdigest() if tokenizer_key_count else None,
+        },
         "validation": {
             "metadata_structure_parsed": True,
             "tensor_descriptors_parsed": True,

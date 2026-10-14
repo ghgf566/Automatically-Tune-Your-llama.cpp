@@ -61,4 +61,4 @@ python tools/compare_scenarios.py --daily fit-daily.json `
 
 ## 下一步
 
-已取得首份真實 `fit-daily.json` 並確認原始 MiB 格式；可參考 [結構化解析器與歷史結果離線轉換](fit-memory-output.md)。模型載入成功率、運算效能及尖峰記憶體的量測，應在真正的 Feasibility Runner 階段獨立設計。
+已取得首份真實 `fit-daily.json` 並確認原始 MiB 格式；可參考 [結構化解析器與歷史結果離線轉換](fit-memory-output.md)。Fit estimate 的前後快照仍不包含載入過程的峰值；另一個 `run_feasibility.py` 流程會記錄受控程序樹的 Host Working Set／RSS 取樣最高值，兩種報告不可混為一談。

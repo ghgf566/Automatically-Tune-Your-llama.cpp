@@ -13,6 +13,7 @@
 ## 研究
 
 - [Feasibility 前最終驗收](research/pre-feasibility-audit.md)：跨模組檢查結果、已修正的證據缺口與進入實際載入階段的明確界線。
+- [MTP／Draft 配對與載入可行性](research/mtp-speculative-search.md)：重驗 target/draft 身分；預設只建立計畫，另以明確 `--execute` 進行受控本機載入檢查。
 - [MTP／Speculative Decoding 研究變數](research/mtp-speculative-search.md)：區分內建 MTP、外掛 MTP、一般 Draft Model；定義可行性驗證與公平 Benchmark。
 - [安全性與穩定性整理](research/stability-review.md)：安全輸出、退出碼、快照、共用 Process Runner、Fingerprint、Windows CI。
 - [官方 Fit 記憶體輸出解析](research/fit-memory-output.md)：實機 MiB 格式、三欄定義及舊結果離線轉換。
@@ -26,4 +27,4 @@
 
 ## 目前限制
 
-登錄表來自官方文件，不是執行檔能力驗證。尚未開始 Benchmark Runner，也沒有自動修改使用者 llama.cpp 設定的功能。
+登錄表來自官方文件，不是執行檔能力驗證。受控載入檢查不執行推論或效能 Benchmark；已能取樣記錄受控程序樹的 Host Working Set／RSS 最高觀測值，但尚無 draft-aware 預估、可靠的 VRAM 峰值記錄、正式 Benchmark Runner 或自動搜尋，也沒有自動修改使用者 llama.cpp 設定的功能。

@@ -1,15 +1,26 @@
 """Bounded subprocess behavior is tested using Python only, not llama."""
 import sys
+import io
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
-from process_runner import run_bounded
+from process_runner import _capture_stream, run_bounded, run_until_ready
 
 
 class ProcessRunnerTests(unittest.TestCase):
+    def test_in_memory_pipe_capture_without_fileno(self):
+        from threading import Event
+        from unittest.mock import patch
+
+        with patch("process_runner.sys.platform", "linux"):
+            captured, total = _capture_stream(io.BytesIO(b"synthetic output"),
+                                             64, 1024, Event())
+        self.assertEqual(captured, b"synthetic output")
+        self.assertEqual(total, len(b"synthetic output"))
+
     def test_command_exit_zero_without_shell(self):
         result = run_bounded([sys.executable, "-c", "print('bounded ok')"],
                              10, capture_bytes=512, disk_limit_bytes=2048)
@@ -74,6 +85,31 @@ class ProcessRunnerTests(unittest.TestCase):
     def test_invalid_limits_rejected_before_execution(self):
         with self.assertRaises(ValueError):
             run_bounded([sys.executable], 10, capture_bytes=2048, disk_limit_bytes=512)
+
+    def test_readiness_runner_stops_owned_server_after_ready(self):
+        import time
+        ready_after = time.monotonic() + 0.15
+        result = run_until_ready(
+            [sys.executable, "-c", "import time;print('model loaded',flush=True);time.sleep(30)"],
+            3, lambda: time.monotonic() >= ready_after,
+            capture_bytes=1024, output_limit_bytes=4096, poll_interval=0.02)
+        self.assertEqual(result["status"], "ready")
+        self.assertIn("model loaded", result["stdout"])
+        self.assertIsNotNone(result["returncode"])
+
+    def test_readiness_runner_distinguishes_timeout_and_output_limit(self):
+        timeout = run_until_ready(
+            [sys.executable, "-c", "import time;time.sleep(30)"],
+            0.1, lambda: False, capture_bytes=1024,
+            output_limit_bytes=4096, poll_interval=0.01)
+        self.assertEqual(timeout["status"], "timeout")
+
+        output = run_until_ready(
+            [sys.executable, "-c", "import sys,time;sys.stdout.write('x'*65536);sys.stdout.flush();time.sleep(30)"],
+            3, lambda: False, capture_bytes=1024,
+            output_limit_bytes=2048, poll_interval=0.01)
+        self.assertEqual(output["status"], "output_limit")
+        self.assertLessEqual(len(output["stdout"]), 1024)
 
 
 if __name__ == "__main__":

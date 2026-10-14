@@ -2,7 +2,7 @@
 
 ATYL 研究如何根據使用者的硬體、模型、服務負載與目標，自動找出合適的 llama.cpp 執行參數。
 
-目前是**規格化與受控 CLI 原型**階段：已有 Runtime 探測、GGUF Metadata 檢查、單候選記憶體估算、記憶體輸出解析與環境比較；尚無 GUI、完整 Tuner、Benchmark Runner 或真正的模型載入可行性驗證。
+目前是**規格化與受控 CLI 原型**階段：已有 Runtime 探測、GGUF Metadata 檢查、單候選記憶體估算、記憶體輸出解析、環境比較、target/draft 配對預檢及明確 `--execute` 閘門的本機模型載入可行性檢查；尚無 GUI、完整 Tuner、Benchmark Runner 或可靠的 draft-aware 峰值記憶體估算。
 
 ## 官方 llama.cpp 安裝與執行入口
 
@@ -58,7 +58,11 @@ python tools/probe_runtime.py --command fit-params --output fit-capability.json
 
 ## 未來調校變數：MTP／Speculative Decoding
 
-已將內建 NextN/MTP Head、外掛 MTP Head 和一般 Draft Model 分為不同候選，GGUF Inspector 現可唯讀擷取 `{arch}.nextn_predict_layers`。**這只是中繼資料觀察，不代表引擎相容或實測加速**；後續將以 `off` 基準、完整容量檢查與實際 Generation/Server Benchmark 比較。詳細規格見 [MTP／Speculative Decoding](docs/research/mtp-speculative-search.md)。
+已將內建 NextN/MTP Head、外掛 MTP Head 和一般 Draft Model 分為不同候選，GGUF Inspector 現可唯讀擷取 `{arch}.nextn_predict_layers` 與 tokenizer metadata 摘要。`tools/verify_model_pair.py` 可重驗 target/draft 完整 SHA、單檔 GGUF、架構與 tokenizer metadata；**通過仍不代表引擎相容或模型可載入**。後續將以 `off` 基準、draft-aware 容量檢查與實際 Generation/Server Benchmark 比較。詳細規格見 [MTP／Speculative Decoding](docs/research/mtp-speculative-search.md)。
+
+## 模型載入可行性檢查（預設不執行）
+
+`tools/run_feasibility.py` 先驗證候選並建立只綁定 `127.0.0.1`、關閉 UI、固定 Context／Concurrency 並強制 `--fit off` 的短時 Server 載入計畫。預設只輸出計畫；只有明確加上 `--execute` 才會啟動本機 llama.exe 載入所選模型，並在 `/health` 就緒或逾時後清理程序。它不送出推論請求、不做速度測試；執行報告會每 500 毫秒取樣 ATYL 所啟動程序樹的 Host Working Set／RSS，這是取樣到的最高值，可能漏掉短暫尖峰；VRAM 峰值仍未知。操作限制與下一階段見 [MTP／Speculative Decoding](docs/research/mtp-speculative-search.md)。
 
 ## 穩定性與安全重構
 
