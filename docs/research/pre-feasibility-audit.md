@@ -1,5 +1,7 @@
 # Final Pre-Feasibility Repository Audit
 
+> Historical snapshot: this document records the audit before the first Feasibility Runner was added. It is not the current repository status; see the [current roadmap](../specification/tuning-roadmap.md) and [MTP research/benchmark report](mtp-speculative-search.md).
+
 **Status:** Source architecture and research/preview contracts are ready to begin implementing a *separate opt-in* Feasibility Runner. This is NOT approval to execute unverified MTP pairs or proof that real model loads already work.
 
 ## Scope reviewed

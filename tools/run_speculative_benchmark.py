@@ -30,9 +30,17 @@ from safe_output import write_text
 
 ROOT = Path(__file__).resolve().parents[1]
 MAX_STDIO_BYTES = 2 * 1024 * 1024
+MAX_LOG_EXCERPT_BYTES = 64 * 1024
 MAX_OUTPUT_BYTES = 8 * 1024 * 1024
+MAX_EVENT_BYTES = 1024 * 1024
+MAX_COMPLETION_CHARS = 4 * 1024 * 1024
+MAX_PLACEMENT_EVIDENCE_BYTES = 64 * 1024
 MTP_FALLBACK = re.compile(
     r"failed to measure the memory of the extra model, fitting without it", re.I
+)
+PLACEMENT_EVIDENCE = re.compile(
+    r"buffer type overridden|model buffer size|KV buffer size|offloaded \d+/\d+ layers|"
+    r"moe.cache|expert.*cache", re.I
 )
 OFFLOAD_LAYERS = re.compile(r"offloaded\s+(\d+)\s*/\s*(\d+)\s+layers? to GPU", re.I)
 EXTRA_FIT_MEASUREMENT = re.compile(
@@ -48,6 +56,32 @@ PROMPT = (
     "known facts, and finish with a short decision checklist. Do not invent "
     "ridership figures, prices, or local conditions."
 )
+
+WORKLOADS = {
+    "short_prompt": {
+        "description": "Short factual prompt, fixed single completion",
+        "prompt": "Explain why benchmark results should record the model, engine build, hardware, and workload. Use four concise bullet points.",
+    },
+    "long_prompt": {
+        "description": "Long instruction prompt with multiple constraints",
+        "prompt": (
+            "You are reviewing an infrastructure proposal. Compare a bus network "
+            "upgrade with a new rail line. Discuss capacity, reliability, cost, "
+            "construction disruption, accessibility, environmental impact, and "
+            "uncertainty. State which evidence is missing before making a choice. "
+            "Do not invent prices, ridership, locations, or forecast values. "
+        ) * 12,
+    },
+    "code_generation": {
+        "description": "Code generation prompt with explicit output requirements",
+        "prompt": (
+            "Write a Python function that merges overlapping integer intervals. "
+            "Specify the input and output behavior, handle empty input, sort the "
+            "intervals, and include a short set of edge-case tests. Return code "
+            "only and do not rely on external packages."
+        ),
+    },
+}
 
 
 class BenchmarkError(ValueError):
@@ -89,7 +123,8 @@ def _summary(values):
     return {
         "count": len(values),
         "mean": sum(values) / len(values),
-        "median": ordered[(len(ordered) - 1) // 2],
+        "median": (ordered[len(ordered) // 2] if len(ordered) % 2 else
+                   (ordered[len(ordered) // 2 - 1] + ordered[len(ordered) // 2]) / 2),
         "p95": ordered[max(0, math.ceil(0.95 * len(ordered)) - 1)],
     }
 
@@ -102,6 +137,8 @@ class _Capture:
         self.offload_observations = []
         self.extra_fit_contexts = []
         self.fallback_detected = False
+        self.placement_evidence = []
+        self.placement_evidence_bytes = 0
         self._thread = threading.Thread(target=self._read, args=(stream,), daemon=True)
         self._thread.start()
 
@@ -119,6 +156,11 @@ class _Capture:
             self.extra_fit_contexts.append(int(match.group(1)))
         if MTP_FALLBACK.search(line):
             self.fallback_detected = True
+        if (PLACEMENT_EVIDENCE.search(line)
+                and self.placement_evidence_bytes < MAX_PLACEMENT_EVIDENCE_BYTES):
+            excerpt = line.strip()[:1000]
+            self.placement_evidence.append(excerpt)
+            self.placement_evidence_bytes += len(excerpt.encode("utf-8", "replace"))
 
     def _scan(self, chunk):
         lines = self.pending + chunk
@@ -163,11 +205,15 @@ class _MemoryMonitor:
         self.stop_event = threading.Event()
         self.violation = threading.Event()
         self.lock = threading.Lock()
-        self.host_samples = []
-        self.process_samples = []
-        self.gpu_samples = []
-        self.process_gpu_samples = []
-        self.process_gpu_failures = []
+        self.host_available_min = None
+        self.host_sample_count = 0
+        self.process_peak_bytes = None
+        self.process_sample_count = 0
+        self.gpu_by_uuid = {}
+        self.device_sample_count = 0
+        self.process_gpu_peak_by_uuid = {}
+        self.process_gpu_sample_count = 0
+        self.process_gpu_failure_reason = None
         self._thread = threading.Thread(target=self._run, name="atyl-bench-memory",
                                         daemon=True)
 
@@ -176,32 +222,69 @@ class _MemoryMonitor:
 
     def _run(self):
         while not self.stop_event.is_set():
-            ram = system_ram()
-            if ram.get("status") == "observed":
-                with self.lock:
-                    self.host_samples.append(ram["available_mib"])
-                if ram["available_mib"] < self.host_reserve:
-                    self.violation.set()
-            process = sample_process_tree(self.proc.pid)
-            if process.get("status") == "observed":
-                with self.lock:
-                    self.process_samples.append(process["resident_bytes"])
-            devices, device_error = sample_nvidia_smi()
-            if devices:
-                with self.lock:
-                    self.gpu_samples.append(devices)
-                if any(device["free_mib"] < self.device_reserve for device in devices):
-                    self.violation.set()
-            else:
-                with self.lock:
-                    self.process_gpu_failures.append(device_error or "sample_unavailable")
-            owned, process_error = sample_nvidia_process_memory(self.proc.pid)
-            if owned:
-                with self.lock:
-                    self.process_gpu_samples.append(owned)
-            else:
-                with self.lock:
-                    self.process_gpu_failures.append(process_error or "process_sample_unavailable")
+            try:
+                ram = system_ram()
+                if ram.get("status") == "observed":
+                    with self.lock:
+                        value = ram["available_mib"]
+                        self.host_available_min = (value if self.host_available_min is None
+                                                   else min(self.host_available_min, value))
+                        self.host_sample_count += 1
+                    if ram["available_mib"] < self.host_reserve:
+                        self.violation.set()
+            except Exception:
+                pass
+            try:
+                process = sample_process_tree(self.proc.pid)
+                if process.get("status") == "observed":
+                    with self.lock:
+                        value = process["resident_bytes"]
+                        self.process_peak_bytes = (value if self.process_peak_bytes is None
+                                                   else max(self.process_peak_bytes, value))
+                        self.process_sample_count += 1
+            except Exception:
+                pass
+            try:
+                devices, device_error = sample_nvidia_smi()
+                if devices:
+                    with self.lock:
+                        self.device_sample_count += 1
+                        for device in devices:
+                            row = self.gpu_by_uuid.setdefault(device["uuid"], {
+                                "uuid": device["uuid"], "name": device["name"],
+                                "total_memory_mib": device["total_mib"],
+                                "minimum_free_memory_mib": device["free_mib"],
+                                "maximum_used_memory_mib": device["used_mib"],
+                                "sample_count": 0,
+                            })
+                            row["minimum_free_memory_mib"] = min(
+                                row["minimum_free_memory_mib"], device["free_mib"])
+                            row["maximum_used_memory_mib"] = max(
+                                row["maximum_used_memory_mib"], device["used_mib"])
+                            row["sample_count"] += 1
+                    if any(device["free_mib"] < self.device_reserve for device in devices):
+                        self.violation.set()
+                else:
+                    self.process_gpu_failure_reason = (
+                        self.process_gpu_failure_reason or device_error or "sample_unavailable")
+            except Exception:
+                self.process_gpu_failure_reason = (
+                    self.process_gpu_failure_reason or "device_sampler_error")
+            try:
+                owned, process_error = sample_nvidia_process_memory(self.proc.pid)
+                if owned:
+                    with self.lock:
+                        self.process_gpu_sample_count += 1
+                        for uuid, memory in owned.items():
+                            self.process_gpu_peak_by_uuid[uuid] = max(
+                                self.process_gpu_peak_by_uuid.get(uuid, 0), memory)
+                else:
+                    self.process_gpu_failure_reason = (
+                        self.process_gpu_failure_reason or process_error or
+                        "process_sample_unavailable")
+            except Exception:
+                self.process_gpu_failure_reason = (
+                    self.process_gpu_failure_reason or "process_sampler_error")
             if self.violation.is_set() and self.proc.poll() is None:
                 stop_owned_tree(self.proc)
             if self.stop_event.wait(1):
@@ -211,52 +294,52 @@ class _MemoryMonitor:
         self.stop_event.set()
         self._thread.join(timeout=8)
         with self.lock:
-            host = list(self.host_samples)
-            process = list(self.process_samples)
-            gpu = list(self.gpu_samples)
-            process_gpu = list(self.process_gpu_samples)
-            process_failures = list(self.process_gpu_failures)
-        gpu_by_uuid = {}
-        for sample in gpu:
-            for device in sample:
-                row = gpu_by_uuid.setdefault(device["uuid"], {
-                    "uuid": device["uuid"], "name": device["name"],
-                    "total_memory_mib": device["total_mib"],
-                    "minimum_free_memory_mib": device["free_mib"],
-                    "maximum_used_memory_mib": device["used_mib"],
-                    "sample_count": 0,
-                })
-                row["minimum_free_memory_mib"] = min(
-                    row["minimum_free_memory_mib"], device["free_mib"])
-                row["maximum_used_memory_mib"] = max(
-                    row["maximum_used_memory_mib"], device["used_mib"])
-                row["sample_count"] += 1
-        owned_by_uuid = {}
-        for sample in process_gpu:
-            for uuid, memory in sample.items():
-                owned_by_uuid[uuid] = max(owned_by_uuid.get(uuid, 0), memory)
-        process_status = "observed" if process_gpu else "unknown"
+            host_available_min = self.host_available_min
+            host_sample_count = self.host_sample_count
+            process_peak_bytes = self.process_peak_bytes
+            process_sample_count = self.process_sample_count
+            gpu_by_uuid = dict(self.gpu_by_uuid)
+            device_sample_count = self.device_sample_count
+            owned_by_uuid = dict(self.process_gpu_peak_by_uuid)
+            process_gpu_sample_count = self.process_gpu_sample_count
+            process_failure_reason = self.process_gpu_failure_reason
+        process_status = "observed" if process_gpu_sample_count else "unknown"
         reserve_status = ("exceeded" if self.violation.is_set() else
-                          "observed" if host and gpu else "unknown")
+                          "observed" if host_sample_count and device_sample_count else "unknown")
         return {
-            "host_available_min_mib": min(host) if host else None,
-            "host_process_peak_mib": max(process) // MIB if process else None,
-            "host_process_sample_count": len(process),
-            "device_sample_count": len(gpu),
+            "host_available_min_mib": host_available_min,
+            "host_process_peak_mib": process_peak_bytes // MIB if process_peak_bytes is not None else None,
+            "host_process_sample_count": process_sample_count,
+            "host_sample_count": host_sample_count,
+            "device_sample_count": device_sample_count,
             "devices": [gpu_by_uuid[key] for key in sorted(gpu_by_uuid)],
             "device_process_status": process_status,
-            "device_process_reason": process_failures[0] if process_failures else None,
+            "device_process_reason": process_failure_reason,
             "device_process_peak_mib_by_uuid": owned_by_uuid,
-            "device_process_sample_count": len(process_gpu),
+            "device_process_sample_count": process_gpu_sample_count,
             "device_reserve_status": reserve_status,
             "reserve_violation": self.violation.is_set(),
         }
 
 
-def _request(port, *, n_predict, seed):
-    connection = http.client.HTTPConnection("127.0.0.1", port, timeout=300)
+def _finite_metric(value, name, *, allow_zero=True):
+    try:
+        finite = math.isfinite(float(value))
+    except (OverflowError, TypeError, ValueError):
+        finite = False
+    if (isinstance(value, bool) or not isinstance(value, (int, float))
+            or not finite or value < 0 or (not allow_zero and value == 0)):
+        raise BenchmarkError(f"server returned invalid {name} timing metric")
+    return value
+
+
+def _request(port, *, n_predict, seed, mode="off", prompt=PROMPT, deadline=None):
+    if deadline is not None and time.monotonic() >= deadline:
+        raise BenchmarkError("benchmark time budget expired before request")
+    remaining = 300 if deadline is None else max(0.1, min(300, deadline - time.monotonic()))
+    connection = http.client.HTTPConnection("127.0.0.1", port, timeout=remaining)
     body = json.dumps({
-        "prompt": PROMPT,
+        "prompt": prompt,
         "n_predict": n_predict,
         "temperature": 0,
         "top_k": 1,
@@ -266,8 +349,10 @@ def _request(port, *, n_predict, seed):
     }).encode("utf-8")
     started = time.perf_counter()
     first_token_at = None
-    token_text = []
+    completion_chars = 0
     timings = None
+    done_seen = False
+    terminal_event_seen = False
     try:
         connection.request("POST", "/completion", body=body,
                            headers={"Content-Type": "application/json"})
@@ -276,7 +361,11 @@ def _request(port, *, n_predict, seed):
             excerpt = response.read(4096).decode("utf-8", "replace")
             raise BenchmarkError(f"completion returned HTTP {response.status}: {excerpt}")
         while True:
-            line = response.readline()
+            line = response.readline(MAX_EVENT_BYTES + 1)
+            if len(line) > MAX_EVENT_BYTES:
+                raise BenchmarkError("server stream event exceeded the size limit")
+            if deadline is not None and time.monotonic() >= deadline:
+                raise BenchmarkError("benchmark time budget expired during request")
             if not line:
                 break
             line = line.decode("utf-8", "replace").strip()
@@ -284,53 +373,89 @@ def _request(port, *, n_predict, seed):
                 continue
             payload = line[5:].strip()
             if payload == "[DONE]":
+                done_seen = True
                 break
             event = json.loads(payload)
+            if not isinstance(event, dict):
+                raise BenchmarkError("server stream event is not a JSON object")
             piece = event.get("content")
             if isinstance(piece, str) and piece:
-                token_text.append(piece)
+                completion_chars += len(piece)
+                if completion_chars > MAX_COMPLETION_CHARS:
+                    raise BenchmarkError("completion output exceeded the size limit")
                 if first_token_at is None:
                     first_token_at = time.perf_counter()
             if isinstance(event.get("timings"), dict):
                 timings = event["timings"]
+            if event.get("stop") is True:
+                terminal_event_seen = True
         ended = time.perf_counter()
     except (OSError, http.client.HTTPException, json.JSONDecodeError) as error:
         raise BenchmarkError("completion stream failed: " + str(error)) from error
     finally:
         connection.close()
-    if timings is None:
-        raise BenchmarkError("server stream omitted timing metrics")
+    if timings is None or not (done_seen or terminal_event_seen):
+        raise BenchmarkError("server stream ended without a terminal timing event")
+    predicted_tokens = timings.get("predicted_n")
+    if (isinstance(predicted_tokens, bool) or not isinstance(predicted_tokens, int)
+            or predicted_tokens <= 0):
+        raise BenchmarkError("server stream omitted a positive predicted_n count")
+    if first_token_at is None:
+        raise BenchmarkError("server completed without emitting a content token")
+    decode_rate = _finite_metric(timings.get("predicted_per_second"),
+                                 "predicted_per_second", allow_zero=False)
+    prompt_tokens = timings.get("prompt_n")
+    if isinstance(prompt_tokens, bool) or not isinstance(prompt_tokens, int) or prompt_tokens < 0:
+        raise BenchmarkError("server stream omitted a valid prompt_n count")
+    prompt_rate = _finite_metric(timings.get("prompt_per_second"),
+                                 "prompt_per_second", allow_zero=False)
+    predicted_ms = _finite_metric(timings.get("predicted_ms"), "predicted_ms",
+                                  allow_zero=False)
+    prompt_ms = _finite_metric(timings.get("prompt_ms"), "prompt_ms")
+    drafted = timings.get("draft_n")
+    accepted = timings.get("draft_n_accepted")
+    if mode == "off":
+        drafted, accepted = 0, 0
+    elif (isinstance(drafted, bool) or not isinstance(drafted, int) or drafted < 0
+          or isinstance(accepted, bool) or not isinstance(accepted, int)
+          or accepted < 0 or accepted > drafted):
+        raise BenchmarkError("MTP stream omitted valid drafted/accepted token counts")
     return {
         "latency_ms": round((ended - started) * 1000, 3),
         "ttft_ms": round((first_token_at - started) * 1000, 3)
         if first_token_at is not None else None,
-        "completion_characters": sum(len(item) for item in token_text),
-        "prompt_tokens": timings.get("prompt_n"),
-        "prompt_ms": timings.get("prompt_ms"),
-        "prompt_tokens_per_second": timings.get("prompt_per_second"),
-        "predicted_tokens": timings.get("predicted_n"),
-        "predicted_ms": timings.get("predicted_ms"),
-        "decode_tokens_per_second": timings.get("predicted_per_second"),
-        "drafted_tokens": timings.get("draft_n", 0),
-        "accepted_tokens": timings.get("draft_n_accepted", 0),
+        "completion_characters": completion_chars,
+        "prompt_tokens": prompt_tokens,
+        "prompt_ms": prompt_ms,
+        "prompt_tokens_per_second": prompt_rate,
+        "predicted_tokens": predicted_tokens,
+        "predicted_ms": predicted_ms,
+        "decode_tokens_per_second": decode_rate,
+        "drafted_tokens": drafted,
+        "accepted_tokens": accepted,
         "timings": timings,
     }
 
 
 def _run_scenario(argv, *, mode, port, timeout_seconds, repetitions,
                   warmup_requests, n_predict, seed, host_reserve_mib,
-                  device_reserve_mib):
+                  device_reserve_mib, prompt=PROMPT, overall_deadline=None,
+                  requested_draft_n_max=None):
     started_utc = datetime.now(timezone.utc).isoformat()
     before_ram = system_ram()
     before_gpu, before_gpu_error = sample_nvidia_smi()
     if before_ram.get("status") != "observed" or before_ram["available_mib"] < host_reserve_mib:
         return {"mode": mode, "status": "reserve_rejected",
+                "requested_draft_n_max": requested_draft_n_max,
+                "effective_draft_n_max": None, "effective_draft_n_status": "unknown",
                 "reason": "host_headroom_below_reserve", "requests": [],
                 "memory": {"host_before_mib": before_ram.get("available_mib"),
                            "device_before": before_gpu or [],
                            "device_probe_error": before_gpu_error}}
     if not before_gpu or any(item["free_mib"] < device_reserve_mib for item in before_gpu):
         return {"mode": mode, "status": "reserve_rejected",
+                "requested_draft_n_max": requested_draft_n_max,
+                "effective_draft_n_max": None, "effective_draft_n_status": "unknown",
                 "reason": "device_headroom_below_reserve", "requests": [],
                 "memory": {"host_before_mib": before_ram["available_mib"],
                            "device_before": before_gpu or [],
@@ -346,54 +471,78 @@ def _run_scenario(argv, *, mode, port, timeout_seconds, repetitions,
                              device_reserve_mib=device_reserve_mib)
     monitor.start()
     deadline = time.monotonic() + timeout_seconds
+    if overall_deadline is not None:
+        deadline = min(deadline, overall_deadline)
     ready = False
     status = "load_failed"
-    while time.monotonic() < deadline:
-        if monitor.violation.is_set():
-            status = "reserve_exceeded"
-            break
-        if proc.poll() is not None:
-            status = "load_failed"
-            break
-        if _health(port):
-            ready = True
-            status = "ready"
-            break
-        time.sleep(0.5)
-    else:
-        status = "timeout"
-        stop_owned_tree(proc)
+    fallback = False
+    extra_fit_contexts = []
+    layers = []
+    joint_fit_status = "unknown" if mode == "embedded_mtp" else "target_only_fit"
+    requests = []
+    request_errors = []
+    try:
+        while time.monotonic() < deadline:
+            if monitor.violation.is_set():
+                status = "reserve_exceeded"
+                break
+            if proc.poll() is not None:
+                status = "load_failed"
+                break
+            if _health(port):
+                ready = True
+                status = "ready"
+                break
+            time.sleep(0.5)
+        else:
+            status = ("budget_exhausted" if overall_deadline is not None
+                      and time.monotonic() >= overall_deadline else "timeout")
 
+        log_text = stdout.text() + "\n" + stderr.text()
+        fallback = (stdout.fallback_detected or stderr.fallback_detected or
+                    bool(MTP_FALLBACK.search(log_text)))
+        layers = stdout.offload_observations + stderr.offload_observations
+        extra_fit_contexts = stdout.extra_fit_contexts + stderr.extra_fit_contexts
+        joint_fit_status = (
+            "fallback_target_only" if mode == "embedded_mtp" and fallback else
+            "combined_fit_ready" if mode == "embedded_mtp" and ready and extra_fit_contexts else
+            "unknown" if mode == "embedded_mtp" else "target_only_fit"
+        )
+        if ready and joint_fit_status not in ("fallback_target_only", "unknown"):
+            for index in range(warmup_requests + repetitions):
+                if monitor.violation.is_set() or proc.poll() is not None:
+                    raise BenchmarkError("server stopped by reserve guard or process exit")
+                item = _request(port, n_predict=n_predict, seed=seed, mode=mode,
+                                prompt=prompt, deadline=deadline)
+                item["warmup"] = index < warmup_requests
+                item["request_index"] = index
+                requests.append(item)
+    except Exception as error:
+        request_errors.append(str(error))
+        error_text = str(error).lower()
+        status = ("budget_exhausted" if "time budget" in error_text else
+                  "timeout" if "timed out" in error_text or "timeout" in error_text else
+                  "benchmark_failed")
+    finally:
+        stop_owned_tree(proc)
+        memory = monitor.stop_and_report()
+    status_code = proc.returncode
     log_text = stdout.text() + "\n" + stderr.text()
-    fallback = (stdout.fallback_detected or stderr.fallback_detected or
+    fallback = (fallback or stdout.fallback_detected or stderr.fallback_detected or
                 bool(MTP_FALLBACK.search(log_text)))
-    layers = (stdout.offload_observations + stderr.offload_observations)
+    layers = stdout.offload_observations + stderr.offload_observations
     extra_fit_contexts = stdout.extra_fit_contexts + stderr.extra_fit_contexts
+    observed_layer_pairs = {(item["offloaded_layers"], item["total_layers"])
+                            for item in layers}
+    if len(observed_layer_pairs) > 1:
+        layers = []
     joint_fit_status = (
         "fallback_target_only" if mode == "embedded_mtp" and fallback else
         "combined_fit_ready" if mode == "embedded_mtp" and ready and extra_fit_contexts else
         "unknown" if mode == "embedded_mtp" else "target_only_fit"
     )
-    requests = []
-    request_errors = []
-    if ready and joint_fit_status not in ("fallback_target_only", "unknown"):
-        try:
-            for index in range(warmup_requests + repetitions):
-                if monitor.violation.is_set() or proc.poll() is not None:
-                    raise BenchmarkError("server stopped by reserve guard or process exit")
-                item = _request(port, n_predict=n_predict, seed=seed)
-                item["warmup"] = index < warmup_requests
-                item["request_index"] = index
-                requests.append(item)
-        except (BenchmarkError, OSError) as error:
-            request_errors.append(str(error))
-            status = "benchmark_failed"
-    stop_owned_tree(proc)
-    memory = monitor.stop_and_report()
-    status_code = proc.returncode
-    log_text = stdout.text() + "\n" + stderr.text()
-    fallback = (fallback or stdout.fallback_detected or stderr.fallback_detected or
-                bool(MTP_FALLBACK.search(log_text)))
+    if mode == "embedded_mtp" and ready and joint_fit_status == "unknown" and status == "ready":
+        status = "combined_fit_unverified"
     if mode == "embedded_mtp" and fallback:
         joint_fit_status = "fallback_target_only"
         status = "combined_fit_rejected"
@@ -404,13 +553,19 @@ def _run_scenario(argv, *, mode, port, timeout_seconds, repetitions,
         status = "completed"
     return {
         "mode": mode,
+        "requested_draft_n_max": requested_draft_n_max,
+        "effective_draft_n_max": None,
+        "effective_draft_n_status": "unknown",
         "status": status,
         "joint_fit_status": joint_fit_status,
         "extra_model_fallback_detected": fallback,
         "effective_gpu_layers_observed": layers[-1]["offloaded_layers"] if layers else None,
         "effective_gpu_layers_total_observed": layers[-1]["total_layers"] if layers else None,
         "effective_gpu_layers_evidence": layers[-1]["line"] if layers else None,
-        "effective_gpu_layers_observation_status": "observed" if layers else "unknown",
+        "placement_evidence": (stdout.placement_evidence + stderr.placement_evidence)[-256:],
+        "effective_gpu_layers_observation_status": (
+            "inconsistent" if len(observed_layer_pairs) > 1 else
+            "observed" if layers else "unknown"),
         "joint_fit_extra_model_contexts_observed": extra_fit_contexts,
         "server_logs_truncated": stdout.truncated or stderr.truncated,
         "started_at_utc": started_utc,
@@ -423,14 +578,18 @@ def _run_scenario(argv, *, mode, port, timeout_seconds, repetitions,
             "device_before": before_gpu,
             **memory,
         },
-        "server_log_excerpt": log_text[-MAX_STDIO_BYTES:],
+        "server_log_excerpt": log_text[-MAX_LOG_EXCERPT_BYTES:],
     }
 
 
 def _summarize_scenario(scenario):
     rows = [row for row in scenario.get("requests", []) if not row.get("warmup")]
-    drafted = sum(int(row.get("drafted_tokens") or 0) for row in rows)
-    accepted = sum(int(row.get("accepted_tokens") or 0) for row in rows)
+    draft_counters_known = all(
+        type(row.get("drafted_tokens")) is int and row["drafted_tokens"] >= 0
+        and type(row.get("accepted_tokens")) is int and row["accepted_tokens"] >= 0
+        and row["accepted_tokens"] <= row["drafted_tokens"] for row in rows)
+    drafted = sum(row["drafted_tokens"] for row in rows) if draft_counters_known else None
+    accepted = sum(row["accepted_tokens"] for row in rows) if draft_counters_known else None
     return {
         "measurement_count": len(rows),
         "latency_ms": _summary([row["latency_ms"] for row in rows]),
@@ -447,22 +606,38 @@ def _summarize_scenario(scenario):
     }
 
 
-def _effective_gpu_layers_match(off_layers, mtp_layers):
+def _effective_gpu_layers_match(off_layers, mtp_layers,
+                                off_total=None, mtp_total=None):
     """Return None unless both effective layer counts were actually observed."""
-    if not isinstance(off_layers, int) or not isinstance(mtp_layers, int):
+    if (type(off_layers) is not int or type(mtp_layers) is not int
+            or off_layers < 0 or mtp_layers < 0):
         return None
+    if (off_total is None) != (mtp_total is None):
+        return None
+    if off_total is not None:
+        if (type(off_total) is not int or type(mtp_total) is not int
+                or off_total <= 0 or mtp_total <= 0):
+            return None
+        return off_layers == mtp_layers and off_total == mtp_total
     return off_layers == mtp_layers
 
 
 def build_plan(*, model_path, binary=None, context=4096, device="Vulkan0",
-               gpu_layers=16, fit_target_mib=1024, host_reserve_mib=4096,
+               gpu_layers=16, n_cpu_ffn=None, cache_type_k="f16", cache_type_v="f16",
+               fit_target_mib=512, host_reserve_mib=4096,
                batch_size=512, ubatch_size=128, draft_n_max=4,
                repetitions=5, warmup_requests=1, n_predict=128, seed=42,
-               timeout_seconds=1800):
+               timeout_seconds=1800, max_run_seconds=3600,
+               workload_id="city_planning", mode_order="off_first"):
     if not (128 <= context <= 262144):
         raise BenchmarkError("context must be between 128 and 262144")
-    if not (0 <= gpu_layers <= 4096) or gpu_layers == 0:
-        raise BenchmarkError("GPU benchmark requires an explicit layer count in [1, 4096]")
+    if gpu_layers != "all" and (type(gpu_layers) is not int or not 1 <= gpu_layers <= 4096):
+        raise BenchmarkError("GPU layers must be 'all' or an integer in [1, 4096]")
+    if n_cpu_ffn is not None and (type(n_cpu_ffn) is not int or not 0 <= n_cpu_ffn <= 4096):
+        raise BenchmarkError("CPU FFN layer count must be an integer in [0, 4096]")
+    cache_types = {"f32", "f16", "bf16", "q8_0", "q4_0", "q4_1", "iq4_nl", "q5_0", "q5_1"}
+    if cache_type_k not in cache_types or cache_type_v not in cache_types:
+        raise BenchmarkError("unsupported KV cache type")
     if not (1 <= fit_target_mib <= 2**20 and 0 <= host_reserve_mib <= 2**20):
         raise BenchmarkError("memory reserves must be between 0 and 1048576 MiB")
     if not (1 <= repetitions <= 30 and 0 <= warmup_requests <= 3):
@@ -471,6 +646,16 @@ def build_plan(*, model_path, binary=None, context=4096, device="Vulkan0",
         raise BenchmarkError("generation length or requested draft maximum is out of bounds")
     if not (1 <= timeout_seconds <= 1800):
         raise BenchmarkError("timeout must be in [1, 1800] seconds")
+    if not (1 <= max_run_seconds <= 21600):
+        raise BenchmarkError("max run time must be in [1, 21600] seconds")
+    if workload_id not in WORKLOADS and workload_id != "city_planning":
+        raise BenchmarkError("unknown workload: " + str(workload_id))
+    if mode_order not in ("off_first", "mtp_first"):
+        raise BenchmarkError("mode order must be off_first or mtp_first")
+    workload = (WORKLOADS[workload_id] if workload_id in WORKLOADS else {
+        "description": "Legacy fixed synthetic city-planning prompt", "prompt": PROMPT,
+    })
+    prompt = workload["prompt"]
     model = Path(model_path).expanduser().resolve(strict=True)
     observed = inspect(model)
     if observed["split"]["multiple_parts_reported"]:
@@ -486,7 +671,9 @@ def build_plan(*, model_path, binary=None, context=4096, device="Vulkan0",
     required = ("--model", "--ctx-size", "--parallel", "--fit", "--fit-target",
                 "--spec-type", "--spec-draft-n-max", "--gpu-layers", "--device",
                 "--no-ui", "--host", "--port", "--batch-size", "--ubatch-size",
-                "--verbosity")
+                "--verbosity", "--cache-type-k", "--cache-type-v", "--kv-offload")
+    if n_cpu_ffn is not None:
+        required += ("--n-cpu-ffn",)
     missing = [flag for flag in required if flag not in help_text]
     if missing:
         raise BenchmarkError("serve Help lacks required flags: " + ", ".join(missing))
@@ -496,10 +683,12 @@ def build_plan(*, model_path, binary=None, context=4096, device="Vulkan0",
     if not re.search(r"(?m)^\s*" + re.escape(device) + r"\s*:", device_text):
         raise BenchmarkError("requested device is absent from a fresh --list-devices result")
     port = _port()
-    prompt_sha = hashlib.sha256(PROMPT.encode("utf-8")).hexdigest()
+    prompt_sha = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
     common = [
         "--offline", "--model", str(model), "--ctx-size", str(context),
         "--parallel", "1", "--device", device, "--gpu-layers", str(gpu_layers),
+        "--cache-type-k", cache_type_k, "--cache-type-v", cache_type_v,
+        "--kv-offload",
         "--batch-size", str(batch_size), "--ubatch-size", str(ubatch_size),
         "--fit", "on", "--fit-target", str(fit_target_mib),
         "--no-ui", "--host", "127.0.0.1", "--port", str(port),
@@ -507,11 +696,16 @@ def build_plan(*, model_path, binary=None, context=4096, device="Vulkan0",
         # evidence only at trace/debug verbosity. Capture remains memory-bounded.
         "--verbosity", "5",
     ]
-    variants = []
-    for mode, spec, extra in (
+    if n_cpu_ffn is not None:
+        common.extend(["--n-cpu-ffn", str(n_cpu_ffn)])
+    variant_specs = [
         ("off", "none", []),
         ("embedded_mtp", "draft-mtp", ["--spec-draft-n-max", str(draft_n_max)]),
-    ):
+    ]
+    if mode_order == "mtp_first":
+        variant_specs.reverse()
+    variants = []
+    for mode, spec, extra in variant_specs:
         argv = command_prefix(entry) + common + ["--spec-type", spec, *extra]
         redacted = ["<llama-executable>" if item == str(engine) else
                     "<model>" if item == str(model) else item for item in argv]
@@ -530,15 +724,20 @@ def build_plan(*, model_path, binary=None, context=4096, device="Vulkan0",
                   "sha256": sha256_file(model)},
         "configuration": {
             "context_tokens": context, "concurrency": 1, "device_id": device,
-            "gpu_layers": gpu_layers, "batch_size": batch_size,
+            "gpu_layers": gpu_layers, "n_cpu_ffn": n_cpu_ffn,
+            "cache_type_k": cache_type_k,
+            "cache_type_v": cache_type_v, "kv_offload": True,
+            "batch_size": batch_size,
             "ubatch_size": ubatch_size, "fit": "on",
             "device_fit_target_mib": fit_target_mib,
             "host_reserve_mib": host_reserve_mib,
             "draft_n_max": draft_n_max,
+            "mode_order": mode_order,
         },
         "workload": {
-            "kind": "synthetic_fixed_completion", "prompt_sha256": prompt_sha,
-            "prompt": PROMPT, "sampling": {"temperature": 0, "top_k": 1,
+            "kind": "synthetic_fixed_completion", "workload_id": workload_id,
+            "description": workload["description"], "prompt_sha256": prompt_sha,
+            "sampling": {"temperature": 0, "top_k": 1,
                                              "seed": seed, "cache_prompt": False},
             "n_predict": n_predict, "warmup_requests": warmup_requests,
             "repetitions_per_mode": repetitions,
@@ -558,12 +757,14 @@ def build_plan(*, model_path, binary=None, context=4096, device="Vulkan0",
         "_binary": str(engine),
         "_model_path": str(model),
         "_timeout_seconds": timeout_seconds,
+        "_max_run_seconds": max_run_seconds,
         "_repetitions": repetitions,
         "_warmups": warmup_requests,
         "_n_predict": n_predict,
         "_seed": seed,
         "_host_reserve_mib": host_reserve_mib,
         "_device_reserve_mib": fit_target_mib,
+        "_prompt": prompt,
     }
 
 
@@ -572,16 +773,24 @@ def execute_plan(plan):
         raise BenchmarkError("only a prepared benchmark can execute")
     binary = Path(plan["_binary"])
     model = Path(plan["_model_path"])
-    if sha256_file(binary) != plan["engine_sha256"]:
-        raise BenchmarkError("engine changed since benchmark plan was prepared")
-    if model.stat().st_size != plan["model"]["file_size_bytes"]:
-        raise BenchmarkError("model size changed since benchmark plan was prepared")
-    if sha256_file(model) != plan["model"]["sha256"]:
-        raise BenchmarkError("model content changed since benchmark plan was prepared")
     plan["status"] = "running"
     overall_started = time.monotonic()
+    overall_deadline = overall_started + plan["_max_run_seconds"]
     runs = []
     for variant in plan["_variants"]:
+        if (sha256_file(binary) != plan["engine_sha256"]
+                or sha256_file(model) != plan["model"]["sha256"]):
+            runs.append({
+                "mode": variant["mode"], "status": "input_identity_changed",
+                "requested_draft_n_max": (plan["configuration"]["draft_n_max"]
+                                           if variant["mode"] == "embedded_mtp" else None),
+                "requests": [], "summary": _summarize_scenario({"requests": []}),
+            })
+            break
+        if time.monotonic() >= overall_deadline:
+            runs.append({"mode": variant["mode"], "status": "budget_exhausted",
+                         "requests": [], "summary": _summarize_scenario({"requests": []})})
+            break
         run = _run_scenario(
             variant["argv"], mode=variant["mode"], port=variant["port"],
             timeout_seconds=plan["_timeout_seconds"],
@@ -589,22 +798,35 @@ def execute_plan(plan):
             n_predict=plan["_n_predict"], seed=plan["_seed"],
             host_reserve_mib=plan["_host_reserve_mib"],
             device_reserve_mib=plan["_device_reserve_mib"],
+            prompt=plan["_prompt"], overall_deadline=overall_deadline,
+            requested_draft_n_max=(plan["configuration"]["draft_n_max"]
+                                   if variant["mode"] == "embedded_mtp" else None),
         )
         run["summary"] = _summarize_scenario(run)
         runs.append(run)
     plan["runs"] = runs
-    off, mtp = runs
+    runs_by_mode = {run["mode"]: run for run in runs}
+    off = runs_by_mode.get("off", {"summary": _summarize_scenario({"requests": []})})
+    mtp = runs_by_mode.get("embedded_mtp", {
+        "status": "not_run", "summary": _summarize_scenario({"requests": []})})
     layer_match = _effective_gpu_layers_match(
         off.get("effective_gpu_layers_observed"),
         mtp.get("effective_gpu_layers_observed"),
+        off.get("effective_gpu_layers_total_observed"),
+        mtp.get("effective_gpu_layers_total_observed"),
     )
     equal_layers = layer_match is True
-    runs_ok = all(run["status"] == "completed" for run in runs)
+    runs_ok = (len(runs) == 2 and
+               all(run["status"] == "completed" for run in runs))
     memory_ok = all(run.get("memory", {}).get("device_reserve_status") == "observed"
                     for run in runs)
     fit_ok = mtp.get("joint_fit_status") == "combined_fit_ready"
     limitation = None
-    if layer_match is None:
+    if any(run.get("status") == "input_identity_changed" for run in runs):
+        limitation = "engine_or_model_identity_changed_before_launch"
+    elif any(run.get("status") == "budget_exhausted" for run in runs):
+        limitation = "overall_run_time_budget_exhausted"
+    elif layer_match is None:
         limitation = "effective_gpu_layers_unobserved; requested values match but the comparison is not certified fair"
     elif layer_match is False:
         limitation = "effective_gpu_layers_differ; the comparison is not certified fair"
@@ -648,8 +870,11 @@ def main():
     parser.add_argument("--binary", type=Path)
     parser.add_argument("--context", type=int, default=4096)
     parser.add_argument("--device", default="Vulkan0")
-    parser.add_argument("--gpu-layers", type=int, default=16)
-    parser.add_argument("--fit-target-mib", type=int, default=1024)
+    parser.add_argument("--gpu-layers", default="16",
+                        help="GPU layer count or 'all'")
+    parser.add_argument("--cache-type-k", default="f16")
+    parser.add_argument("--cache-type-v", default="f16")
+    parser.add_argument("--fit-target-mib", type=int, default=512)
     parser.add_argument("--host-reserve-mib", type=int, default=4096)
     parser.add_argument("--batch-size", type=int, default=512)
     parser.add_argument("--ubatch-size", type=int, default=128)
@@ -659,6 +884,12 @@ def main():
     parser.add_argument("--n-predict", type=int, default=128)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--timeout", type=int, default=1800)
+    parser.add_argument("--max-run-seconds", type=int, default=3600,
+                        help="Hard wall-clock budget for the complete off/MTP comparison")
+    parser.add_argument("--workload", choices=("city_planning", *WORKLOADS),
+                        default="city_planning")
+    parser.add_argument("--mode-order", choices=("off_first", "mtp_first"),
+                        default="off_first")
     parser.add_argument("--execute", action="store_true",
                         help="Explicitly load both model modes and run the HTTP benchmark")
     parser.add_argument("--output", type=Path)
@@ -668,13 +899,17 @@ def main():
     try:
         plan = build_plan(
             model_path=args.model, binary=args.binary, context=args.context,
-            device=args.device, gpu_layers=args.gpu_layers,
+            device=args.device,
+            gpu_layers=(args.gpu_layers if args.gpu_layers == "all" else int(args.gpu_layers)),
+            cache_type_k=args.cache_type_k, cache_type_v=args.cache_type_v,
             fit_target_mib=args.fit_target_mib,
             host_reserve_mib=args.host_reserve_mib,
             batch_size=args.batch_size, ubatch_size=args.ubatch_size,
             draft_n_max=args.draft_n_max, repetitions=args.repetitions,
             warmup_requests=args.warmup_requests, n_predict=args.n_predict,
             seed=args.seed, timeout_seconds=args.timeout,
+            max_run_seconds=args.max_run_seconds, workload_id=args.workload,
+            mode_order=args.mode_order,
         )
         if args.execute:
             plan = execute_plan(plan)

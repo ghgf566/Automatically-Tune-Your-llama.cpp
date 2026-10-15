@@ -75,7 +75,7 @@ Benchmark Adapter（llama-bench 與未來 server workload）
 
 ## Speculative Decoding 的結構化調校路線
 
-Profile 可透過 `speculative_search` 引用共用 Speculative Schema，描述 MTP 開關／模式、`draft_n_max_candidates`、外掛 Draft 識別與獨立 Draft Placement。`plan_speculative_search.py` 目前僅產生有限候選與未驗證證據狀態；尚未執行任何 MTP。將來同一份 Result Schema 的 `speculative_observation` 記錄 Requested vs Effective N、接受率、吞吐、TTFT、尾延遲與記憶體，避免將數據直接混入未經驗證的參數字典。詳見 [調校變數的相依圖與階段規劃](../specification/tuning-roadmap.md)。
+Profile 可透過 `speculative_search` 引用共用 Speculative Schema，描述 MTP 模式、`draft_n_max_candidates`、外掛 Draft 識別與 Draft Placement。`plan_speculative_search.py` 僅產生非執行候選；`run_feasibility.py` 和 `run_speculative_benchmark.py` 則在明確 `--execute` 後執行受控載入與 off/MTP 測量。`run_speculative_sweep.py` 以每個 workload/N 的 off baseline 展開有限 sweep。Run Record 保留 requested/effective N 分離；目前 sweep 的 effective N 仍是 unknown，且不自動選擇或套用 winner。詳見[路線圖](../specification/tuning-roadmap.md)與[MTP 研究](mtp-speculative-search.md)。
 
 ## 尚未決策
 
