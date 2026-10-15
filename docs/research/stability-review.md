@@ -1,5 +1,7 @@
 # Stability hardening and cross-platform test status
 
+> Historical snapshot of the stability-refactor round. Later work added opt-in model loading, off/MTP benchmarking, and a bounded Draft N sweep; current status is tracked in the [roadmap](../specification/tuning-roadmap.md).
+
 This round is deliberately a reliability refactor: **no new model-load or benchmark worker was introduced**.
 
 ## What is now enforced
@@ -29,7 +31,7 @@ python tools/fit_estimate.py --model "D:\AIModels\Author\Repo\model.gguf" `
 
 ## Remaining work
 
-- No real model loading, inference quality or throughput/latency verification yet.
+- At the time of this refactor snapshot, no real model loading, inference quality, or throughput/latency verification had been performed. Later single-run and sweep evidence is tracked in the [MTP research report](mtp-speculative-search.md).
 - ATYL-owned child-tree cleanup is implemented and platform-tested, but stronger Windows Job Object ownership, detached services and end-to-end GUI cancellation remain future work.
 - No full multisplit GGUF or mmproj bundle identification; the fast fingerprint covers one selected GGUF.
 - The pinned 302-row registry stays separate from detected runtime Help; actual support must be tested per build and backend.

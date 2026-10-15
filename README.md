@@ -2,7 +2,7 @@
 
 ATYL 研究如何根據使用者的硬體、模型、服務負載與目標，自動找出合適的 llama.cpp 執行參數。
 
-目前是**規格化與受控 CLI 原型**階段：已有 Runtime 探測、GGUF Metadata 檢查、單候選記憶體估算、記憶體輸出解析、環境比較、target/draft 配對預檢及明確 `--execute` 閘門的本機模型載入可行性檢查；尚無 GUI、完整 Tuner、Benchmark Runner 或可靠的 draft-aware 峰值記憶體估算。
+目前是**規格化與受控 CLI 原型**階段：已有 Runtime 探測、GGUF Metadata 檢查、單候選記憶體估算、target/draft 配對預檢、本機載入檢查，以及需明確 `--execute` 的 off/MTP Server 基準測試。有限 Draft N sweep 會逐一比較三種合成 workload 與每個 N 的獨立 off 基線；MoE sweep 則可比較 CPU 專家權重搭配 GPU 專家快取及 KV cache 型別。尚無自動搜尋最佳參數的完整 Tuner 或 GUI；GPU 記憶體仍以系統層級觀測為主，WDDM 下程序 VRAM 歸因可能未知。
 
 ## 官方 llama.cpp 安裝與執行入口
 
@@ -54,11 +54,15 @@ python tools/probe_runtime.py --command fit-params --output fit-capability.json
 
 ## 共用搜尋空間：MTP／Draft N 已納入契約
 
-已新增 `schemas/speculative-search.schema.json`、`tools/plan_speculative_search.py` 和可選的 Profile／Result 專用欄位。現在用 **完整 Workload Profile**（`--profile`）即可不載入模型預覽 `off`、內建／外掛 MTP 的 Draft N 候選（例如 1、2、4、8），並保留欠缺的相容性證據；沒有任何 MTP 自動執行或效能宣稱。搜尋與結果格式集中在一處，每筆候選都有 SHA-256 `candidate_id`，量測後需能由 Run Record 追溯；缺乏完整模型雜湊紀錄時，MTP 仍保持不可執行及待驗證。避免未來 UI、Runner 和 Benchmark 各自設計欄位。詳見 [變數與實作路線圖](docs/specification/tuning-roadmap.md)。
+已新增 `schemas/speculative-search.schema.json`、`tools/plan_speculative_search.py` 和可選的 Profile／Result 專用欄位。完整 Profile 預覽仍是非執行流程；真實模型測量由獨立的 `tools/run_speculative_benchmark.py`／`tools/run_speculative_sweep.py` 提供，必須明確加上 `--execute`。Runner 目前不會自動選出最佳值，也不會把 benchmark 數字寫成普遍效能宣稱。詳見 [MTP 研究與執行限制](docs/research/mtp-speculative-search.md) 及[路線圖](docs/specification/tuning-roadmap.md)。
 
 ## 未來調校變數：MTP／Speculative Decoding
 
-已將內建 NextN/MTP Head、外掛 MTP Head 和一般 Draft Model 分為不同候選，GGUF Inspector 現可唯讀擷取 `{arch}.nextn_predict_layers` 與 tokenizer metadata 摘要。`tools/verify_model_pair.py` 可重驗 target/draft 完整 SHA、單檔 GGUF、架構與 tokenizer metadata；**通過仍不代表引擎相容或模型可載入**。`tools/run_speculative_benchmark.py` 可使用 server `--fit on` 跑固定 workload 的 `off`／內嵌 MTP 測量、監看 RAM/VRAM reserve，並記錄程序 Working Set 峰值。Windows WDDM 下程序 VRAM 歸因可能未知；若引擎日誌也沒有實際 GPU layer 數，結果會標為不可認證可比。詳細規格與實測限制見 [MTP／Speculative Decoding](docs/research/mtp-speculative-search.md)。
+已將內建 NextN/MTP Head、外掛 MTP Head 和一般 Draft Model 分為不同候選，GGUF Inspector 現可唯讀擷取 `{arch}.nextn_predict_layers` 與 tokenizer metadata 摘要。`tools/verify_model_pair.py` 可重驗 target/draft 完整 SHA、單檔 GGUF、架構與 tokenizer metadata；**通過仍不代表引擎相容或模型可載入**。`tools/run_speculative_benchmark.py` 可使用 server `--fit on` 跑固定 workload 的 `off`／內嵌 MTP 測量；`tools/run_speculative_sweep.py` 可對有界 Draft N 與三種合成 workload 執行成對比較。兩者都必須明確加 `--execute` 才會載入模型；會監看資源 reserve 和記錄實際 GPU layer 數。Windows WDDM 下程序 VRAM 歸因可能未知；證據不足的比較會標成不可比。詳見 [MTP／Speculative Decoding](docs/research/mtp-speculative-search.md)。
+
+## MoE 專家快取與 KV cache 探索
+
+`tools/run_moe_cache_sweep.py` 可比較 CPU MoE 專家權重搭配不同大小 GPU 專家快取，並固定一般 GPU layer 數、K/V cache 型別、context 與 workload。預設計畫包含 0 MiB 基線；只有明確加入 `--execute` 才會載入模型及送出請求。候選執行順序依 seed 可重現地打亂並記錄，以減少固定先後順序的偏差。Qwen3.6-35B-A3B 本機實測已確認 `--cpu-moe`、`--moe-cache-mib` 和 Q4_0 K/V 可一起使用；這個模型沒有 `nextn_predict_layers`，因此不適用內嵌 MTP Draft N sweep。首輪量測只作探索，不能視為最佳設定。詳見 [MoE cache 與 benchmark 方法](docs/research/benchmark-methodology.md) 和[路線圖](docs/specification/tuning-roadmap.md)。
 
 ## 模型載入可行性檢查（預設不執行）
 
@@ -109,4 +113,4 @@ python tools/inspect_gguf.py --model "D:\AIModels\Author\Repository\model.gguf" 
 
 ## 狀態
 
-核心資料探測與受控估算已形成 CLI 研究原型，使用者先前已在 Windows Vulkan 設備驗證單一記憶體估算；但自動調參、實際模型載入驗證及正式 Benchmark Runner 仍未完成。
+核心資料探測、受控載入與受控 off/MTP 基準測試已形成 CLI 研究原型。本機 CUDA build 11624 已完成 Qwen3.8-27B 的 9 組 Draft N（1/2/4）× workload（short prompt、long prompt、code generation）成對 sweep，GPU 全部 66 層、CPU 放置 FFN、Q4_0 KV；全部比較可比，細節見 [MTP 研究與 sweep 結果](docs/research/mtp-speculative-search.md)。後續實驗的 GPU Fit target／free-VRAM reserve 預設為 512 MiB。完整自動調參、GUI、外掛 draft 配對執行與程序 VRAM 峰值仍未完成。

@@ -47,14 +47,24 @@ README 所述三種測試是 prompt processing (`pp`)、text generation (`tg`) �
 
 機器規格、模型路徑或原始流量可能敏感；分享報告前應允許遮蔽路徑與請求內容，但不應丟掉用於重現的非敏感識別資訊。
 
-## Background-load controls (planned benchmark relevance)
+## Background-load controls
 
-The opt-in fit-estimate stage captures declared `daily` and `reduced_background` environments plus pre/post headroom. These snapshots are **not benchmark measurements**, do not record peak memory, and are not sufficient to attribute changes to Wallpaper Engine or any other process. Subsequent throughput benchmarks should separately control warm-up, memory pressure, thermal conditions, OS page cache and repetitive trials.
+The opt-in fit-estimate stage captures declared `daily` and `reduced_background` environments plus pre/post headroom. These snapshots are **not benchmark measurements**, do not record peak memory, and are not sufficient to attribute changes to Wallpaper Engine or any other process. The current speculative runner controls warm-up and repetitions for fixed local prompts; it does not isolate OS page cache, thermal/power state, or background processes. Treat those as limitations when interpreting the numbers.
 
 ## MTP／Speculative Decoding 的量測邊界
 
-完整 generation 基準應以 `spec_mode=off` 對照 `embedded_mtp` 與已驗證的 `external_mtp`，保持 target model、Context、取樣契約、併發與測試文本一致；在公平容量比較中保留 Draft 的額外 RAM/VRAM 消耗。記錄 drafted/accepted token 數、實際接受率、純 generation throughput、TTFT、p50/p95 延遲及端到端效能。草稿若拖慢生成就不要列為最佳候選。`llama-bench` 核心測試不一定覆蓋完整伺服器 speculative 路徑，因此須獨立以 Server/CLI 實際工作負載驗證。參考 [MTP 條件式候選研究](mtp-speculative-search.md)。
+完整 generation 基準以 `spec_mode=off` 對照 `embedded_mtp` 與經驗證的 `external_mtp`，保持 target model、Context、取樣契約、併發與測試文本一致；公平容量比較須保留 Draft 額外 RAM/VRAM 消耗。現有 runner 記錄 drafted/accepted token 數、接受率、decode throughput、TTFT、latency 與資源觀測；新版 sweep 為每個 workload/N 配對獨立 off baseline。外掛 MTP、長上下文、併發、使用者流量與品質等價仍未驗證。`llama-bench` 核心測試不一定覆蓋完整伺服器 speculative 路徑，因此須以 Server/CLI 實際 workload 驗證。參考 [MTP 條件式候選研究](mtp-speculative-search.md)。
 
 ## Draft N 預測數量的交互效應
 
 對 MTP，不只記錄 `--spec-type`，也要固定／搜尋 `--spec-draft-n-max`：先在相同主模型、Context、Offload、Draft 放置及取樣條件下測不同 N（例如 1/2/4/8），再依有限預算細部搜尋；另外記錄引擎實際生效的 N（未知保持 `null`）。Acceptance Rate、每輪接受 Token 數、完整端到端 Tokens/s、TTFT、p95、Host/GPU 記憶體額外成本必須一併觀察，不能因 N 大就認定更快，也不能把 GGUF NextN 層數等同最大草稿長度。參見 [調校架構路線圖](../specification/tuning-roadmap.md)。
+
+## CPU MoE 權重與 GPU 專家快取實測
+
+2026-10-15 在官方整合版 CUDA build 11624（`af0579c78`）、GTX 1070 Ti 8 GiB 與 Qwen3.6-35B-A3B IQ4_XS 上完成兩輪探索。第二輪固定一般 GPU layer 16/41、CPU MoE 權重、Q4_0 K/V、context 4096、單請求、Fit 關閉、prompt RAM cache 關閉；對 0/1024/2048 MiB GPU expert cache，各跑一個 warm-up 和五次 256-token completion，seed 決定的實際順序為 0 → 2048 → 1024 MiB。平均 decode 速度分別為 **6.08、6.76、6.70 tokens/s**；相較基線增加約 **11.2%** 與 **10.3%**。中位數為 6.05、6.83、6.73 tokens/s；樣本標準差約 0.22、0.15、0.46 tokens/s（變異係數 3.6%、2.2%、6.9%）。平均 latency 約 44.74、40.26、40.52 秒。第二輪增加了生成長度與重複數，並採可重現的亂序；上一輪 3 次 128-token 結果約為 6.36、6.65、6.74 tokens/s，可作探索背景，不與第二輪合併計算。
+
+較長矩陣仍只有單一合成 prompt、單一亂序輪次，不能排除溫度、背景負載或順序交互影響；1024 與 2048 MiB 的速度分布重疊，2048 MiB 變異也較大，因此不據此選出最佳設定。需要多種 prompt、多輪反轉或平衡順序及更多重複。實際觀察到 K/V buffer 分布在 CPU 13.50 MiB 與 CUDA 9.00 MiB；16/41 層表示一般層並非全數在 GPU。log 顯示約 967 MiB 模型 buffer 在 CUDA，MoE cache 實際配置約 1023/2046 MiB，2 GiB 案例的 CPU expert 權重約 5562 MiB。shared-expert tensor 的位置沒有獨立證據。WDDM 下程序歸因 VRAM 仍未知，系統 VRAM 讀值包含其他程序。
+
+2026-10-15 後續 runner 的 GPU Fit target 與 free-VRAM reserve 預設降為 **512 MiB**，以提高可用顯存利用率；每次實驗仍須記錄實際配置並持續監看系統級 free VRAM。歷史實驗保留當時 1024 MiB reserve，不回寫或混算。
+
+Qwen3.6 GGUF 未提供正值 `nextn_predict_layers`，因此不符合本專案內嵌 MTP Draft N sweep 的候選條件。MoE 快取探索和 MTP Draft N sweep 是不同實驗軸；不得把這組 MoE 速度結果解讀為 MTP 測量。

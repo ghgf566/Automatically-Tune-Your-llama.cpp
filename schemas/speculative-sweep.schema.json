@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atyl.local/schemas/speculative-sweep.schema.json",
+  "title": "ATYL bounded speculative benchmark sweep",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "status",
+    "engine_sha256",
+    "engine_version_excerpt",
+    "engine_commit",
+    "model",
+    "configuration",
+    "sweep",
+    "cases",
+    "summary",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1.0"},
+    "kind": {"const": "speculative_bounded_sweep"},
+    "status": {
+      "enum": [
+        "prepared_not_executed",
+        "running",
+        "completed",
+        "incomplete_or_not_comparable"
+      ]
+    },
+    "engine_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "engine_version_excerpt": {"type": "string", "maxLength": 500},
+    "engine_commit": {"type": ["string", "null"]},
+    "model": {
+      "type": "object",
+      "required": ["filename", "file_size_bytes", "architecture", "nextn_predict_layers", "sha256"],
+      "properties": {
+        "filename": {"type": "string", "minLength": 1},
+        "file_size_bytes": {"type": "integer", "minimum": 1},
+        "architecture": {"type": "string", "minLength": 1},
+        "nextn_predict_layers": {"type": "integer", "minimum": 1},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "configuration": {
+      "type": "object",
+      "required": [
+        "context_tokens", "concurrency", "device_id", "gpu_layers", "n_cpu_ffn",
+        "cache_type_k", "cache_type_v", "kv_offload", "batch_size",
+        "ubatch_size", "fit", "device_fit_target_mib", "host_reserve_mib"
+      ],
+      "properties": {
+        "context_tokens": {"type": "integer", "minimum": 128},
+        "concurrency": {"const": 1},
+        "device_id": {"type": "string", "minLength": 1},
+        "gpu_layers": {"oneOf": [
+          {"type": "integer", "minimum": 1},
+          {"const": "all"}
+        ]},
+        "n_cpu_ffn": {"type": ["integer", "null"], "minimum": 0, "maximum": 4096},
+        "cache_type_k": {"enum": ["f32", "f16", "bf16", "q8_0", "q4_0", "q4_1", "iq4_nl", "q5_0", "q5_1"]},
+        "cache_type_v": {"enum": ["f32", "f16", "bf16", "q8_0", "q4_0", "q4_1", "iq4_nl", "q5_0", "q5_1"]},
+        "kv_offload": {"const": true},
+        "batch_size": {"type": "integer", "minimum": 1},
+        "ubatch_size": {"type": "integer", "minimum": 1},
+        "fit": {"const": "on"},
+        "device_fit_target_mib": {"type": "integer", "minimum": 1},
+        "host_reserve_mib": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "sweep": {
+      "type": "object",
+      "required": [
+        "requested_draft_n_max_candidates", "workloads", "comparison_count",
+        "repetitions_per_mode", "warmup_requests_per_mode",
+        "per_comparison_timeout_seconds", "total_timeout_seconds", "pairing", "order_policy"
+      ],
+      "properties": {
+        "requested_draft_n_max_candidates": {
+          "type": "array", "minItems": 1, "maxItems": 4,
+          "items": {"type": "integer", "minimum": 1, "maximum": 64},
+          "uniqueItems": true
+        },
+        "workloads": {
+          "type": "array", "minItems": 1, "maxItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["workload_id", "description", "prompt_sha256"],
+            "properties": {
+              "workload_id": {"enum": ["short_prompt", "long_prompt", "code_generation"]},
+              "description": {"type": "string", "minLength": 1},
+              "prompt_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+            },
+            "additionalProperties": false
+          },
+          "uniqueItems": true
+        },
+        "comparison_count": {"type": "integer", "minimum": 1, "maximum": 12},
+        "repetitions_per_mode": {"type": "integer", "minimum": 1, "maximum": 30},
+        "warmup_requests_per_mode": {"type": "integer", "minimum": 0, "maximum": 3},
+        "per_comparison_timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 21600},
+        "total_timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 21600},
+        "pairing": {"type": "string", "minLength": 1},
+        "order_policy": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": [
+          "case_id", "workload_id", "requested_draft_n_max", "mode_order",
+          "status", "comparison_status", "benchmark"
+        ],
+        "properties": {
+          "case_id": {"type": "string", "minLength": 1},
+          "workload_id": {"enum": ["short_prompt", "long_prompt", "code_generation"]},
+          "requested_draft_n_max": {"type": "integer", "minimum": 1, "maximum": 64},
+          "mode_order": {"enum": ["off_first", "mtp_first"]},
+          "status": {
+            "enum": [
+              "prepared_not_executed", "running", "completed",
+              "incomplete_or_not_comparable", "budget_exhausted", "not_run", "runner_error"
+            ]
+          },
+          "comparison_status": {
+            "type": ["string", "null"],
+            "enum": [
+              null, "comparable", "incomplete_or_not_comparable", "not_run",
+              "execution_failed", "memory_reserve_exceeded", "input_identity_changed",
+              "case_execution_failed", "total_time_budget_exhausted"
+            ]
+          },
+          "error": {"type": "string"},
+          "benchmark": {"type": "object"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "summary": {
+      "type": ["object", "null"],
+      "properties": {
+        "comparison_count": {"type": "integer", "minimum": 1, "maximum": 12},
+        "completed_comparable_count": {"type": "integer", "minimum": 0, "maximum": 12},
+        "incomplete_or_not_comparable_count": {"type": "integer", "minimum": 0, "maximum": 12},
+        "stop_reason": {"type": ["string", "null"]},
+        "elapsed_seconds": {"type": "number", "minimum": 0},
+        "winner_selection": {"type": "string"}
+      },
+      "required": [
+        "comparison_count", "completed_comparable_count",
+        "incomplete_or_not_comparable_count", "stop_reason",
+        "elapsed_seconds", "winner_selection"
+      ],
+      "additionalProperties": false
+    },
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+  }
+}
